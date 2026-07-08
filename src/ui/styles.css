@@ -1,0 +1,240 @@
+#nytrina-overlay {
+  position: fixed;
+  top: 70px;
+  right: 16px;
+  width: 520px;
+  max-height: 88vh;
+  overflow: auto;
+  z-index: 999999;
+  background: linear-gradient(180deg, #1a130e, #100c08);
+  color: #f7ebd7;
+  border: 2px solid #b97822;
+  border-radius: 12px;
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.8);
+  font-family: Verdana, sans-serif;
+  font-size: 13px;
+}
+
+#nytrina-overlay * {
+  box-sizing: border-box;
+}
+
+#nytrina-overlay .head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: #25170d;
+  border-bottom: 1px solid #6e4518;
+}
+
+#nytrina-overlay .tabs {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  padding: 10px;
+}
+
+#nytrina-overlay .tab {
+  background: #23170d;
+  color: #d8bc91;
+  border: 1px solid #7a4c1a;
+  border-radius: 6px;
+  padding: 6px;
+  cursor: pointer;
+}
+
+#nytrina-overlay .tab.active {
+  background: #5a350f;
+  color: #ffe0ad;
+  border-color: #c9892a;
+  font-weight: bold;
+}
+
+#nytrina-overlay .panel {
+  padding: 10px;
+}
+
+#nytrina-overlay .hidden {
+  display: none;
+}
+
+#nytrina-overlay .grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+#nytrina-overlay .card {
+  background: #28190d;
+  border: 1px solid #6e4518;
+  border-radius: 7px;
+  padding: 8px;
+}
+
+#nytrina-overlay .card span {
+  display: block;
+  font-size: 11px;
+  color: #d0ad7b;
+  margin-bottom: 3px;
+}
+
+#nytrina-overlay .card b {
+  color: #fff;
+}
+
+#nytrina-overlay table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  background: #120b06;
+}
+
+#nytrina-overlay th,
+#nytrina-overlay td {
+  border: 1px solid #6f461c;
+  padding: 6px;
+  text-align: left;
+  color: #f7ead2;
+}
+
+#nytrina-overlay th {
+  background: #3a230f;
+  color: #ffe0ad;
+}
+
+#nytrina-overlay td {
+  background: #1d1209;
+}
+
+#nytrina-overlay .actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+#nytrina-overlay button {
+  background: #5a350f;
+  color: #ffe0ad;
+  border: 1px solid #c9892a;
+  border-radius: 7px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+#nytrina-overlay label {
+  display: block;
+  margin-top: 8px;
+  color: #ffd79b;
+  font-size: 12px;
+}
+
+#nytrina-overlay input,
+#nytrina-overlay select {
+  width: 100%;
+  height: 34px;
+  margin-top: 4px;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #8b5a22;
+  background: #23170d;
+  color: #f7ead2;
+}
+
+#nytrina-overlay #nytrina-scanner-troop,
+#nytrina-overlay #nytrina-setting-troop {
+  background: #f3e7d1;
+  color: #1a120a;
+  border-color: #c9a16a;
+}
+
+#nytrina-overlay #nytrina-scanner-troop option,
+#nytrina-overlay #nytrina-setting-troop option,
+#nytrina-overlay #nytrina-scanner-troop optgroup,
+#nytrina-overlay #nytrina-setting-troop optgroup {
+  background: #f3e7d1;
+  color: #1a120a;
+}
+
+#nytrina-overlay input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  margin-top: 0;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+#nytrina-overlay .check-row {
+  display: flex;
+  align-items: center;
+  color: #ffd79b;
+  margin-top: 10px;
+}
+
+#nytrina-overlay .form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+#nytrina-overlay .stack {
+  margin-top: 10px;
+}
+
+#nytrina-overlay .server-badge {
+  margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #8a5a24;
+  background: #1b120a;
+  color: #ffd79b;
+}
+
+#nytrina-overlay .server-warning {
+  display: none;
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #c9892a;
+  background: #3a230f;
+  color: #ffd26a;
+}
+
+#nytrina-overlay .server-warning.show {
+  display: block;
+}
+
+#nytrina-overlay .rank-good {
+  color: #72ff72;
+  font-weight: bold;
+}
+
+#nytrina-overlay .rank-mid {
+  color: #ffd26a;
+  font-weight: bold;
+}
+
+#nytrina-overlay .rank-bad {
+  color: #ff7d7d;
+  font-weight: bold;
+}
+
+#nytrina-overlay .debug-json {
+  white-space: pre-wrap;
+  background: #120b06;
+  border: 1px solid #6f461c;
+  border-radius: 8px;
+  padding: 8px;
+  font-family: Consolas, monospace;
+  max-height: 360px;
+  overflow: auto;
+}
+
+#nytrina-overlay input[type="checkbox"] {
+    appearance: checkbox !important;
+    -webkit-appearance: checkbox !important;
+    accent-color: #c9892a;
+    width: 16px !important;
+    height: 16px !important;
+    cursor: pointer;
+}
