@@ -68,20 +68,20 @@
         "</div>",
         '<div class="tabs">',
         '<button class="tab' + (activeTab === "scanner" ? " active" : "") + '" data-tab="scanner">Scanner</button>',
+        '<button class="tab' + (activeTab === "debug" ? " active" : "") + '" data-tab="debug" id="nytrina-debug-tab">Debug</button>',
         '<button class="tab' + (activeTab === "dashboard" ? " active" : "") + '" data-tab="dashboard">Dashboard</button>',
         '<button class="tab' + (activeTab === "ranking" ? " active" : "") + '" data-tab="ranking">Ranking</button>',
         '<button class="tab' + (activeTab === "reports" ? " active" : "") + '" data-tab="reports">Relatorios</button>',
         '<button class="tab' + (activeTab === "economy" ? " active" : "") + '" data-tab="economy">Economia</button>',
         '<button class="tab' + (activeTab === "settings" ? " active" : "") + '" data-tab="settings">Configuracoes</button>',
-        '<button class="tab' + (activeTab === "debug" ? " active" : "") + '" data-tab="debug" id="nytrina-debug-tab">Debug</button>',
         "</div>",
         '<div class="panel' + (activeTab === "scanner" ? "" : " hidden") + '" data-panel="scanner"></div>',
+        '<div class="panel' + (activeTab === "debug" ? "" : " hidden") + '" data-panel="debug"></div>',
         '<div class="panel' + (activeTab === "dashboard" ? "" : " hidden") + '" data-panel="dashboard"></div>',
         '<div class="panel' + (activeTab === "ranking" ? "" : " hidden") + '" data-panel="ranking"></div>',
         '<div class="panel' + (activeTab === "reports" ? "" : " hidden") + '" data-panel="reports"></div>',
         '<div class="panel' + (activeTab === "economy" ? "" : " hidden") + '" data-panel="economy"></div>',
         '<div class="panel' + (activeTab === "settings" ? "" : " hidden") + '" data-panel="settings"></div>',
-        '<div class="panel' + (activeTab === "debug" ? "" : " hidden") + '" data-panel="debug"></div>',
       ].join("");
     }
 
@@ -125,6 +125,49 @@
         ?.addEventListener("click", () => {
           this.titleClicks += 1;
         });
+
+      const head = this.overlay.querySelector(".head");
+      let dragging = false;
+      let offsetX = 0;
+      let offsetY = 0;
+
+      const onMove = (event) => {
+        if (!dragging) return;
+
+        const width = this.overlay.offsetWidth;
+        const height = this.overlay.offsetHeight;
+        const maxLeft = Math.max(0, global.innerWidth - width);
+        const maxTop = Math.max(0, global.innerHeight - height);
+
+        const left = Math.min(Math.max(0, event.clientX - offsetX), maxLeft);
+        const top = Math.min(Math.max(0, event.clientY - offsetY), maxTop);
+
+        this.overlay.style.left = left + "px";
+        this.overlay.style.top = top + "px";
+        this.overlay.style.right = "auto";
+      };
+
+      const stopDrag = () => {
+        if (!dragging) return;
+        dragging = false;
+        this.overlay.classList.remove("dragging");
+        global.document.removeEventListener("mousemove", onMove);
+        global.document.removeEventListener("mouseup", stopDrag);
+      };
+
+      head?.addEventListener("mousedown", (event) => {
+        const target = event.target;
+        if (target instanceof HTMLElement && target.closest("button")) return;
+
+        const rect = this.overlay.getBoundingClientRect();
+        dragging = true;
+        offsetX = event.clientX - rect.left;
+        offsetY = event.clientY - rect.top;
+        this.overlay.classList.add("dragging");
+
+        global.document.addEventListener("mousemove", onMove);
+        global.document.addEventListener("mouseup", stopDrag);
+      });
     }
 
     /**
@@ -253,6 +296,24 @@
         haeduan: "Haeduano",
       };
       return labels[key] || key.replace(/_/g, " ");
+    }
+
+    /**
+     * @param {string} value
+     * @returns {string}
+     */
+    compactTroopLabel(value) {
+      const labels = {
+        equites_caesaris: "Equites C.",
+        equites_imperatoris: "Equites I.",
+        equites_legati: "Equites L.",
+        theutates_thunder: "Theutates",
+        teutonic_knight: "Teutonic K.",
+        fire_catapult: "Catapulta",
+      };
+
+      const key = String(value || "");
+      return labels[key] || this.troopLabel(key);
     }
 
     /**
@@ -458,6 +519,14 @@
       let withoutHeroSuggestion = "-";
       let usedLearning = false;
 
+      const formatScannerXph = (value) => {
+        const number = Number(value || 0);
+        if (!Number.isFinite(number) || number <= 0) return "0";
+        if (number >= 10) return String(Math.round(number));
+        if (number >= 1) return number.toFixed(1);
+        return number.toFixed(3);
+      };
+
       if (learnedAdvice?.ok) {
         usedLearning = true;
         const learned = Math.round(Number(learnedAdvice.suggestedTroops || 0));
@@ -558,7 +627,7 @@
           (parsed?.xp || 0) +
           "</b></div>",
         '<div class="card"><span>XP/h</span><b>' +
-          Math.round(parsed?.xph || 0) +
+          formatScannerXph(parsed?.xph || 0) +
           "</b></div>",
         '<div class="card"><span>Tempo</span><b>' +
           (parsed?.time || "-") +
@@ -1183,14 +1252,9 @@
           const backup = await this.storage.exportBackup();
           const json = JSON.stringify(backup, null, 2);
           const blob = new Blob([json], { type: "application/json" });
-          const now = new Date();
-          const datePart =
-            now.getFullYear() +
-            "-" +
-            String(now.getMonth() + 1).padStart(2, "0") +
-            "-" +
-            String(now.getDate()).padStart(2, "0");
-          const fileName = "NytrinA_Backup_" + datePart + ".json";
+          const serverHost = String(root.Server.getContext().host || "servidor");
+          const safeServerHost = serverHost.replace(/[^a-zA-Z0-9.-]+/g, "_");
+          const fileName = "Exportar_" + safeServerHost + ".json";
           const url = URL.createObjectURL(blob);
           const link = document.createElement("a");
           link.href = url;
@@ -1296,13 +1360,23 @@
           "</b></div>",
         "</div>",
 
-        "<table><thead><tr>",
-        "<th>Data/Hora</th><th>Tropa</th><th>XP</th><th>Amostras</th><th>Resultado</th><th>Enviadas</th><th>Mortas</th><th>Enfermaria</th><th>Baixas</th><th>Eliminação</th><th>Próxima sugestão</th>",
+        '<div class="table-scroll">',
+        '<table class="debug-table"><thead><tr>',
+        "<th>Data/Hora</th><th>Tropa</th><th>Enviadas</th><th>Sugestão</th><th>Acerto</th><th>Baixas</th><th>% Baixas</th><th>Mortas</th><th>Enfermaria</th><th>Resultado</th><th>XP</th><th>Amostras</th>",
         "</tr></thead><tbody>",
 
         debugPageRows
           .map((row) => {
             const last = row.lastBattle || {};
+            const sent = Number(last.sent || 0);
+            const lost = Number(last.lost || 0);
+            const wounded = Number(last.wounded || 0);
+            const casualties = Number(last.casualties || 0);
+            const killRate = Number(last.killRate || 0) * 100;
+            const casualtyRate = Number(last.troopCasualtyRate || 0) * 100;
+            const suggested = Number(
+              row.estimatedSafe || last.estimatedSafe || row.minSuccess || 0,
+            );
 
             const outcomeLabels = {
               perfect: "Perfeito",
@@ -1314,33 +1388,43 @@
 
             return (
               "<tr><td>" +
-              this.formatDateTime(row.updatedAt || last.date) +
+              '<span class="debug-col-datetime">' +
+              this.formatDateTimeFull(row.updatedAt || last.date) +
+              "</span>" +
               "</td><td>" +
-              (row.troopType || "-") +
+              '<span class="debug-col-troop">' +
+              this.compactTroopLabel(row.troopType || "-") +
+              "</span>" +
+              "</td><td>" +
+              sent +
+              "</td><td>" +
+              (suggested > 0 ? suggested : "-") +
+              "</td><td>" +
+              killRate.toFixed(1) +
+              "%" +
+              "</td><td>" +
+              casualties +
+              "</td><td>" +
+              casualtyRate.toFixed(1) +
+              "%</td><td>" +
+              lost +
+              "</td><td>" +
+              wounded +
+              "</td><td>" +
+              '<span class="debug-col-result">' +
+              (outcomeLabels[row.lastOutcome] || "-") +
+              "</span>" +
               "</td><td>" +
               Math.round(row.xp || 0) +
               "</td><td>" +
               Number(row.samples || 0) +
-              "</td><td>" +
-              (outcomeLabels[row.lastOutcome] || "-") +
-              "</td><td>" +
-              Number(last.sent || 0) +
-              "</td><td>" +
-              Number(last.lost || 0) +
-              "</td><td>" +
-              Number(last.wounded || 0) +
-              "</td><td>" +
-              Number(last.casualties || 0) +
-              "</td><td>" +
-              (Number(last.killRate || 0) * 100).toFixed(1) +
-              "%</td><td>" +
-              Number(row.estimatedSafe || last.estimatedSafe || 0) +
               "</td></tr>"
             );
           })
           .join(""),
 
         "</tbody></table>",
+        "</div>",
         this.paginationControls("nytrina-debug-page", debugMeta, sortedKnowledgeRows.length),
       ].join("");
 
@@ -1380,6 +1464,23 @@
         year: "2-digit",
         hour: "2-digit",
         minute: "2-digit",
+      });
+    }
+
+    /**
+     * @param {string|number|Date|null|undefined} value
+     * @returns {string}
+     */
+    formatDateTimeFull(value) {
+      const date = new Date(value || 0);
+      if (!Number.isFinite(date.getTime())) return "-";
+      return date.toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
       });
     }
   }

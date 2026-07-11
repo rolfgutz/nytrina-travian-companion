@@ -221,6 +221,7 @@
     }
     let estimatedClear = 0;
     let estimatedSafe = 0;
+    const troopCasualtyRate = Number(report.troopCasualtyRate || 0);
 
     if (!cleared && sent > 0 && killRate > 0) {
       // Estimativa proporcional para atingir 100% de eliminação.
@@ -238,6 +239,15 @@
       }
 
       estimatedSafe = Math.ceil(estimatedClear * safetyMultiplier);
+    } else if (outcome === "cleared_with_losses" && sent > 0) {
+      estimatedClear = sent;
+
+      // Se limpou com perdas, sobe a recomendação para priorizar tentativa sem perdas.
+      const multiplier = Math.max(1.05, 1 + troopCasualtyRate * 2);
+      estimatedSafe = Math.ceil(sent * multiplier);
+    } else if (outcome === "perfect" && sent > 0) {
+      estimatedClear = sent;
+      estimatedSafe = sent;
     }
     console.log("Cleared:", cleared);
 

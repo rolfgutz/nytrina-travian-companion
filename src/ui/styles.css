@@ -3,6 +3,7 @@
   top: 70px;
   right: 16px;
   width: 520px;
+  max-width: calc(100vw - 24px);
   max-height: 88vh;
   overflow: auto;
   z-index: 999999;
@@ -26,11 +27,17 @@
   padding: 10px 12px;
   background: #25170d;
   border-bottom: 1px solid #6e4518;
+  cursor: grab;
+  user-select: none;
+}
+
+#nytrina-overlay.dragging .head {
+  cursor: grabbing;
 }
 
 #nytrina-overlay .tabs {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 4px;
   padding: 10px;
 }
@@ -154,6 +161,84 @@
 #nytrina-overlay #nytrina-setting-troop optgroup {
   background: #f3e7d1;
   color: #1a120a;
+}
+
+#nytrina-overlay,
+#nytrina-overlay [data-panel="debug"] .table-scroll,
+#nytrina-overlay .debug-json {
+  scrollbar-width: thin;
+  scrollbar-color: #b97822 #1a120a;
+}
+
+#nytrina-overlay::-webkit-scrollbar,
+#nytrina-overlay [data-panel="debug"] .table-scroll::-webkit-scrollbar,
+#nytrina-overlay .debug-json::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+#nytrina-overlay::-webkit-scrollbar-track,
+#nytrina-overlay [data-panel="debug"] .table-scroll::-webkit-scrollbar-track,
+#nytrina-overlay .debug-json::-webkit-scrollbar-track {
+  background: #1a120a;
+  border-radius: 10px;
+}
+
+#nytrina-overlay::-webkit-scrollbar-thumb,
+#nytrina-overlay [data-panel="debug"] .table-scroll::-webkit-scrollbar-thumb,
+#nytrina-overlay .debug-json::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #c9892a, #8a5318);
+  border-radius: 10px;
+  border: 2px solid #1a120a;
+}
+
+#nytrina-overlay::-webkit-scrollbar-thumb:hover,
+#nytrina-overlay [data-panel="debug"] .table-scroll::-webkit-scrollbar-thumb:hover,
+#nytrina-overlay .debug-json::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #e3a63e, #a86620);
+}
+
+#nytrina-overlay [data-panel="debug"] .table-scroll {
+  overflow: auto;
+  max-height: 52vh;
+  border: 1px solid #6f461c;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+#nytrina-overlay .debug-table {
+  table-layout: fixed;
+  min-width: 1080px;
+  margin-top: 0;
+  font-size: 12px;
+}
+
+#nytrina-overlay .debug-table th,
+#nytrina-overlay .debug-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 5px 6px;
+}
+
+#nytrina-overlay .debug-col-troop {
+  max-width: 150px;
+}
+
+#nytrina-overlay .debug-col-result {
+  max-width: 140px;
+}
+
+#nytrina-overlay .debug-table th:first-child,
+#nytrina-overlay .debug-table td:first-child {
+  white-space: normal;
+  min-width: 128px;
+}
+
+#nytrina-overlay .debug-col-datetime {
+  display: inline-block;
+  line-height: 1.2;
+  word-break: break-word;
 }
 
 #nytrina-overlay input[type='checkbox'] {

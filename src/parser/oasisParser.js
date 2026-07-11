@@ -86,14 +86,49 @@
    * @param {Element} rootElement
    * @returns {number}
    */
+  function parseDistanceValue(text) {
+    const source = String(text || '').trim();
+    if (!source) return 0;
+
+    // Captura valor logo após rótulo de distância quando possível.
+    const nearDistance = source.match(/dist[aâ]ncia\D*([+-]?\d+(?:[.,]\d+)?)/i);
+    const rawValue = nearDistance ? nearDistance[1] : source.match(/[+-]?\d+(?:[.,]\d+)?/)?.[0] || '';
+    if (!rawValue) return 0;
+
+    let parsed = Number(String(rawValue).replace(',', '.'));
+    if (!Number.isFinite(parsed) || parsed <= 0) return 0;
+
+    // Quando o parser captura texto concatenado, o número vem inflado; normaliza para faixa plausível.
+    while (parsed > 1500 && parsed >= 10) {
+      parsed /= 10;
+    }
+
+    return Number(parsed.toFixed(2));
+  }
+
+  /**
+   * @param {Element} rootElement
+   * @returns {number}
+   */
   function parseDistance(rootElement) {
-    const candidates = rootElement.querySelectorAll('td,th,span,div,b,strong');
+    const candidates = rootElement.querySelectorAll('td,th,span,b,strong');
     for (const node of candidates) {
-      const text = utils.normalizeText(node.textContent || '');
+      const raw = String(node.textContent || '').trim();
+      if (!raw || raw.length > 80) continue;
+      const text = utils.normalizeText(raw);
       if (!text.includes('distancia')) continue;
-      const number = utils.toNumber(node.textContent || '');
+      const number = parseDistanceValue(raw);
       if (number > 0) return number;
     }
+
+    for (const node of candidates) {
+      const raw = String(node.textContent || '').trim();
+      if (!raw || raw.length > 80) continue;
+      if (!/(campos?|dist)/i.test(raw)) continue;
+      const number = parseDistanceValue(raw);
+      if (number > 0) return number;
+    }
+
     return 0;
   }
 
