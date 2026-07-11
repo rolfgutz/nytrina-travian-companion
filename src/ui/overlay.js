@@ -28,6 +28,15 @@
       this.overlay.innerHTML = this.template();
       global.document.body.appendChild(this.overlay);
       this.bindEvents();
+      const minimized = Boolean(this.getSettings()?.overlayMinimized);
+      this.overlay.classList.toggle("minimized", minimized);
+
+      const minimizeButton = this.overlay.querySelector(
+        "#nytrina-toggle-minimize",
+      );
+      if (minimizeButton) {
+        minimizeButton.textContent = minimized ? "Expandir" : "Minimizar";
+      }
       this.refresh().catch(() => undefined);
     }
 
@@ -49,7 +58,8 @@
       return [
         '<div class="head">',
         '<b id="nytrina-title">NytrinA Companion 4.0</b>',
-'<div class="actions"><button id="nytrina-toggle-minimize">Minimizar</button><button id="nytrina-refresh">Atualizar</button></div>',        "</div>",
+        '<div class="actions"><button id="nytrina-toggle-minimize">Minimizar</button><button id="nytrina-refresh">Atualizar</button></div>',
+        "</div>",
         '<div class="tabs">',
         '<button class="tab active" data-tab="dashboard">Dashboard</button>',
         '<button class="tab" data-tab="scanner">Scanner</button>',
@@ -73,6 +83,7 @@
      * @returns {void}
      */
     bindEvents() {
+      console.error("######## OVERLAY NOVO ########");
       this.overlay.querySelectorAll(".tab").forEach((button) => {
         button.addEventListener("click", () => {
           root.Tabs.activateTab(
@@ -86,6 +97,22 @@
         .querySelector("#nytrina-refresh")
         ?.addEventListener("click", () => {
           this.refresh().catch(() => undefined);
+        });
+
+      // NOVO
+      this.overlay
+        .querySelector("#nytrina-toggle-minimize")
+        ?.addEventListener("click", async () => {
+          const minimized = this.overlay.classList.toggle("minimized");
+
+          await this.saveSettings({
+            overlayMinimized: minimized,
+          });
+
+          const btn = this.overlay.querySelector("#nytrina-toggle-minimize");
+          if (btn) {
+            btn.textContent = minimized ? "Expandir" : "Minimizar";
+          }
         });
 
       this.overlay
@@ -311,6 +338,118 @@
         settings.troopType || "hero",
       );
 
+      const formulaAdvice = root.BattleAdvisor?.recommend({
+        animals: parsed?.animals || {},
+        troopType: settings.troopType || "hero",
+        hero: true,
+      });
+
+      let knowledge = null;
+      let learnedAdvice = null;
+
+      const selectedTroopType = settings.troopType || "hero";
+      const selectedTribe =
+        settings.troopTribe ||
+        this.inferTribeByTroop(selectedTroopType) ||
+        "romans";
+
+      let calibratedWithHero = null;
+      let calibratedWithoutHero = null;
+
+      if (formulaAdvice?.ok && root.BattleKnowledge?.applyCalibration) {
+        calibratedWithHero = await root.BattleKnowledge.applyCalibration({
+          storage: this.storage,
+          tribe: selectedTribe,
+          troopType: selectedTroopType,
+          hasHero: true,
+          theoreticalTroops: formulaAdvice.withHero.safeTroops,
+        });
+
+        calibratedWithoutHero = await root.BattleKnowledge.applyCalibration({
+          storage: this.storage,
+          tribe: selectedTribe,
+          troopType: selectedTroopType,
+          hasHero: false,
+          theoreticalTroops: formulaAdvice.withoutHero.safeTroops,
+        });
+      }
+
+      const canUseLearning =
+        root.BattleKnowledge &&
+        parsed &&
+        Number(parsed.xp || 0) > 0 &&
+        parsed.animals &&
+        selectedTroopType !== "hero" &&
+        selectedTroopType !== "custom";
+
+      if (canUseLearning) {
+        knowledge = await root.BattleKnowledge.getKnowledge(
+          this.storage,
+          selectedTribe,
+          selectedTroopType,
+          Number(parsed.xp || 0),
+          parsed.animals || {},
+        );
+
+        if (Number(knowledge?.samples || 0) > 0) {
+          learnedAdvice = root.BattleKnowledge.suggestFromKnowledge(knowledge);
+        }
+      }
+
+      let suggestionText = "-";
+      let suggestionSource = "Sem dados";
+      let suggestionConfidence = "-";
+
+      if (learnedAdvice?.ok) {
+        suggestionText =
+          Math.round(Number(learnedAdvice.suggestedTroops || 0)) +
+          " " +
+          this.troopLabel(selectedTroopType);
+
+        suggestionSource = "Battle Knowledge";
+
+        suggestionConfidence =
+          Number(knowledge?.samples || 0) +
+          (Number(knowledge?.samples || 0) === 1 ? " amostra" : " amostras");
+      } else if (formulaAdvice?.ok) {
+        const theoreticalWithHero = Number(
+          formulaAdvice.withHero.safeTroops || 0,
+        );
+
+        const theoreticalWithoutHero = Number(
+          formulaAdvice.withoutHero.safeTroops || 0,
+        );
+
+        const finalWithHero = Number(
+          calibratedWithHero?.troops || theoreticalWithHero,
+        );
+
+        const finalWithoutHero = Number(
+          calibratedWithoutHero?.troops || theoreticalWithoutHero,
+        );
+
+        const withHeroSamples = Number(calibratedWithHero?.samples || 0);
+
+        const withoutHeroSamples = Number(calibratedWithoutHero?.samples || 0);
+
+        suggestionText =
+          "Com herói: " + finalWithHero + " | Sem: " + finalWithoutHero;
+
+        if (withHeroSamples > 0 || withoutHeroSamples > 0) {
+          suggestionSource = "Cálculo ajustado pelo aprendizado";
+
+          suggestionConfidence =
+            "Com herói: " +
+            withHeroSamples +
+            " amostra(s) | Sem: " +
+            withoutHeroSamples +
+            " amostra(s)";
+        } else {
+          suggestionSource = "Cálculo teórico";
+          suggestionConfidence = "Ainda sem calibração";
+        }
+      }
+
       node.innerHTML = [
         '<div class="grid">',
         '<div class="card"><span>Coord</span><b>' +
@@ -336,6 +475,17 @@
           "</b></div>",
         '<div class="card"><span>Multiplicador</span><b>x' +
           server.speed +
+          "</b></div>",
+        '<div class="card"><span>Sugestão</span><b>' +
+          suggestionText +
+          "</b></div>",
+
+        '<div class="card"><span>Fonte</span><b>' +
+          suggestionSource +
+          "</b></div>",
+
+        '<div class="card"><span>Confiança</span><b>' +
+          suggestionConfidence +
           "</b></div>",
         "</div>",
         '<div class="stack">',
@@ -405,9 +555,13 @@
       node
         .querySelector("#nytrina-import-report")
         ?.addEventListener("click", async () => {
+          console.log("CLICOU IMPORTAR");
+
           const report = root.ReportParser.parse({
             tribe: settings.troopTribe || "romans",
+            troopType: settings.troopType || null,
           });
+
           if (!report) {
             root.Modal.show(
               "Relatorio",
@@ -415,7 +569,18 @@
             );
             return;
           }
+
           await this.scanner.saveReport(report);
+
+          console.log("ANTES DO BATTLE - ABA RELATORIOS");
+
+          await root.BattleKnowledge.learnFromReport({
+            storage: this.storage,
+            report,
+          });
+
+          console.log("DEPOIS DO BATTLE - ABA RELATORIOS");
+
           root.Modal.show(
             "Relatorio",
             "Importado com sucesso. Coord: " +
@@ -423,6 +588,7 @@
               " | Lucro: " +
               Math.round(report.profit || 0),
           );
+
           await this.refresh();
         });
     }
@@ -500,7 +666,7 @@
       const settings = this.getSettings();
 
       node.innerHTML = [
-        '<div class="actions"><button id="nytrina-import-report-tab">Importar relatorio atual</button></div>',
+        '<div class="actions"><button id="nytrina-import-report-tab">Importar relatorio atual</button><button id="nytrina-clear-reports">Limpar Relatórios</button></div>',
         "<table><thead><tr><th>ID</th><th>Coord</th><th>XP</th><th>Rec.</th><th>Perda</th><th>Lucro</th></tr></thead><tbody>",
         reports
           .slice()
@@ -528,24 +694,66 @@
       node
         .querySelector("#nytrina-import-report-tab")
         ?.addEventListener("click", async () => {
-          const report = root.ReportParser.parse({
-            tribe: settings.troopTribe || "romans",
-          });
-          if (!report) {
+          console.error("RELATORIOS: BOTAO CLICADO");
+
+          try {
+            const report = root.ReportParser.parse({
+              tribe: settings.troopTribe || "romans",
+              troopType: settings.troopType || null,
+            });
+
+            if (!report) {
+              root.Modal.show(
+                "Relatorio",
+                "Nenhum relatorio valido encontrado na tela.",
+              );
+              return;
+            }
+
+            console.log("RELATORIOS: REPORT GERADO", report);
+
+            // Primeiro aprende, para identificarmos qualquer erro isoladamente.
+            console.log("RELATORIOS: ANTES DO BATTLE");
+
+            const learningResult = await root.BattleKnowledge.learnFromReport({
+              storage: this.storage,
+              report,
+            });
+
+            console.log("RELATORIOS: BATTLE SALVO", learningResult);
+
+            // Depois salva o relatório normal.
+            await this.scanner.saveReport(report);
+
+            console.log("RELATORIOS: REPORT SALVO");
+
             root.Modal.show(
               "Relatorio",
-              "Nenhum relatorio valido encontrado na tela.",
+              "Importado com sucesso. Coord: " +
+                (report.coord || "-") +
+                " | Lucro: " +
+                Math.round(report.profit || 0),
             );
-            return;
+
+            await this.refresh();
+          } catch (error) {
+            console.error("ERRO AO IMPORTAR RELATORIO:", error);
+
+            root.Modal.show(
+              "Erro",
+              "Falha ao importar ou aprender com o relatório. Veja o console.",
+            );
           }
-          await this.scanner.saveReport(report);
-          root.Modal.show(
-            "Relatorio",
-            "Importado com sucesso. Coord: " +
-              (report.coord || "-") +
-              " | Lucro: " +
-              Math.round(report.profit || 0),
-          );
+        });
+
+      node
+        .querySelector("#nytrina-clear-reports")
+        ?.addEventListener("click", async () => {
+          if (!confirm("Deseja apagar todos os relatórios?")) return;
+
+          await this.storage.clear(root.Constants.STORES.REPORTS);
+          await this.storage.clear(root.Constants.STORES.HISTORY);
+
           await this.refresh();
         });
     }
@@ -780,27 +988,91 @@
     async refreshDebug() {
       const node = this.panel("debug");
       if (!node) return;
+
       if (!this.debugEnabled) {
-        node.innerHTML = "Clique 5 vezes no titulo para habilitar debug.";
+        node.innerHTML = "Clique 5 vezes no título para habilitar debug.";
         return;
       }
 
-      const payload = {
-        coord: this.currentScan?.coord || null,
-        distance: this.currentScan?.distance || 0,
-        animals: this.currentScan?.animals || root.Animals.emptyAnimals(),
-        resources: this.currentScan?.resources || null,
-        heroResources: this.currentScan?.heroResources || null,
-        losses: this.currentScan?.lossCost || null,
-        profit: this.currentScan?.profit || null,
-        xp: this.currentScan?.xp || 0,
-        rawOasis: this.currentScan,
-      };
+      const stats = await this.storage.getAll(root.Constants.STORES.STATISTICS);
+      const knowledgeRows = stats.filter((row) =>
+        String(row?.id || "").startsWith("battleKnowledge:"),
+      );
 
-      node.innerHTML =
-        '<div class="debug-json">' +
-        JSON.stringify(payload, null, 2) +
-        "</div>";
+      node.innerHTML = [
+        '<div class="actions">',
+        '<button id="nytrina-clear-knowledge">Limpar Battle Knowledge</button>',
+        "</div>",
+
+        '<div class="grid">',
+        '<div class="card"><span>Conhecimentos</span><b>' +
+          knowledgeRows.length +
+          "</b></div>",
+        '<div class="card"><span>Amostras</span><b>' +
+          knowledgeRows.reduce((s, r) => s + Number(r.samples || 0), 0) +
+          "</b></div>",
+        "</div>",
+
+        "<table><thead><tr>",
+        "<th>Tropa</th><th>XP</th><th>Amostras</th><th>Resultado</th><th>Enviadas</th><th>Mortas</th><th>Enfermaria</th><th>Baixas</th><th>Eliminação</th><th>Próxima sugestão</th>",
+        "</tr></thead><tbody>",
+
+        knowledgeRows
+          .slice()
+          .sort((a, b) =>
+            String(a.troopType).localeCompare(String(b.troopType)),
+          )
+          .map((row) => {
+            const last = row.lastBattle || {};
+
+            const outcomeLabels = {
+              perfect: "Perfeito",
+              cleared_with_losses: "Limpou com perdas",
+              almost_cleared: "Quase limpou",
+              partial: "Parcial",
+              failure: "Falha",
+            };
+
+            return (
+              "<tr><td>" +
+              (row.troopType || "-") +
+              "</td><td>" +
+              Math.round(row.xp || 0) +
+              "</td><td>" +
+              Number(row.samples || 0) +
+              "</td><td>" +
+              (outcomeLabels[row.lastOutcome] || "-") +
+              "</td><td>" +
+              Number(last.sent || 0) +
+              "</td><td>" +
+              Number(last.lost || 0) +
+              "</td><td>" +
+              Number(last.wounded || 0) +
+              "</td><td>" +
+              Number(last.casualties || 0) +
+              "</td><td>" +
+              (Number(last.killRate || 0) * 100).toFixed(1) +
+              "%</td><td>" +
+              Number(row.estimatedSafe || last.estimatedSafe || 0) +
+              "</td></tr>"
+            );
+          })
+          .join(""),
+
+        "</tbody></table>",
+      ].join("");
+
+      node
+        .querySelector("#nytrina-clear-knowledge")
+        ?.addEventListener("click", async () => {
+          if (!confirm("Deseja apagar todo o Battle Knowledge?")) return;
+
+          for (const row of knowledgeRows) {
+            await this.storage.delete(root.Constants.STORES.STATISTICS, row.id);
+          }
+
+          await this.refresh();
+        });
     }
   }
 

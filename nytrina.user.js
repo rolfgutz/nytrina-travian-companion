@@ -1,7 +1,7 @@
 (function attachStylesNamespace(global) {
   'use strict';
   const root = (global.NytrinA = global.NytrinA || {});
-  root.UI_STYLES = "#nytrina-overlay {\r\n  position: fixed;\r\n  top: 70px;\r\n  right: 16px;\r\n  width: 520px;\r\n  max-height: 88vh;\r\n  overflow: auto;\r\n  z-index: 999999;\r\n  background: linear-gradient(180deg, #1a130e, #100c08);\r\n  color: #f7ebd7;\r\n  border: 2px solid #b97822;\r\n  border-radius: 12px;\r\n  box-shadow: 0 0 24px rgba(0, 0, 0, 0.8);\r\n  font-family: Verdana, sans-serif;\r\n  font-size: 13px;\r\n}\r\n\r\n#nytrina-overlay * {\r\n  box-sizing: border-box;\r\n}\r\n\r\n#nytrina-overlay .head {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  align-items: center;\r\n  padding: 10px 12px;\r\n  background: #25170d;\r\n  border-bottom: 1px solid #6e4518;\r\n}\r\n\r\n#nytrina-overlay .tabs {\r\n  display: grid;\r\n  grid-template-columns: repeat(7, 1fr);\r\n  gap: 4px;\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .tab {\r\n  background: #23170d;\r\n  color: #d8bc91;\r\n  border: 1px solid #7a4c1a;\r\n  border-radius: 6px;\r\n  padding: 6px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay .tab.active {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border-color: #c9892a;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .panel {\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .hidden {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay .grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .card {\r\n  background: #28190d;\r\n  border: 1px solid #6e4518;\r\n  border-radius: 7px;\r\n  padding: 8px;\r\n}\r\n\r\n#nytrina-overlay .card span {\r\n  display: block;\r\n  font-size: 11px;\r\n  color: #d0ad7b;\r\n  margin-bottom: 3px;\r\n}\r\n\r\n#nytrina-overlay .card b {\r\n  color: #fff;\r\n}\r\n\r\n#nytrina-overlay table {\r\n  width: 100%;\r\n  border-collapse: collapse;\r\n  margin-top: 8px;\r\n  background: #120b06;\r\n}\r\n\r\n#nytrina-overlay th,\r\n#nytrina-overlay td {\r\n  border: 1px solid #6f461c;\r\n  padding: 6px;\r\n  text-align: left;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay th {\r\n  background: #3a230f;\r\n  color: #ffe0ad;\r\n}\r\n\r\n#nytrina-overlay td {\r\n  background: #1d1209;\r\n}\r\n\r\n#nytrina-overlay .actions {\r\n  display: flex;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay button {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border: 1px solid #c9892a;\r\n  border-radius: 7px;\r\n  padding: 6px 10px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay label {\r\n  display: block;\r\n  margin-top: 8px;\r\n  color: #ffd79b;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay input,\r\n#nytrina-overlay select {\r\n  width: 100%;\r\n  height: 34px;\r\n  margin-top: 4px;\r\n  padding: 6px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8b5a22;\r\n  background: #23170d;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop,\r\n#nytrina-overlay #nytrina-setting-troop {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n  border-color: #c9a16a;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop option,\r\n#nytrina-overlay #nytrina-setting-troop option,\r\n#nytrina-overlay #nytrina-scanner-troop optgroup,\r\n#nytrina-overlay #nytrina-setting-troop optgroup {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n}\r\n\r\n#nytrina-overlay input[type='checkbox'] {\r\n  width: 16px;\r\n  height: 16px;\r\n  margin-top: 0;\r\n  margin-right: 6px;\r\n  vertical-align: middle;\r\n}\r\n\r\n#nytrina-overlay .check-row {\r\n  display: flex;\r\n  align-items: center;\r\n  color: #ffd79b;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .form-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .stack {\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .server-badge {\r\n  margin-bottom: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8a5a24;\r\n  background: #1b120a;\r\n  color: #ffd79b;\r\n}\r\n\r\n#nytrina-overlay .server-warning {\r\n  display: none;\r\n  margin-top: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #c9892a;\r\n  background: #3a230f;\r\n  color: #ffd26a;\r\n}\r\n\r\n#nytrina-overlay .server-warning.show {\r\n  display: block;\r\n}\r\n\r\n#nytrina-overlay .rank-good {\r\n  color: #72ff72;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-mid {\r\n  color: #ffd26a;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-bad {\r\n  color: #ff7d7d;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .debug-json {\r\n  white-space: pre-wrap;\r\n  background: #120b06;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  padding: 8px;\r\n  font-family: Consolas, monospace;\r\n  max-height: 360px;\r\n  overflow: auto;\r\n}\r\n\r\n#nytrina-overlay input[type=\"checkbox\"] {\r\n    appearance: checkbox !important;\r\n    -webkit-appearance: checkbox !important;\r\n    accent-color: #c9892a;\r\n    width: 16px !important;\r\n    height: 16px !important;\r\n    cursor: pointer;\r\n}\r\n";
+  root.UI_STYLES = "#nytrina-overlay {\r\n  position: fixed;\r\n  top: 70px;\r\n  right: 16px;\r\n  width: 520px;\r\n  max-height: 88vh;\r\n  overflow: auto;\r\n  z-index: 999999;\r\n  background: linear-gradient(180deg, #1a130e, #100c08);\r\n  color: #f7ebd7;\r\n  border: 2px solid #b97822;\r\n  border-radius: 12px;\r\n  box-shadow: 0 0 24px rgba(0, 0, 0, 0.8);\r\n  font-family: Verdana, sans-serif;\r\n  font-size: 13px;\r\n}\r\n\r\n#nytrina-overlay * {\r\n  box-sizing: border-box;\r\n}\r\n\r\n#nytrina-overlay .head {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  align-items: center;\r\n  padding: 10px 12px;\r\n  background: #25170d;\r\n  border-bottom: 1px solid #6e4518;\r\n}\r\n\r\n#nytrina-overlay .tabs {\r\n  display: grid;\r\n  grid-template-columns: repeat(7, 1fr);\r\n  gap: 4px;\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .tab {\r\n  background: #23170d;\r\n  color: #d8bc91;\r\n  border: 1px solid #7a4c1a;\r\n  border-radius: 6px;\r\n  padding: 6px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay .tab.active {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border-color: #c9892a;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .panel {\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .hidden {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay .grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .card {\r\n  background: #28190d;\r\n  border: 1px solid #6e4518;\r\n  border-radius: 7px;\r\n  padding: 8px;\r\n}\r\n\r\n#nytrina-overlay .card span {\r\n  display: block;\r\n  font-size: 11px;\r\n  color: #d0ad7b;\r\n  margin-bottom: 3px;\r\n}\r\n\r\n#nytrina-overlay .card b {\r\n  color: #fff;\r\n}\r\n\r\n#nytrina-overlay table {\r\n  width: 100%;\r\n  border-collapse: collapse;\r\n  margin-top: 8px;\r\n  background: #120b06;\r\n}\r\n\r\n#nytrina-overlay th,\r\n#nytrina-overlay td {\r\n  border: 1px solid #6f461c;\r\n  padding: 6px;\r\n  text-align: left;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay th {\r\n  background: #3a230f;\r\n  color: #ffe0ad;\r\n}\r\n\r\n#nytrina-overlay td {\r\n  background: #1d1209;\r\n}\r\n\r\n#nytrina-overlay .actions {\r\n  display: flex;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay button {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border: 1px solid #c9892a;\r\n  border-radius: 7px;\r\n  padding: 6px 10px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay label {\r\n  display: block;\r\n  margin-top: 8px;\r\n  color: #ffd79b;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay input,\r\n#nytrina-overlay select {\r\n  width: 100%;\r\n  height: 34px;\r\n  margin-top: 4px;\r\n  padding: 6px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8b5a22;\r\n  background: #23170d;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop,\r\n#nytrina-overlay #nytrina-setting-troop {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n  border-color: #c9a16a;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop option,\r\n#nytrina-overlay #nytrina-setting-troop option,\r\n#nytrina-overlay #nytrina-scanner-troop optgroup,\r\n#nytrina-overlay #nytrina-setting-troop optgroup {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n}\r\n\r\n#nytrina-overlay input[type='checkbox'] {\r\n  width: 16px;\r\n  height: 16px;\r\n  margin-top: 0;\r\n  margin-right: 6px;\r\n  vertical-align: middle;\r\n}\r\n\r\n#nytrina-overlay .check-row {\r\n  display: flex;\r\n  align-items: center;\r\n  color: #ffd79b;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .form-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .stack {\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .server-badge {\r\n  margin-bottom: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8a5a24;\r\n  background: #1b120a;\r\n  color: #ffd79b;\r\n}\r\n\r\n#nytrina-overlay .server-warning {\r\n  display: none;\r\n  margin-top: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #c9892a;\r\n  background: #3a230f;\r\n  color: #ffd26a;\r\n}\r\n\r\n#nytrina-overlay .server-warning.show {\r\n  display: block;\r\n}\r\n\r\n#nytrina-overlay .rank-good {\r\n  color: #72ff72;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-mid {\r\n  color: #ffd26a;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-bad {\r\n  color: #ff7d7d;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .debug-json {\r\n  white-space: pre-wrap;\r\n  background: #120b06;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  padding: 8px;\r\n  font-family: Consolas, monospace;\r\n  max-height: 360px;\r\n  overflow: auto;\r\n}\r\n\r\n#nytrina-overlay input[type=\"checkbox\"] {\r\n    appearance: checkbox !important;\r\n    -webkit-appearance: checkbox !important;\r\n    accent-color: #c9892a;\r\n    width: 16px !important;\r\n    height: 16px !important;\r\n    cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay.minimized .tabs {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay.minimized .panel {\r\n  display: none;\r\n}\r\n\r\n#nytrina-toggle-minimize {\r\n  min-width: 92px;\r\n}";
 })(window);
 
 
@@ -492,7 +492,7 @@
 // FILE: parser/mapParser.js
 
 (function initMapParser(global) {
-  'use strict';
+  "use strict";
 
   const root = (global.NytrinA = global.NytrinA || {});
   const utils = root.Utils;
@@ -502,7 +502,7 @@
    * @returns {string}
    */
   function normalizeMinus(value) {
-    return String(value || '').replace(/[−–—]/g, '-');
+    return String(value || "").replace(/[−–—]/g, "-");
   }
 
   /**
@@ -512,9 +512,11 @@
    */
   function parseCoordLike(text) {
     const normalized = normalizeMinus(text);
-    const match = normalized.match(/[\(\[]\s*([+-]?\d+)\s*\|\s*([+-]?\d+)\s*[\)\]]/);
+    const match = normalized.match(
+      /[\(\[]\s*([+-]?\d+)\s*\|\s*([+-]?\d+)\s*[\)\]]/,
+    );
     if (!match) return null;
-    return match[1] + '|' + match[2];
+    return match[1] + "|" + match[2];
   }
 
   /**
@@ -524,34 +526,77 @@
    */
   function fromWrittenCoordinate(container) {
     if (!container) return null;
-    const directCandidates = container.querySelectorAll('h1,h2,h3,th,td,span,b,strong,a,div');
+    const directCandidates = container.querySelectorAll(
+      "h1,h2,h3,th,td,span,b,strong,a",
+    );
     for (const element of directCandidates) {
       if (!utils.isVisible(element)) continue;
-      const content = normalizeMinus(element.textContent || '');
+      const content = normalizeMinus(element.textContent || "");
       const value = parseCoordLike(content);
       if (value) return value;
     }
-    const containerValue = parseCoordLike(container.textContent || '');
+    const containerValue = parseCoordLike(container.textContent || "");
     return containerValue || null;
   }
 
   /**
-   * Prioridade 2: tooltip/atributos.
-   * @param {Element|null} container
+   * Procura o tooltip visual atualmente aberto no mapa.
+   * Prioriza elementos pequenos, visíveis e que contenham
+   * "Oásis" junto com uma coordenada.
+   *
    * @returns {string|null}
    */
-  function fromTooltip(container) {
-    if (!container) return null;
-    const tooltipNodes = container.querySelectorAll('[title],[data-tooltip],[aria-label]');
-    for (const node of tooltipNodes) {
-      const titleValue = parseCoordLike(node.getAttribute('title') || '');
-      if (titleValue) return titleValue;
-      const tooltipValue = parseCoordLike(node.getAttribute('data-tooltip') || '');
-      if (tooltipValue) return tooltipValue;
-      const ariaValue = parseCoordLike(node.getAttribute('aria-label') || '');
-      if (ariaValue) return ariaValue;
+  function fromTooltip() {
+    const candidates = Array.from(
+      global.document.querySelectorAll("div,span,section,aside"),
+    );
+
+    const matches = [];
+
+    for (const node of candidates) {
+      if (!utils.isVisible(node)) continue;
+
+      const text = normalizeMinus(
+        String(node.innerText || node.textContent || "").trim(),
+      );
+
+      // Ignora elementos vazios ou containers gigantes da página.
+      if (!text || text.length > 600) continue;
+
+      // O tooltip do mapa deve falar de oásis.
+      if (!/o[aá]sis/i.test(text)) continue;
+
+      const coord = parseCoordLike(text);
+      if (!coord) continue;
+
+      const rect = node.getBoundingClientRect();
+
+      // Ignora elementos sem dimensão visual.
+      if (rect.width <= 0 || rect.height <= 0) continue;
+
+      matches.push({
+        coord,
+        textLength: text.length,
+        area: rect.width * rect.height,
+        node,
+      });
     }
-    return null;
+
+    if (!matches.length) return null;
+
+    /*
+     * O tooltip verdadeiro costuma ser o menor elemento visual
+     * que contém o texto completo. Evita escolher containers pais.
+     */
+    matches.sort((a, b) => {
+      if (a.textLength !== b.textLength) {
+        return a.textLength - b.textLength;
+      }
+
+      return a.area - b.area;
+    });
+
+    return matches[0].coord;
   }
 
   /**
@@ -559,9 +604,11 @@
    * @returns {string|null}
    */
   function fromOasisWindow() {
-    const candidates = global.document.querySelectorAll('#content, #map_details, .dialog, .content, .boxTitle, .titleInHeader');
+    const candidates = global.document.querySelectorAll(
+      "#content, #map_details, .dialog, .content, .boxTitle, .titleInHeader",
+    );
     for (const node of candidates) {
-      const value = parseCoordLike(node.textContent || '');
+      const value = parseCoordLike(node.textContent || "");
       if (value) return value;
     }
     return null;
@@ -572,14 +619,18 @@
    * @returns {string|null}
    */
   function fromMapFields() {
-    const inputX = global.document.querySelector('input[name="x"], input#x, input[data-name="x"]');
-    const inputY = global.document.querySelector('input[name="y"], input#y, input[data-name="y"]');
+    const inputX = global.document.querySelector(
+      'input[name="x"], input#x, input[data-name="x"]',
+    );
+    const inputY = global.document.querySelector(
+      'input[name="y"], input#y, input[data-name="y"]',
+    );
 
-    const xRaw = normalizeMinus(inputX?.value || '');
-    const yRaw = normalizeMinus(inputY?.value || '');
+    const xRaw = normalizeMinus(inputX?.value || "");
+    const yRaw = normalizeMinus(inputY?.value || "");
 
     if (/^[+-]?\d+$/.test(xRaw) && /^[+-]?\d+$/.test(yRaw)) {
-      return String(Number(xRaw)) + '|' + String(Number(yRaw));
+      return String(Number(xRaw)) + "|" + String(Number(yRaw));
     }
     return null;
   }
@@ -590,10 +641,10 @@
    */
   function fromUrl() {
     const params = new URL(global.location.href).searchParams;
-    const x = normalizeMinus(params.get('x') || '');
-    const y = normalizeMinus(params.get('y') || '');
+    const x = normalizeMinus(params.get("x") || "");
+    const y = normalizeMinus(params.get("y") || "");
     if (/^[+-]?\d+$/.test(x) && /^[+-]?\d+$/.test(y)) {
-      return String(Number(x)) + '|' + String(Number(y));
+      return String(Number(x)) + "|" + String(Number(y));
     }
     return null;
   }
@@ -605,26 +656,49 @@
    */
   function resolveCoordinate(contextElement) {
     const sequence = [
-      { source: 'written', fn: () => fromWrittenCoordinate(contextElement) },
-      { source: 'tooltip', fn: () => fromTooltip(contextElement) },
-      { source: 'oasis-window', fn: () => fromOasisWindow() },
-      { source: 'map-fields', fn: () => fromMapFields() },
-      { source: 'url', fn: () => fromUrl() }
+      {
+        source: "tooltip",
+        fn: () => fromTooltip(),
+      },
+      {
+        source: "oasis-window",
+        fn: () => fromOasisWindow(),
+      },
+      {
+        source: "written",
+        fn: () => fromWrittenCoordinate(contextElement),
+      },
+      {
+        source: "map-fields",
+        fn: () => fromMapFields(),
+      },
+      {
+        source: "url",
+        fn: () => fromUrl(),
+      },
     ];
 
     for (const item of sequence) {
       const value = item.fn();
-      if (!value || value === '-') continue;
-      return { coord: value, source: item.source };
+
+      if (!value || value === "-") continue;
+
+      return {
+        coord: value,
+        source: item.source,
+      };
     }
 
-    return { coord: null, source: 'none' };
+    return {
+      coord: null,
+      source: "none",
+    };
   }
 
   root.MapParser = {
     resolveCoordinate,
     parseCoordLike,
-    normalizeMinus
+    normalizeMinus,
   };
 })(window);
 
@@ -858,41 +932,81 @@
     return null;
   }
 
-  function parseCombatTable(table) {
-    const icons = Array.from(
-      table.querySelectorAll('[class*="u"], [class*="hero"]'),
-    );
-    const unitClasses = [];
+  function parseAttackerTableExact() {
+    const result = {
+      total: {},
+      lost: {},
+      wounded: {},
+    };
 
-    icons.forEach((icon) => {
-      const token = utils
-        .classTokens(icon)
-        .find((name) => /^u\d+$/.test(name) || name === "hero");
+    // Procura a seção do atacante
+    const attackerRole = document.querySelector(".role.attacker");
 
-      if (token && !unitClasses.includes(token)) {
-        unitClasses.push(token);
-      }
+    if (!attackerRole) {
+      console.warn("Não encontrou .role.attacker");
+      return result;
+    }
+
+    // A tabela está dentro dela
+    const table = attackerRole.querySelector("table");
+
+    if (!table) {
+      console.warn("Não encontrou tabela do atacante");
+      return result;
+    }
+
+    // Classes das tropas (u1,u2,u3...)
+    const icons = [...table.querySelectorAll("img.unit")];
+
+    const keys = icons
+      .map((icon) => [...icon.classList].find((c) => /^u\d+$/.test(c)))
+      .filter(Boolean);
+
+    console.log("Keys:", keys);
+
+    // Linhas da tabela
+    const totalRow = table.querySelector(".troopCount_small")?.closest("tr");
+    const deadRow = table.querySelector(".troopDead_small")?.closest("tr");
+
+    const allRows = [...table.querySelectorAll("tbody.units tr")];
+
+    const woundedRow = allRows.find((row) => {
+      if (row === totalRow || row === deadRow) return false;
+
+      const cells = row.querySelectorAll("td.unit");
+      return cells.length > 0;
     });
 
-    const rows = Array.from(table.querySelectorAll("tr"));
-    const numericRows = rows
-      .map((row) => extractNumbersFromRow(row))
-      .filter(
-        (numbers) =>
-          numbers.length >= unitClasses.length && unitClasses.length > 0,
+    function read(row) {
+      const out = {};
+
+      if (!row) return out;
+
+      const values = [...row.querySelectorAll("td.unit")].map((td) =>
+        utils.toInt(td.textContent),
       );
 
-    const total = {};
-    const lost = {};
-    const totalRow = numericRows[0] || [];
-    const lostRow = numericRows[1] || [];
+      console.log("Valores:", values);
 
-    unitClasses.forEach((unitClass, index) => {
-      total[unitClass] = Number(totalRow[index] || 0);
-      lost[unitClass] = Number(lostRow[index] || 0);
-    });
+      keys.forEach((key, index) => {
+        out[key] = values[index] || 0;
+      });
 
-    return { total, lost };
+      // A tabela possui 10 tropas + a coluna do herói.
+      // Como "keys" contém somente u1 até u10, o herói é o valor seguinte.
+      out.hero = Number(values[keys.length] || 0);
+
+      return out;
+    }
+
+    result.total = read(totalRow);
+    result.lost = read(deadRow);
+    result.wounded = read(woundedRow);
+
+    console.log("TOTAL", result.total);
+    console.log("LOST", result.lost);
+
+    return result;
   }
 
   function parseNatureTableExact() {
@@ -1032,35 +1146,57 @@
     }
 
     return "report-" + Date.now();
-    }
+  }
 
-    function parseReportCoord() {
+  function parseReportCoord() {
     const rawText = String(
-        global.document.body?.innerText ||
+      global.document.body?.innerText ||
         global.document.body?.textContent ||
         "",
     )
-        .replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, "")
-        .replace(/[−–—]/g, "-");
+      .replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, "")
+      .replace(/[−–—]/g, "-");
 
-    const oasisLine = rawText.match(
-        /(?:saqueia|ataca|assalta)[^\n\r]{0,160}o[aá]sis[^\n\r]{0,160}\(?\s*([+-]?\d{1,3})\s*(?:\||-)\s*([+-]?\d{1,3})\s*\)?/i,
+    // Prioridade 1: coordenada entre parênteses após o texto do oásis.
+    const oasisCoord = rawText.match(
+      /(?:saqueia|ataca|assalta).*?o[aá]sis.*?\(\s*([+-]?\d{1,3})\s*\|\s*([+-]?\d{1,3})\s*\)/i,
     );
 
-    if (oasisLine) {
-        return String(Number(oasisLine[1])) + "|" + String(Number(oasisLine[2]));
+    if (oasisCoord) {
+      return (
+        String(Number(oasisCoord[1])) + "|" + String(Number(oasisCoord[2]))
+      );
     }
 
-    const generic = rawText.match(
-        /\(\s*([+-]?\d{1,3})\s*\|\s*([+-]?\d{1,3})\s*\)/,
+    // Prioridade 2: qualquer coordenada válida entre parênteses.
+    const genericParentheses = rawText.match(
+      /\(\s*([+-]?\d{1,3})\s*\|\s*([+-]?\d{1,3})\s*\)/,
     );
 
-    if (generic) {
-        return String(Number(generic[1])) + "|" + String(Number(generic[2]));
+    if (genericParentheses) {
+      return (
+        String(Number(genericParentheses[1])) +
+        "|" +
+        String(Number(genericParentheses[2]))
+      );
+    }
+
+    // Prioridade 3: coordenada sem parênteses.
+    const genericPlain = rawText.match(
+      /(?:^|\s)([+-]?\d{1,3})\s*\|\s*([+-]?\d{1,3})(?:\s|$)/,
+    );
+
+    if (genericPlain) {
+      return (
+        String(Number(genericPlain[1])) + "|" + String(Number(genericPlain[2]))
+      );
     }
 
     const info = mapParser.resolveCoordinate(global.document.body);
-    if (info.coord) return info.coord;
+
+    if (info.coord) {
+      return info.coord;
+    }
 
     return null;
   }
@@ -1068,11 +1204,8 @@
   function parse(options) {
     const natureData = parseNatureTableExact();
 
-    const attackerTable = findAttackerTable();
-    const attackerData = attackerTable
-      ? parseCombatTable(attackerTable)
-      : { total: {}, lost: {} };
-
+    const attackerData = parseAttackerTableExact();
+    console.log(attackerData);
     const resources = parseResourcesByTableCells();
 
     const hasCombatData =
@@ -1086,20 +1219,28 @@
 
     if (!hasCombatData && !hasResourceData) return null;
 
-    const animalsAlive = {
+    const animalsInitial = {
       ...animalsData.emptyAnimals(),
       ...(natureData.total || {}),
     };
 
-    let animalsKilled = {
+    const animalsKilled = {
       ...animalsData.emptyAnimals(),
       ...(natureData.lost || {}),
     };
 
+    const animalsRemaining = animalsData.emptyAnimals();
+
+    Object.keys(animalsRemaining).forEach((key) => {
+      animalsRemaining[key] = Math.max(
+        0,
+        Number(animalsInitial[key] || 0) - Number(animalsKilled[key] || 0),
+      );
+    });
+
     let xp = animalsData.calcXp(animalsKilled);
 
     if (xp <= 0 && resources.heroResources.total > 0) {
-      animalsKilled = { ...animalsData.emptyAnimals(), ...animalsAlive };
       xp = animalsData.calcXp(animalsKilled);
     }
 
@@ -1117,16 +1258,127 @@
     const finalLoss = lossFromReport > 0 ? lossFromReport : loss.total;
     const profit = totalResources - finalLoss;
 
+    const selectedTroopType = options.troopType || null;
+
+    const TROOP_CLASS = {
+      romans: {
+        legionnaire: "u1",
+        praetorian: "u2",
+        imperian: "u3",
+        equites_legati: "u4",
+        equites_imperatoris: "u5",
+        equites_caesaris: "u6",
+      },
+
+      teutons: {
+        clubman: "u11",
+        spearman: "u12",
+        axeman: "u13",
+        scout: "u14",
+        paladin: "u15",
+        teutonic_knight: "u16",
+      },
+
+      gauls: {
+        phalanx: "u21",
+        swordsman: "u22",
+        pathfinder: "u23",
+        theutates_thunder: "u24",
+        druidrider: "u25",
+        haeduan: "u26",
+      },
+    };
+
+    const selectedTroopClass =
+      TROOP_CLASS[options.tribe || "romans"]?.[selectedTroopType] || null;
+
+    const troopsSentCount = selectedTroopClass
+      ? Number((attackerData.total || {})[selectedTroopClass] || 0)
+      : 0;
+
+    const troopsLostCount = selectedTroopClass
+      ? Number((attackerData.lost || {})[selectedTroopClass] || 0)
+      : 0;
+
+    const troopsWoundedCount = selectedTroopClass
+      ? Number((attackerData.wounded || {})[selectedTroopClass] || 0)
+      : 0;
+
+    const troopsCasualtiesCount =
+      Number(troopsLostCount || 0) + Number(troopsWoundedCount || 0);
+
+    const troopDeathRate =
+      troopsSentCount > 0 ? troopsLostCount / troopsSentCount : 0;
+
+    const troopCasualtyRate =
+      troopsSentCount > 0 ? troopsCasualtiesCount / troopsSentCount : 0;
+
+    console.log({
+      troopType: selectedTroopType,
+      troopClass: selectedTroopClass,
+      troopsSentCount,
+      troopsLostCount,
+      troopsWoundedCount,
+      troopsCasualtiesCount,
+    });
+
+    const totalAnimalsInitial = Object.values(animalsInitial).reduce(
+      (sum, value) => sum + Number(value || 0),
+      0,
+    );
+
+    const totalAnimalsKilled = Object.values(animalsKilled).reduce(
+      (sum, value) => sum + Number(value || 0),
+      0,
+    );
+
+    const totalAnimalsRemaining = Object.values(animalsRemaining).reduce(
+      (sum, value) => sum + Number(value || 0),
+      0,
+    );
+
+    const killRate =
+      totalAnimalsInitial > 0 ? totalAnimalsKilled / totalAnimalsInitial : 0;
+
+    const troopLossRate =
+      troopsSentCount > 0 ? troopsLostCount / troopsSentCount : 0;
+
+    const heroSent = Number(attackerData.total?.hero || 0);
+    const hasHero = heroSent > 0;
+
     return {
       url: global.location.href,
       reportId: parseReportIdFromUrl(),
       server: server.getContext().key,
+      tribe: options.tribe || "romans",
       date: new Date().toISOString(),
       coord: parseReportCoord(),
+      animalsInitial,
       animalsKilled,
-      animalsAlive,
+      animalsRemaining,
+      // Compatibilidade com código antigo:
+      animalsAlive: animalsRemaining,
+      totalAnimalsInitial,
+      totalAnimalsKilled,
+      totalAnimalsRemaining,
+      killRate,
+      troopLossRate,
       troopsSent: attackerData.total || {},
       troopsLost: attackerData.lost || {},
+      troopsWounded: attackerData.wounded || {},
+      heroSent,
+      hasHero,
+      troopType: selectedTroopType,
+      troopClass: selectedTroopClass,
+      troopsSentCount,
+      troopsLostCount,
+      troopsWoundedCount,
+      troopsCasualtiesCount,
+      troopDeathRate,
+      troopCasualtyRate,
+      cleared: Object.values(animalsRemaining).every(
+        (value) => Number(value || 0) === 0,
+      ),
       resourcesLoot: resources.resourcesLoot,
       heroResources: resources.heroResources,
       totalResources,
@@ -1298,6 +1550,733 @@
   root.BattleAI = {
     buildOasisHistory
   };
+})(window);
+
+
+
+
+// FILE: core/battleAdvisor.js
+
+(function initBattleAdvisor(global) {
+  "use strict";
+
+  const root = (global.NytrinA = global.NytrinA || {});
+
+  const ANIMAL_DEFENSE = {
+    rato: 25,
+    aranha: 35,
+    cobra: 40,
+    morcego: 66,
+    javali: 70,
+    lobo: 80,
+    urso: 140,
+    crocodilo: 380,
+    tigre: 170,
+    elefante: 440,
+  };
+
+  const TROOP_ATTACK = {
+    legionnaire: 40,
+    imperian: 70,
+    equites_imperatoris: 120,
+    equites_caesaris: 180,
+    clubman: 40,
+    paladin: 55,
+    teutonic_knight: 150,
+    theutates_thunder: 90,
+    haeduan: 140,
+  };
+
+  function calcAnimalDefense(animals) {
+    return Object.entries(animals || {}).reduce((sum, [key, qty]) => {
+      return sum + Number(qty || 0) * Number(ANIMAL_DEFENSE[key] || 0);
+    }, 0);
+  }
+
+  function recommend({ animals, troopType }) {
+    const defense = calcAnimalDefense(animals);
+    const attack = Number(TROOP_ATTACK[troopType] || 0);
+
+    if (!defense || !attack) {
+      return { ok: false, message: "Sem dados suficientes para recomendar." };
+    }
+
+    function calc(hero) {
+      const heroBonus = hero ? 500 : 0;
+      const adjustedDefense = Math.max(defense - heroBonus, defense * 0.35);
+      const minTroops = Math.max(1, Math.ceil(adjustedDefense / attack));
+      const safeTroops = Math.max(1, Math.ceil(minTroops * 1.8));
+      const profitTroops = Math.max(1, Math.ceil(minTroops * 1.25));
+
+      return { minTroops, safeTroops, profitTroops };
+    }
+
+    return {
+      ok: true,
+      defense,
+      attack,
+      withHero: calc(true),
+      withoutHero: calc(false),
+    };
+  }
+
+  root.BattleAdvisor = {
+    recommend,
+    calcAnimalDefense,
+  };
+})(window);
+
+
+
+
+// FILE: core/battleLearning.js
+
+(function initBattleKnowledge(global) {
+  "use strict";
+
+  const root = (global.NytrinA = global.NytrinA || {});
+
+  function normalizeAnimals(animals) {
+    const empty = root.Animals.emptyAnimals();
+
+    return {
+      ...empty,
+      ...(animals || {}),
+    };
+  }
+
+  function makeSignature(xp, animals) {
+    const a = normalizeAnimals(animals);
+
+    return [
+      Math.round(Number(xp || 0)),
+      Number(a.rato || 0),
+      Number(a.aranha || 0),
+      Number(a.cobra || 0),
+      Number(a.morcego || 0),
+      Number(a.javali || 0),
+      Number(a.lobo || 0),
+      Number(a.urso || 0),
+      Number(a.crocodilo || 0),
+      Number(a.tigre || 0),
+      Number(a.elefante || 0),
+    ].join("|");
+  }
+
+  function knowledgeId(tribe, troopType, xp, animals) {
+    return (
+      "battleKnowledge:" +
+      tribe +
+      ":" +
+      troopType +
+      ":" +
+      makeSignature(xp, animals)
+    );
+  }
+
+  async function getKnowledge(storage, tribe, troopType, xp, animals) {
+    const id = knowledgeId(tribe, troopType, xp, animals);
+
+    const saved = await storage.get(root.Constants.STORES.STATISTICS, id);
+
+    const knowledge = saved || {
+      id,
+      tribe,
+      troopType,
+      signature: makeSignature(xp, animals),
+      xp: Number(xp || 0),
+      animals: normalizeAnimals(animals),
+      samples: 0,
+      minSuccess: 0,
+      maxFailure: 0,
+
+      perfectSuccess: 0,
+      clearedWithLosses: 0,
+      almostCleared: 0,
+      partial: 0,
+      failures: 0,
+
+      bestKillRate: 0,
+      lowestTroopLossRate: null,
+
+      estimatedClear: 0,
+      estimatedSafe: 0,
+
+      lastOutcome: null,
+      lastBattle: null,
+      updatedAt: null,
+    };
+
+    // Compatibilidade com conhecimentos gravados pela versão antiga.
+    knowledge.samples = Number(knowledge.samples || 0);
+    knowledge.minSuccess = Number(knowledge.minSuccess || 0);
+    knowledge.maxFailure = Number(knowledge.maxFailure || 0);
+
+    knowledge.perfectSuccess = Number(knowledge.perfectSuccess || 0);
+    knowledge.clearedWithLosses = Number(knowledge.clearedWithLosses || 0);
+    knowledge.almostCleared = Number(knowledge.almostCleared || 0);
+    knowledge.partial = Number(knowledge.partial || 0);
+    knowledge.failures = Number(knowledge.failures || 0);
+
+    knowledge.bestKillRate = Number(knowledge.bestKillRate || 0);
+
+    if (knowledge.lowestTroopLossRate === undefined) {
+      knowledge.lowestTroopLossRate = null;
+    }
+
+    if (knowledge.lastOutcome === undefined) {
+      knowledge.lastOutcome = null;
+    }
+
+    if (knowledge.lastBattle === undefined) {
+      knowledge.lastBattle = null;
+    }
+
+    knowledge.estimatedClear = Number(knowledge.estimatedClear || 0);
+    knowledge.estimatedSafe = Number(knowledge.estimatedSafe || 0);
+
+    return knowledge;
+  }
+
+  async function saveKnowledge(storage, knowledge) {
+    knowledge.updatedAt = new Date().toISOString();
+    await storage.put(root.Constants.STORES.STATISTICS, knowledge);
+    return knowledge;
+  }
+
+  async function learnFromReport({ storage, report }) {
+    console.log("1 - Entrou no learnFromReport");
+
+    if (!report) {
+      console.log("2 - report vazio");
+      return null;
+    }
+
+    console.log(report);
+
+    const tribe = report.tribe || "romans";
+    const troopType = report.troopType || null;
+    const sent = Number(report.troopsSentCount || 0);
+    const xp = Number(report.xp || 0);
+    const animals = report.animalsInitial || report.animalsKilled || {};
+
+    console.log({
+      tribe,
+      troopType,
+      sent,
+      xp,
+      animals,
+    });
+
+    if (!troopType) {
+      console.log("PAROU: troopType");
+      return null;
+    }
+
+    if (!sent) {
+      console.log("PAROU: sent");
+      return null;
+    }
+
+    const cleared = Boolean(report.cleared);
+    const killRate = Number(report.killRate || 0);
+    const troopLossRate = Number(report.troopLossRate || 0);
+    const remaining = Number(report.totalAnimalsRemaining || 0);
+
+    let outcome = "failure";
+
+    if (
+      cleared &&
+      Number(report.troopsLostCount || 0) === 0 &&
+      Number(report.troopsWoundedCount || 0) === 0
+    ) {
+      outcome = "perfect";
+    } else if (cleared) {
+      outcome = "cleared_with_losses";
+    } else if (killRate >= 0.95) {
+      outcome = "almost_cleared";
+    } else if (killRate >= 0.7) {
+      outcome = "partial";
+    }
+    let estimatedClear = 0;
+    let estimatedSafe = 0;
+
+    if (!cleared && sent > 0 && killRate > 0) {
+      // Estimativa proporcional para atingir 100% de eliminação.
+      estimatedClear = Math.ceil(sent / killRate);
+
+      // Quanto menor a taxa de eliminação, maior a margem necessária.
+      let safetyMultiplier = 1.15;
+
+      if (killRate >= 0.95) {
+        safetyMultiplier = 1.05;
+      } else if (killRate >= 0.85) {
+        safetyMultiplier = 1.08;
+      } else if (killRate >= 0.7) {
+        safetyMultiplier = 1.12;
+      }
+
+      estimatedSafe = Math.ceil(estimatedClear * safetyMultiplier);
+    }
+    console.log("Cleared:", cleared);
+
+    const knowledge = await getKnowledge(
+      storage,
+      tribe,
+      troopType,
+      xp,
+      animals,
+    );
+
+    console.log("Knowledge carregado", knowledge);
+
+    knowledge.samples++;
+
+    knowledge.lastOutcome = outcome;
+    knowledge.bestKillRate = Math.max(
+      Number(knowledge.bestKillRate || 0),
+      killRate,
+    );
+
+    if (estimatedClear > 0) {
+      knowledge.estimatedClear = estimatedClear;
+    }
+
+    if (estimatedSafe > 0) {
+      knowledge.estimatedSafe = Math.max(
+        Number(knowledge.estimatedSafe || 0),
+        estimatedSafe,
+      );
+    }
+
+    if (
+      knowledge.lowestTroopLossRate === null ||
+      troopLossRate < Number(knowledge.lowestTroopLossRate)
+    ) {
+      knowledge.lowestTroopLossRate = troopLossRate;
+    }
+
+    if (outcome === "perfect") {
+      knowledge.perfectSuccess += 1;
+
+      knowledge.minSuccess =
+        knowledge.minSuccess > 0 ? Math.min(knowledge.minSuccess, sent) : sent;
+    } else if (outcome === "cleared_with_losses") {
+      knowledge.clearedWithLosses += 1;
+
+      knowledge.minSuccess =
+        knowledge.minSuccess > 0 ? Math.min(knowledge.minSuccess, sent) : sent;
+    } else if (outcome === "almost_cleared") {
+      knowledge.almostCleared += 1;
+
+      knowledge.maxFailure = Math.max(Number(knowledge.maxFailure || 0), sent);
+    } else if (outcome === "partial") {
+      knowledge.partial += 1;
+
+      knowledge.maxFailure = Math.max(Number(knowledge.maxFailure || 0), sent);
+    } else {
+      knowledge.failures += 1;
+
+      knowledge.maxFailure = Math.max(Number(knowledge.maxFailure || 0), sent);
+    }
+
+    knowledge.lastBattle = {
+      sent,
+      lost: Number(report.troopsLostCount || 0),
+      wounded: Number(report.troopsWoundedCount || 0),
+      casualties: Number(report.troopsCasualtiesCount || 0),
+
+      remaining,
+      killRate,
+
+      troopLossRate: Number(report.troopLossRate || 0),
+      troopCasualtyRate: Number(report.troopCasualtyRate || 0),
+
+      estimatedClear,
+      estimatedSafe,
+
+      cleared,
+      outcome,
+      reportId: report.reportId || null,
+      date: report.date || new Date().toISOString(),
+    };
+
+    const hasHero = Boolean(report.hasHero);
+
+    const calibration = await updateCalibration({
+      storage,
+      tribe,
+      troopType,
+      hasHero,
+      sent,
+      killRate,
+      cleared,
+      troopsLostCount: Number(report.troopsLostCount || 0),
+      troopsWoundedCount: Number(report.troopsWoundedCount || 0),
+    });
+
+    console.log("CALIBRAÇÃO ATUALIZADA", calibration);
+    console.log("SALVANDO", knowledge);
+
+    return await saveKnowledge(storage, knowledge);
+  }
+
+  function suggestFromKnowledge(knowledge) {
+    if (!knowledge) return null;
+
+    const samples = Number(knowledge.samples || 0);
+    const last = knowledge.lastBattle || null;
+    const minSuccess = Number(knowledge.minSuccess || 0);
+    const estimatedSafe = Number(knowledge.estimatedSafe || 0);
+
+    // Já houve uma batalha perfeita.
+    if (last && last.outcome === "perfect" && Number(last.sent || 0) > 0) {
+      return {
+        ok: true,
+        source: "knowledge-perfect",
+        suggestedTroops: Number(last.sent),
+        confidence: samples,
+        message: "Quantidade já testada sem mortos e sem enfermaria.",
+      };
+    }
+
+    // Limpou, mas houve mortos ou feridos.
+    if (
+      last &&
+      last.outcome === "cleared_with_losses" &&
+      Number(last.sent || 0) > 0
+    ) {
+      const casualtyRate = Number(last.troopCasualtyRate || 0);
+
+      // Quanto mais baixas, maior a correção.
+      const multiplier = Math.max(1.05, 1 + casualtyRate * 2);
+
+      return {
+        ok: true,
+        source: "knowledge-cleared-with-losses",
+        suggestedTroops: Math.ceil(Number(last.sent) * multiplier),
+        confidence: samples,
+        message: "Limpou, mas a quantidade foi aumentada para reduzir baixas.",
+      };
+    }
+
+    // Ataque que não limpou: usa a estimativa proporcional com margem.
+    if (estimatedSafe > 0) {
+      return {
+        ok: true,
+        source: "knowledge-estimated",
+        suggestedTroops: estimatedSafe,
+        confidence: samples,
+        message:
+          "Estimativa ajustada pelo percentual real de animais eliminados.",
+      };
+    }
+
+    // Compatibilidade com conhecimentos antigos.
+    if (minSuccess > 0) {
+      return {
+        ok: true,
+        source: "knowledge-success",
+        suggestedTroops: minSuccess,
+        confidence: samples,
+        message: "Baseado em uma batalha que limpou o oásis.",
+      };
+    }
+
+    const maxFailure = Number(knowledge.maxFailure || 0);
+
+    if (maxFailure > 0) {
+      return {
+        ok: true,
+        source: "knowledge-failed",
+        suggestedTroops: Math.ceil(maxFailure * 1.15),
+        confidence: samples,
+        message: "Baseado na maior quantidade que ainda falhou.",
+      };
+    }
+
+    return null;
+  }
+
+  root.BattleKnowledge = {
+    makeSignature,
+    knowledgeId,
+    getKnowledge,
+    learnFromReport,
+    suggestFromKnowledge,
+
+    getCalibration,
+    updateCalibration,
+    applyCalibration,
+  };
+
+  function calibrationId(tribe, troopType, hasHero) {
+    return [
+      "battleCalibration",
+      tribe || "romans",
+      troopType || "unknown",
+      hasHero ? "hero" : "nohero",
+    ].join(":");
+  }
+
+  async function getCalibration(storage, tribe, troopType, hasHero) {
+    const id = calibrationId(tribe, troopType, hasHero);
+
+    const saved = await storage.get(root.Constants.STORES.STATISTICS, id);
+
+    const calibration = saved || {
+      id,
+      tribe,
+      troopType,
+      hasHero: Boolean(hasHero),
+      samples: 0,
+      factorSum: 0,
+      averageFactor: 1,
+      maxFactor: 1,
+      updatedAt: null,
+    };
+
+    calibration.samples = Number(calibration.samples || 0);
+    calibration.factorSum = Number(calibration.factorSum || 0);
+    calibration.averageFactor = Number(calibration.averageFactor || 1);
+    calibration.maxFactor = Number(calibration.maxFactor || 1);
+    calibration.hasHero = Boolean(hasHero);
+
+    return calibration;
+  }
+
+  async function updateCalibration({
+    storage,
+    tribe,
+    troopType,
+    hasHero,
+    sent,
+    killRate,
+    cleared,
+    troopsLostCount,
+    troopsWoundedCount,
+  }) {
+    if (!storage || !troopType || sent <= 0 || killRate <= 0) {
+      return null;
+    }
+
+    let requiredSafe = sent;
+
+    if (!cleared) {
+      const estimatedClear = sent / killRate;
+
+      let margin = 1.15;
+
+      if (killRate >= 0.95) {
+        margin = 1.05;
+      } else if (killRate >= 0.85) {
+        margin = 1.1;
+      } else if (killRate >= 0.7) {
+        margin = 1.15;
+      } else {
+        margin = 1.25;
+      }
+
+      requiredSafe = estimatedClear * margin;
+    } else {
+      const casualties =
+        Number(troopsLostCount || 0) + Number(troopsWoundedCount || 0);
+
+      const casualtyRate = casualties / sent;
+
+      if (casualtyRate > 0) {
+        requiredSafe = sent * Math.max(1.05, 1 + casualtyRate * 2);
+      }
+    }
+
+    const factor = Math.max(1, requiredSafe / sent);
+
+    const calibration = await getCalibration(
+      storage,
+      tribe,
+      troopType,
+      hasHero,
+    );
+
+    calibration.samples += 1;
+    calibration.factorSum += factor;
+    calibration.averageFactor = calibration.factorSum / calibration.samples;
+    calibration.maxFactor = Math.max(
+      Number(calibration.maxFactor || 1),
+      factor,
+    );
+    calibration.updatedAt = new Date().toISOString();
+
+    await storage.put(root.Constants.STORES.STATISTICS, calibration);
+
+    return calibration;
+  }
+
+  async function applyCalibration({
+    storage,
+    tribe,
+    troopType,
+    hasHero,
+    theoreticalTroops,
+  }) {
+    const theoretical = Number(theoreticalTroops || 0);
+
+    if (theoretical <= 0) {
+      return {
+        troops: 0,
+        factor: 1,
+        samples: 0,
+      };
+    }
+
+    const calibration = await getCalibration(
+      storage,
+      tribe,
+      troopType,
+      hasHero,
+    );
+
+    if (Number(calibration.samples || 0) <= 0) {
+      return {
+        troops: Math.ceil(theoretical),
+        factor: 1,
+        samples: 0,
+      };
+    }
+
+    /*
+     * Usamos o maior entre a média e 90% do maior fator observado.
+     * Isso evita ficar agressivo demais depois de uma batalha ruim.
+     */
+    const learnedFactor =
+      Math.max(
+        Number(calibration.averageFactor || 1),
+        Number(calibration.maxFactor || 1),
+      ) * 1.0;
+
+    return {
+      troops: Math.ceil(theoretical * learnedFactor),
+      factor: learnedFactor,
+      samples: Number(calibration.samples || 0),
+    };
+  }
+
+  root.BattleLearning = root.BattleKnowledge;
+})(window);
+
+
+
+
+// FILE: core/scanner.js
+
+(function initScanner(global) {
+  'use strict';
+
+  const root = (global.NytrinA = global.NytrinA || {});
+  const constants = root.Constants;
+
+  class ScannerService {
+    /**
+     * @param {{storage:any,getSettings:Function,onUpdate:Function}} deps
+     */
+    constructor(deps) {
+      this.storage = deps.storage;
+      this.getSettings = deps.getSettings;
+      this.onUpdate = deps.onUpdate;
+      this.lastSignature = '';
+      this.intervalId = null;
+      this.mouseInside = false;
+    }
+
+    /**
+     * @returns {void}
+     */
+    start() {
+      global.document.addEventListener('mousemove', () => {
+        this.mouseInside = true;
+      });
+
+      this.intervalId = global.setInterval(() => {
+        this.scanNow().catch(() => {
+          return undefined;
+        });
+      }, constants.SCAN_INTERVAL_MS);
+    }
+
+    /**
+     * @returns {Promise<any|null>}
+     */
+    async scanNow() {
+      const settings = this.getSettings();
+      const parsed = root.OasisParser.parse({
+        speed: Number(settings.effectiveSpeed || settings.customSpeed || 14),
+        smallMap: Boolean(settings.smallMap)
+      });
+      if (!parsed) return null;
+
+      const signature = JSON.stringify({
+        coord: parsed.coord,
+        distance: parsed.distance,
+        bonus: parsed.bonus,
+        animals: parsed.animals
+      });
+
+      if (signature === this.lastSignature) {
+        return parsed;
+      }
+
+      this.lastSignature = signature;
+
+      const oasisId = parsed.coord || 'unknown:' + parsed.server + ':' + Math.round(parsed.distance * 100);
+      const existing = await this.storage.get(root.Constants.STORES.OASIS, oasisId);
+      const payload = {
+        ...parsed,
+        id: oasisId,
+        updatedAt: new Date().toISOString()
+      };
+
+      if (existing) {
+        const existingSignature = JSON.stringify({
+          coord: existing.coord,
+          distance: existing.distance,
+          bonus: existing.bonus,
+          animals: existing.animals
+        });
+        if (existingSignature === signature) {
+          return parsed;
+        }
+      }
+
+      await this.storage.put(root.Constants.STORES.OASIS, payload);
+      if (typeof this.onUpdate === 'function') this.onUpdate('oasis', payload);
+      return parsed;
+    }
+
+    /**
+     * @param {any} report
+     * @returns {Promise<void>}
+     */
+    async saveReport(report) {
+      if (!report) return;
+      await this.storage.put(root.Constants.STORES.REPORTS, report);
+
+      const historyId = (report.coord || 'unknown') + ':' + report.reportId;
+      await this.storage.put(root.Constants.STORES.HISTORY, {
+        id: historyId,
+        coord: report.coord || null,
+        reportId: report.reportId,
+        date: report.date,
+        lossCost: report.lossCost,
+        profit: report.profit,
+        xp: report.xp,
+        totalResources: report.totalResources
+      });
+
+      if (typeof this.onUpdate === 'function') this.onUpdate('report', report);
+    }
+  }
+
+  root.ScannerService = ScannerService;
 })(window);
 
 
@@ -1503,6 +2482,15 @@
       this.overlay.innerHTML = this.template();
       global.document.body.appendChild(this.overlay);
       this.bindEvents();
+      const minimized = Boolean(this.getSettings()?.overlayMinimized);
+      this.overlay.classList.toggle("minimized", minimized);
+
+      const minimizeButton = this.overlay.querySelector(
+        "#nytrina-toggle-minimize",
+      );
+      if (minimizeButton) {
+        minimizeButton.textContent = minimized ? "Expandir" : "Minimizar";
+      }
       this.refresh().catch(() => undefined);
     }
 
@@ -1524,7 +2512,7 @@
       return [
         '<div class="head">',
         '<b id="nytrina-title">NytrinA Companion 4.0</b>',
-        '<button id="nytrina-refresh">Atualizar</button>',
+        '<div class="actions"><button id="nytrina-toggle-minimize">Minimizar</button><button id="nytrina-refresh">Atualizar</button></div>',
         "</div>",
         '<div class="tabs">',
         '<button class="tab active" data-tab="dashboard">Dashboard</button>',
@@ -1549,6 +2537,7 @@
      * @returns {void}
      */
     bindEvents() {
+      console.error("######## OVERLAY NOVO ########");
       this.overlay.querySelectorAll(".tab").forEach((button) => {
         button.addEventListener("click", () => {
           root.Tabs.activateTab(
@@ -1562,6 +2551,22 @@
         .querySelector("#nytrina-refresh")
         ?.addEventListener("click", () => {
           this.refresh().catch(() => undefined);
+        });
+
+      // NOVO
+      this.overlay
+        .querySelector("#nytrina-toggle-minimize")
+        ?.addEventListener("click", async () => {
+          const minimized = this.overlay.classList.toggle("minimized");
+
+          await this.saveSettings({
+            overlayMinimized: minimized,
+          });
+
+          const btn = this.overlay.querySelector("#nytrina-toggle-minimize");
+          if (btn) {
+            btn.textContent = minimized ? "Expandir" : "Minimizar";
+          }
         });
 
       this.overlay
@@ -1787,6 +2792,118 @@
         settings.troopType || "hero",
       );
 
+      const formulaAdvice = root.BattleAdvisor?.recommend({
+        animals: parsed?.animals || {},
+        troopType: settings.troopType || "hero",
+        hero: true,
+      });
+
+      let knowledge = null;
+      let learnedAdvice = null;
+
+      const selectedTroopType = settings.troopType || "hero";
+      const selectedTribe =
+        settings.troopTribe ||
+        this.inferTribeByTroop(selectedTroopType) ||
+        "romans";
+
+      let calibratedWithHero = null;
+      let calibratedWithoutHero = null;
+
+      if (formulaAdvice?.ok && root.BattleKnowledge?.applyCalibration) {
+        calibratedWithHero = await root.BattleKnowledge.applyCalibration({
+          storage: this.storage,
+          tribe: selectedTribe,
+          troopType: selectedTroopType,
+          hasHero: true,
+          theoreticalTroops: formulaAdvice.withHero.safeTroops,
+        });
+
+        calibratedWithoutHero = await root.BattleKnowledge.applyCalibration({
+          storage: this.storage,
+          tribe: selectedTribe,
+          troopType: selectedTroopType,
+          hasHero: false,
+          theoreticalTroops: formulaAdvice.withoutHero.safeTroops,
+        });
+      }
+
+      const canUseLearning =
+        root.BattleKnowledge &&
+        parsed &&
+        Number(parsed.xp || 0) > 0 &&
+        parsed.animals &&
+        selectedTroopType !== "hero" &&
+        selectedTroopType !== "custom";
+
+      if (canUseLearning) {
+        knowledge = await root.BattleKnowledge.getKnowledge(
+          this.storage,
+          selectedTribe,
+          selectedTroopType,
+          Number(parsed.xp || 0),
+          parsed.animals || {},
+        );
+
+        if (Number(knowledge?.samples || 0) > 0) {
+          learnedAdvice = root.BattleKnowledge.suggestFromKnowledge(knowledge);
+        }
+      }
+
+      let suggestionText = "-";
+      let suggestionSource = "Sem dados";
+      let suggestionConfidence = "-";
+
+      if (learnedAdvice?.ok) {
+        suggestionText =
+          Math.round(Number(learnedAdvice.suggestedTroops || 0)) +
+          " " +
+          this.troopLabel(selectedTroopType);
+
+        suggestionSource = "Battle Knowledge";
+
+        suggestionConfidence =
+          Number(knowledge?.samples || 0) +
+          (Number(knowledge?.samples || 0) === 1 ? " amostra" : " amostras");
+      } else if (formulaAdvice?.ok) {
+        const theoreticalWithHero = Number(
+          formulaAdvice.withHero.safeTroops || 0,
+        );
+
+        const theoreticalWithoutHero = Number(
+          formulaAdvice.withoutHero.safeTroops || 0,
+        );
+
+        const finalWithHero = Number(
+          calibratedWithHero?.troops || theoreticalWithHero,
+        );
+
+        const finalWithoutHero = Number(
+          calibratedWithoutHero?.troops || theoreticalWithoutHero,
+        );
+
+        const withHeroSamples = Number(calibratedWithHero?.samples || 0);
+
+        const withoutHeroSamples = Number(calibratedWithoutHero?.samples || 0);
+
+        suggestionText =
+          "Com herói: " + finalWithHero + " | Sem: " + finalWithoutHero;
+
+        if (withHeroSamples > 0 || withoutHeroSamples > 0) {
+          suggestionSource = "Cálculo ajustado pelo aprendizado";
+
+          suggestionConfidence =
+            "Com herói: " +
+            withHeroSamples +
+            " amostra(s) | Sem: " +
+            withoutHeroSamples +
+            " amostra(s)";
+        } else {
+          suggestionSource = "Cálculo teórico";
+          suggestionConfidence = "Ainda sem calibração";
+        }
+      }
+
       node.innerHTML = [
         '<div class="grid">',
         '<div class="card"><span>Coord</span><b>' +
@@ -1812,6 +2929,17 @@
           "</b></div>",
         '<div class="card"><span>Multiplicador</span><b>x' +
           server.speed +
+          "</b></div>",
+        '<div class="card"><span>Sugestão</span><b>' +
+          suggestionText +
+          "</b></div>",
+
+        '<div class="card"><span>Fonte</span><b>' +
+          suggestionSource +
+          "</b></div>",
+
+        '<div class="card"><span>Confiança</span><b>' +
+          suggestionConfidence +
           "</b></div>",
         "</div>",
         '<div class="stack">',
@@ -1881,9 +3009,13 @@
       node
         .querySelector("#nytrina-import-report")
         ?.addEventListener("click", async () => {
+          console.log("CLICOU IMPORTAR");
+
           const report = root.ReportParser.parse({
             tribe: settings.troopTribe || "romans",
+            troopType: settings.troopType || null,
           });
+
           if (!report) {
             root.Modal.show(
               "Relatorio",
@@ -1891,7 +3023,18 @@
             );
             return;
           }
+
           await this.scanner.saveReport(report);
+
+          console.log("ANTES DO BATTLE - ABA RELATORIOS");
+
+          await root.BattleKnowledge.learnFromReport({
+            storage: this.storage,
+            report,
+          });
+
+          console.log("DEPOIS DO BATTLE - ABA RELATORIOS");
+
           root.Modal.show(
             "Relatorio",
             "Importado com sucesso. Coord: " +
@@ -1899,6 +3042,7 @@
               " | Lucro: " +
               Math.round(report.profit || 0),
           );
+
           await this.refresh();
         });
     }
@@ -1976,7 +3120,7 @@
       const settings = this.getSettings();
 
       node.innerHTML = [
-        '<div class="actions"><button id="nytrina-import-report-tab">Importar relatorio atual</button></div>',
+        '<div class="actions"><button id="nytrina-import-report-tab">Importar relatorio atual</button><button id="nytrina-clear-reports">Limpar Relatórios</button></div>',
         "<table><thead><tr><th>ID</th><th>Coord</th><th>XP</th><th>Rec.</th><th>Perda</th><th>Lucro</th></tr></thead><tbody>",
         reports
           .slice()
@@ -2004,24 +3148,66 @@
       node
         .querySelector("#nytrina-import-report-tab")
         ?.addEventListener("click", async () => {
-          const report = root.ReportParser.parse({
-            tribe: settings.troopTribe || "romans",
-          });
-          if (!report) {
+          console.error("RELATORIOS: BOTAO CLICADO");
+
+          try {
+            const report = root.ReportParser.parse({
+              tribe: settings.troopTribe || "romans",
+              troopType: settings.troopType || null,
+            });
+
+            if (!report) {
+              root.Modal.show(
+                "Relatorio",
+                "Nenhum relatorio valido encontrado na tela.",
+              );
+              return;
+            }
+
+            console.log("RELATORIOS: REPORT GERADO", report);
+
+            // Primeiro aprende, para identificarmos qualquer erro isoladamente.
+            console.log("RELATORIOS: ANTES DO BATTLE");
+
+            const learningResult = await root.BattleKnowledge.learnFromReport({
+              storage: this.storage,
+              report,
+            });
+
+            console.log("RELATORIOS: BATTLE SALVO", learningResult);
+
+            // Depois salva o relatório normal.
+            await this.scanner.saveReport(report);
+
+            console.log("RELATORIOS: REPORT SALVO");
+
             root.Modal.show(
               "Relatorio",
-              "Nenhum relatorio valido encontrado na tela.",
+              "Importado com sucesso. Coord: " +
+                (report.coord || "-") +
+                " | Lucro: " +
+                Math.round(report.profit || 0),
             );
-            return;
+
+            await this.refresh();
+          } catch (error) {
+            console.error("ERRO AO IMPORTAR RELATORIO:", error);
+
+            root.Modal.show(
+              "Erro",
+              "Falha ao importar ou aprender com o relatório. Veja o console.",
+            );
           }
-          await this.scanner.saveReport(report);
-          root.Modal.show(
-            "Relatorio",
-            "Importado com sucesso. Coord: " +
-              (report.coord || "-") +
-              " | Lucro: " +
-              Math.round(report.profit || 0),
-          );
+        });
+
+      node
+        .querySelector("#nytrina-clear-reports")
+        ?.addEventListener("click", async () => {
+          if (!confirm("Deseja apagar todos os relatórios?")) return;
+
+          await this.storage.clear(root.Constants.STORES.REPORTS);
+          await this.storage.clear(root.Constants.STORES.HISTORY);
+
           await this.refresh();
         });
     }
@@ -2256,27 +3442,91 @@
     async refreshDebug() {
       const node = this.panel("debug");
       if (!node) return;
+
       if (!this.debugEnabled) {
-        node.innerHTML = "Clique 5 vezes no titulo para habilitar debug.";
+        node.innerHTML = "Clique 5 vezes no título para habilitar debug.";
         return;
       }
 
-      const payload = {
-        coord: this.currentScan?.coord || null,
-        distance: this.currentScan?.distance || 0,
-        animals: this.currentScan?.animals || root.Animals.emptyAnimals(),
-        resources: this.currentScan?.resources || null,
-        heroResources: this.currentScan?.heroResources || null,
-        losses: this.currentScan?.lossCost || null,
-        profit: this.currentScan?.profit || null,
-        xp: this.currentScan?.xp || 0,
-        rawOasis: this.currentScan,
-      };
+      const stats = await this.storage.getAll(root.Constants.STORES.STATISTICS);
+      const knowledgeRows = stats.filter((row) =>
+        String(row?.id || "").startsWith("battleKnowledge:"),
+      );
 
-      node.innerHTML =
-        '<div class="debug-json">' +
-        JSON.stringify(payload, null, 2) +
-        "</div>";
+      node.innerHTML = [
+        '<div class="actions">',
+        '<button id="nytrina-clear-knowledge">Limpar Battle Knowledge</button>',
+        "</div>",
+
+        '<div class="grid">',
+        '<div class="card"><span>Conhecimentos</span><b>' +
+          knowledgeRows.length +
+          "</b></div>",
+        '<div class="card"><span>Amostras</span><b>' +
+          knowledgeRows.reduce((s, r) => s + Number(r.samples || 0), 0) +
+          "</b></div>",
+        "</div>",
+
+        "<table><thead><tr>",
+        "<th>Tropa</th><th>XP</th><th>Amostras</th><th>Resultado</th><th>Enviadas</th><th>Mortas</th><th>Enfermaria</th><th>Baixas</th><th>Eliminação</th><th>Próxima sugestão</th>",
+        "</tr></thead><tbody>",
+
+        knowledgeRows
+          .slice()
+          .sort((a, b) =>
+            String(a.troopType).localeCompare(String(b.troopType)),
+          )
+          .map((row) => {
+            const last = row.lastBattle || {};
+
+            const outcomeLabels = {
+              perfect: "Perfeito",
+              cleared_with_losses: "Limpou com perdas",
+              almost_cleared: "Quase limpou",
+              partial: "Parcial",
+              failure: "Falha",
+            };
+
+            return (
+              "<tr><td>" +
+              (row.troopType || "-") +
+              "</td><td>" +
+              Math.round(row.xp || 0) +
+              "</td><td>" +
+              Number(row.samples || 0) +
+              "</td><td>" +
+              (outcomeLabels[row.lastOutcome] || "-") +
+              "</td><td>" +
+              Number(last.sent || 0) +
+              "</td><td>" +
+              Number(last.lost || 0) +
+              "</td><td>" +
+              Number(last.wounded || 0) +
+              "</td><td>" +
+              Number(last.casualties || 0) +
+              "</td><td>" +
+              (Number(last.killRate || 0) * 100).toFixed(1) +
+              "%</td><td>" +
+              Number(row.estimatedSafe || last.estimatedSafe || 0) +
+              "</td></tr>"
+            );
+          })
+          .join(""),
+
+        "</tbody></table>",
+      ].join("");
+
+      node
+        .querySelector("#nytrina-clear-knowledge")
+        ?.addEventListener("click", async () => {
+          if (!confirm("Deseja apagar todo o Battle Knowledge?")) return;
+
+          for (const row of knowledgeRows) {
+            await this.storage.delete(root.Constants.STORES.STATISTICS, row.id);
+          }
+
+          await this.refresh();
+        });
     }
   }
 

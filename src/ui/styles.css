@@ -238,3 +238,15 @@
     height: 16px !important;
     cursor: pointer;
 }
+
+#nytrina-overlay.minimized .tabs {
+  display: none;
+}
+
+#nytrina-overlay.minimized .panel {
+  display: none;
+}
+
+#nytrina-toggle-minimize {
+  min-width: 92px;
+}

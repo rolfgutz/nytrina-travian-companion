@@ -1,5 +1,5 @@
 (function initMapParser(global) {
-  'use strict';
+  "use strict";
 
   const root = (global.NytrinA = global.NytrinA || {});
   const utils = root.Utils;
@@ -9,7 +9,7 @@
    * @returns {string}
    */
   function normalizeMinus(value) {
-    return String(value || '').replace(/[−–—]/g, '-');
+    return String(value || "").replace(/[−–—]/g, "-");
   }
 
   /**
@@ -19,9 +19,11 @@
    */
   function parseCoordLike(text) {
     const normalized = normalizeMinus(text);
-    const match = normalized.match(/[\(\[]\s*([+-]?\d+)\s*\|\s*([+-]?\d+)\s*[\)\]]/);
+    const match = normalized.match(
+      /[\(\[]\s*([+-]?\d+)\s*\|\s*([+-]?\d+)\s*[\)\]]/,
+    );
     if (!match) return null;
-    return match[1] + '|' + match[2];
+    return match[1] + "|" + match[2];
   }
 
   /**
@@ -31,34 +33,77 @@
    */
   function fromWrittenCoordinate(container) {
     if (!container) return null;
-    const directCandidates = container.querySelectorAll('h1,h2,h3,th,td,span,b,strong,a,div');
+    const directCandidates = container.querySelectorAll(
+      "h1,h2,h3,th,td,span,b,strong,a",
+    );
     for (const element of directCandidates) {
       if (!utils.isVisible(element)) continue;
-      const content = normalizeMinus(element.textContent || '');
+      const content = normalizeMinus(element.textContent || "");
       const value = parseCoordLike(content);
       if (value) return value;
     }
-    const containerValue = parseCoordLike(container.textContent || '');
+    const containerValue = parseCoordLike(container.textContent || "");
     return containerValue || null;
   }
 
   /**
-   * Prioridade 2: tooltip/atributos.
-   * @param {Element|null} container
+   * Procura o tooltip visual atualmente aberto no mapa.
+   * Prioriza elementos pequenos, visíveis e que contenham
+   * "Oásis" junto com uma coordenada.
+   *
    * @returns {string|null}
    */
-  function fromTooltip(container) {
-    if (!container) return null;
-    const tooltipNodes = container.querySelectorAll('[title],[data-tooltip],[aria-label]');
-    for (const node of tooltipNodes) {
-      const titleValue = parseCoordLike(node.getAttribute('title') || '');
-      if (titleValue) return titleValue;
-      const tooltipValue = parseCoordLike(node.getAttribute('data-tooltip') || '');
-      if (tooltipValue) return tooltipValue;
-      const ariaValue = parseCoordLike(node.getAttribute('aria-label') || '');
-      if (ariaValue) return ariaValue;
+  function fromTooltip() {
+    const candidates = Array.from(
+      global.document.querySelectorAll("div,span,section,aside"),
+    );
+
+    const matches = [];
+
+    for (const node of candidates) {
+      if (!utils.isVisible(node)) continue;
+
+      const text = normalizeMinus(
+        String(node.innerText || node.textContent || "").trim(),
+      );
+
+      // Ignora elementos vazios ou containers gigantes da página.
+      if (!text || text.length > 600) continue;
+
+      // O tooltip do mapa deve falar de oásis.
+      if (!/o[aá]sis/i.test(text)) continue;
+
+      const coord = parseCoordLike(text);
+      if (!coord) continue;
+
+      const rect = node.getBoundingClientRect();
+
+      // Ignora elementos sem dimensão visual.
+      if (rect.width <= 0 || rect.height <= 0) continue;
+
+      matches.push({
+        coord,
+        textLength: text.length,
+        area: rect.width * rect.height,
+        node,
+      });
     }
-    return null;
+
+    if (!matches.length) return null;
+
+    /*
+     * O tooltip verdadeiro costuma ser o menor elemento visual
+     * que contém o texto completo. Evita escolher containers pais.
+     */
+    matches.sort((a, b) => {
+      if (a.textLength !== b.textLength) {
+        return a.textLength - b.textLength;
+      }
+
+      return a.area - b.area;
+    });
+
+    return matches[0].coord;
   }
 
   /**
@@ -66,9 +111,11 @@
    * @returns {string|null}
    */
   function fromOasisWindow() {
-    const candidates = global.document.querySelectorAll('#content, #map_details, .dialog, .content, .boxTitle, .titleInHeader');
+    const candidates = global.document.querySelectorAll(
+      "#content, #map_details, .dialog, .content, .boxTitle, .titleInHeader",
+    );
     for (const node of candidates) {
-      const value = parseCoordLike(node.textContent || '');
+      const value = parseCoordLike(node.textContent || "");
       if (value) return value;
     }
     return null;
@@ -79,14 +126,18 @@
    * @returns {string|null}
    */
   function fromMapFields() {
-    const inputX = global.document.querySelector('input[name="x"], input#x, input[data-name="x"]');
-    const inputY = global.document.querySelector('input[name="y"], input#y, input[data-name="y"]');
+    const inputX = global.document.querySelector(
+      'input[name="x"], input#x, input[data-name="x"]',
+    );
+    const inputY = global.document.querySelector(
+      'input[name="y"], input#y, input[data-name="y"]',
+    );
 
-    const xRaw = normalizeMinus(inputX?.value || '');
-    const yRaw = normalizeMinus(inputY?.value || '');
+    const xRaw = normalizeMinus(inputX?.value || "");
+    const yRaw = normalizeMinus(inputY?.value || "");
 
     if (/^[+-]?\d+$/.test(xRaw) && /^[+-]?\d+$/.test(yRaw)) {
-      return String(Number(xRaw)) + '|' + String(Number(yRaw));
+      return String(Number(xRaw)) + "|" + String(Number(yRaw));
     }
     return null;
   }
@@ -97,10 +148,10 @@
    */
   function fromUrl() {
     const params = new URL(global.location.href).searchParams;
-    const x = normalizeMinus(params.get('x') || '');
-    const y = normalizeMinus(params.get('y') || '');
+    const x = normalizeMinus(params.get("x") || "");
+    const y = normalizeMinus(params.get("y") || "");
     if (/^[+-]?\d+$/.test(x) && /^[+-]?\d+$/.test(y)) {
-      return String(Number(x)) + '|' + String(Number(y));
+      return String(Number(x)) + "|" + String(Number(y));
     }
     return null;
   }
@@ -112,25 +163,48 @@
    */
   function resolveCoordinate(contextElement) {
     const sequence = [
-      { source: 'written', fn: () => fromWrittenCoordinate(contextElement) },
-      { source: 'tooltip', fn: () => fromTooltip(contextElement) },
-      { source: 'oasis-window', fn: () => fromOasisWindow() },
-      { source: 'map-fields', fn: () => fromMapFields() },
-      { source: 'url', fn: () => fromUrl() }
+      {
+        source: "tooltip",
+        fn: () => fromTooltip(),
+      },
+      {
+        source: "oasis-window",
+        fn: () => fromOasisWindow(),
+      },
+      {
+        source: "written",
+        fn: () => fromWrittenCoordinate(contextElement),
+      },
+      {
+        source: "map-fields",
+        fn: () => fromMapFields(),
+      },
+      {
+        source: "url",
+        fn: () => fromUrl(),
+      },
     ];
 
     for (const item of sequence) {
       const value = item.fn();
-      if (!value || value === '-') continue;
-      return { coord: value, source: item.source };
+
+      if (!value || value === "-") continue;
+
+      return {
+        coord: value,
+        source: item.source,
+      };
     }
 
-    return { coord: null, source: 'none' };
+    return {
+      coord: null,
+      source: "none",
+    };
   }
 
   root.MapParser = {
     resolveCoordinate,
     parseCoordLike,
-    normalizeMinus
+    normalizeMinus,
   };
 })(window);

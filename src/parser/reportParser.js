@@ -41,41 +41,81 @@
     return null;
   }
 
-  function parseCombatTable(table) {
-    const icons = Array.from(
-      table.querySelectorAll('[class*="u"], [class*="hero"]'),
-    );
-    const unitClasses = [];
+  function parseAttackerTableExact() {
+    const result = {
+      total: {},
+      lost: {},
+      wounded: {},
+    };
 
-    icons.forEach((icon) => {
-      const token = utils
-        .classTokens(icon)
-        .find((name) => /^u\d+$/.test(name) || name === "hero");
+    // Procura a seção do atacante
+    const attackerRole = document.querySelector(".role.attacker");
 
-      if (token && !unitClasses.includes(token)) {
-        unitClasses.push(token);
-      }
+    if (!attackerRole) {
+      console.warn("Não encontrou .role.attacker");
+      return result;
+    }
+
+    // A tabela está dentro dela
+    const table = attackerRole.querySelector("table");
+
+    if (!table) {
+      console.warn("Não encontrou tabela do atacante");
+      return result;
+    }
+
+    // Classes das tropas (u1,u2,u3...)
+    const icons = [...table.querySelectorAll("img.unit")];
+
+    const keys = icons
+      .map((icon) => [...icon.classList].find((c) => /^u\d+$/.test(c)))
+      .filter(Boolean);
+
+    console.log("Keys:", keys);
+
+    // Linhas da tabela
+    const totalRow = table.querySelector(".troopCount_small")?.closest("tr");
+    const deadRow = table.querySelector(".troopDead_small")?.closest("tr");
+
+    const allRows = [...table.querySelectorAll("tbody.units tr")];
+
+    const woundedRow = allRows.find((row) => {
+      if (row === totalRow || row === deadRow) return false;
+
+      const cells = row.querySelectorAll("td.unit");
+      return cells.length > 0;
     });
 
-    const rows = Array.from(table.querySelectorAll("tr"));
-    const numericRows = rows
-      .map((row) => extractNumbersFromRow(row))
-      .filter(
-        (numbers) =>
-          numbers.length >= unitClasses.length && unitClasses.length > 0,
+    function read(row) {
+      const out = {};
+
+      if (!row) return out;
+
+      const values = [...row.querySelectorAll("td.unit")].map((td) =>
+        utils.toInt(td.textContent),
       );
 
-    const total = {};
-    const lost = {};
-    const totalRow = numericRows[0] || [];
-    const lostRow = numericRows[1] || [];
+      console.log("Valores:", values);
 
-    unitClasses.forEach((unitClass, index) => {
-      total[unitClass] = Number(totalRow[index] || 0);
-      lost[unitClass] = Number(lostRow[index] || 0);
-    });
+      keys.forEach((key, index) => {
+        out[key] = values[index] || 0;
+      });
 
-    return { total, lost };
+      // A tabela possui 10 tropas + a coluna do herói.
+      // Como "keys" contém somente u1 até u10, o herói é o valor seguinte.
+      out.hero = Number(values[keys.length] || 0);
+
+      return out;
+    }
+
+    result.total = read(totalRow);
+    result.lost = read(deadRow);
+    result.wounded = read(woundedRow);
+
+    console.log("TOTAL", result.total);
+    console.log("LOST", result.lost);
+
+    return result;
   }
 
   function parseNatureTableExact() {
@@ -215,35 +255,57 @@
     }
 
     return "report-" + Date.now();
-    }
+  }
 
-    function parseReportCoord() {
+  function parseReportCoord() {
     const rawText = String(
-        global.document.body?.innerText ||
+      global.document.body?.innerText ||
         global.document.body?.textContent ||
         "",
     )
-        .replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, "")
-        .replace(/[−–—]/g, "-");
+      .replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, "")
+      .replace(/[−–—]/g, "-");
 
-    const oasisLine = rawText.match(
-        /(?:saqueia|ataca|assalta)[^\n\r]{0,160}o[aá]sis[^\n\r]{0,160}\(?\s*([+-]?\d{1,3})\s*(?:\||-)\s*([+-]?\d{1,3})\s*\)?/i,
+    // Prioridade 1: coordenada entre parênteses após o texto do oásis.
+    const oasisCoord = rawText.match(
+      /(?:saqueia|ataca|assalta).*?o[aá]sis.*?\(\s*([+-]?\d{1,3})\s*\|\s*([+-]?\d{1,3})\s*\)/i,
     );
 
-    if (oasisLine) {
-        return String(Number(oasisLine[1])) + "|" + String(Number(oasisLine[2]));
+    if (oasisCoord) {
+      return (
+        String(Number(oasisCoord[1])) + "|" + String(Number(oasisCoord[2]))
+      );
     }
 
-    const generic = rawText.match(
-        /\(\s*([+-]?\d{1,3})\s*\|\s*([+-]?\d{1,3})\s*\)/,
+    // Prioridade 2: qualquer coordenada válida entre parênteses.
+    const genericParentheses = rawText.match(
+      /\(\s*([+-]?\d{1,3})\s*\|\s*([+-]?\d{1,3})\s*\)/,
     );
 
-    if (generic) {
-        return String(Number(generic[1])) + "|" + String(Number(generic[2]));
+    if (genericParentheses) {
+      return (
+        String(Number(genericParentheses[1])) +
+        "|" +
+        String(Number(genericParentheses[2]))
+      );
+    }
+
+    // Prioridade 3: coordenada sem parênteses.
+    const genericPlain = rawText.match(
+      /(?:^|\s)([+-]?\d{1,3})\s*\|\s*([+-]?\d{1,3})(?:\s|$)/,
+    );
+
+    if (genericPlain) {
+      return (
+        String(Number(genericPlain[1])) + "|" + String(Number(genericPlain[2]))
+      );
     }
 
     const info = mapParser.resolveCoordinate(global.document.body);
-    if (info.coord) return info.coord;
+
+    if (info.coord) {
+      return info.coord;
+    }
 
     return null;
   }
@@ -251,11 +313,8 @@
   function parse(options) {
     const natureData = parseNatureTableExact();
 
-    const attackerTable = findAttackerTable();
-    const attackerData = attackerTable
-      ? parseCombatTable(attackerTable)
-      : { total: {}, lost: {} };
-
+    const attackerData = parseAttackerTableExact();
+    console.log(attackerData);
     const resources = parseResourcesByTableCells();
 
     const hasCombatData =
@@ -269,20 +328,28 @@
 
     if (!hasCombatData && !hasResourceData) return null;
 
-    const animalsAlive = {
+    const animalsInitial = {
       ...animalsData.emptyAnimals(),
       ...(natureData.total || {}),
     };
 
-    let animalsKilled = {
+    const animalsKilled = {
       ...animalsData.emptyAnimals(),
       ...(natureData.lost || {}),
     };
 
+    const animalsRemaining = animalsData.emptyAnimals();
+
+    Object.keys(animalsRemaining).forEach((key) => {
+      animalsRemaining[key] = Math.max(
+        0,
+        Number(animalsInitial[key] || 0) - Number(animalsKilled[key] || 0),
+      );
+    });
+
     let xp = animalsData.calcXp(animalsKilled);
 
     if (xp <= 0 && resources.heroResources.total > 0) {
-      animalsKilled = { ...animalsData.emptyAnimals(), ...animalsAlive };
       xp = animalsData.calcXp(animalsKilled);
     }
 
@@ -300,16 +367,127 @@
     const finalLoss = lossFromReport > 0 ? lossFromReport : loss.total;
     const profit = totalResources - finalLoss;
 
+    const selectedTroopType = options.troopType || null;
+
+    const TROOP_CLASS = {
+      romans: {
+        legionnaire: "u1",
+        praetorian: "u2",
+        imperian: "u3",
+        equites_legati: "u4",
+        equites_imperatoris: "u5",
+        equites_caesaris: "u6",
+      },
+
+      teutons: {
+        clubman: "u11",
+        spearman: "u12",
+        axeman: "u13",
+        scout: "u14",
+        paladin: "u15",
+        teutonic_knight: "u16",
+      },
+
+      gauls: {
+        phalanx: "u21",
+        swordsman: "u22",
+        pathfinder: "u23",
+        theutates_thunder: "u24",
+        druidrider: "u25",
+        haeduan: "u26",
+      },
+    };
+
+    const selectedTroopClass =
+      TROOP_CLASS[options.tribe || "romans"]?.[selectedTroopType] || null;
+
+    const troopsSentCount = selectedTroopClass
+      ? Number((attackerData.total || {})[selectedTroopClass] || 0)
+      : 0;
+
+    const troopsLostCount = selectedTroopClass
+      ? Number((attackerData.lost || {})[selectedTroopClass] || 0)
+      : 0;
+
+    const troopsWoundedCount = selectedTroopClass
+      ? Number((attackerData.wounded || {})[selectedTroopClass] || 0)
+      : 0;
+
+    const troopsCasualtiesCount =
+      Number(troopsLostCount || 0) + Number(troopsWoundedCount || 0);
+
+    const troopDeathRate =
+      troopsSentCount > 0 ? troopsLostCount / troopsSentCount : 0;
+
+    const troopCasualtyRate =
+      troopsSentCount > 0 ? troopsCasualtiesCount / troopsSentCount : 0;
+
+    console.log({
+      troopType: selectedTroopType,
+      troopClass: selectedTroopClass,
+      troopsSentCount,
+      troopsLostCount,
+      troopsWoundedCount,
+      troopsCasualtiesCount,
+    });
+
+    const totalAnimalsInitial = Object.values(animalsInitial).reduce(
+      (sum, value) => sum + Number(value || 0),
+      0,
+    );
+
+    const totalAnimalsKilled = Object.values(animalsKilled).reduce(
+      (sum, value) => sum + Number(value || 0),
+      0,
+    );
+
+    const totalAnimalsRemaining = Object.values(animalsRemaining).reduce(
+      (sum, value) => sum + Number(value || 0),
+      0,
+    );
+
+    const killRate =
+      totalAnimalsInitial > 0 ? totalAnimalsKilled / totalAnimalsInitial : 0;
+
+    const troopLossRate =
+      troopsSentCount > 0 ? troopsLostCount / troopsSentCount : 0;
+
+    const heroSent = Number(attackerData.total?.hero || 0);
+    const hasHero = heroSent > 0;
+
     return {
       url: global.location.href,
       reportId: parseReportIdFromUrl(),
       server: server.getContext().key,
+      tribe: options.tribe || "romans",
       date: new Date().toISOString(),
       coord: parseReportCoord(),
+      animalsInitial,
       animalsKilled,
-      animalsAlive,
+      animalsRemaining,
+      // Compatibilidade com código antigo:
+      animalsAlive: animalsRemaining,
+      totalAnimalsInitial,
+      totalAnimalsKilled,
+      totalAnimalsRemaining,
+      killRate,
+      troopLossRate,
       troopsSent: attackerData.total || {},
       troopsLost: attackerData.lost || {},
+      troopsWounded: attackerData.wounded || {},
+      heroSent,
+      hasHero,
+      troopType: selectedTroopType,
+      troopClass: selectedTroopClass,
+      troopsSentCount,
+      troopsLostCount,
+      troopsWoundedCount,
+      troopsCasualtiesCount,
+      troopDeathRate,
+      troopCasualtyRate,
+      cleared: Object.values(animalsRemaining).every(
+        (value) => Number(value || 0) === 0,
+      ),
       resourcesLoot: resources.resourcesLoot,
       heroResources: resources.heroResources,
       totalResources,
