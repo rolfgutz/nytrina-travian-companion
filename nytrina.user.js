@@ -15,7 +15,7 @@
 
   root.Constants = {
     APP_NAME: 'NytrinA Travian Companion',
-    APP_VERSION: '4.0.0',
+    APP_VERSION: '4.0.4',
     APP_NAMESPACE: 'nytrina_companion_v4',
     DB_NAME_PREFIX: 'nytrina_companion_db',
     DB_VERSION: 1,
@@ -480,6 +480,135 @@
     async clear(storeName) {
       const request = this.store(storeName, 'readwrite').clear();
       await requestToPromise(request);
+    }
+
+    /**
+     * @returns {Array<string>}
+     */
+    getStoreNames() {
+      return Object.values(constants.STORES || {});
+    }
+
+    /**
+     * @param {string} storeName
+     * @param {Array<any>} values
+     * @returns {Promise<void>}
+     */
+    async putMany(storeName, values) {
+      const list = Array.isArray(values) ? values : [];
+      for (const value of list) {
+        await this.put(storeName, value);
+      }
+    }
+
+    /**
+     * @returns {Promise<any>}
+     */
+    async exportBackup() {
+      const stores = this.getStoreNames();
+      const data = {};
+
+      for (const storeName of stores) {
+        data[storeName] = await this.getAll(storeName);
+      }
+
+      const statistics = data[constants.STORES.STATISTICS] || [];
+      const battleKnowledge = statistics.filter((row) =>
+        String(row?.id || '').startsWith('battleKnowledge:'),
+      );
+      const battleCalibration = statistics.filter((row) =>
+        String(row?.id || '').startsWith('battleCalibration:'),
+      );
+
+      return {
+        version: String(constants.APP_VERSION || '4.0.0'),
+        createdAt: new Date().toISOString(),
+        host: this.host,
+        stores: data,
+
+        // Seções amigáveis para restauração entre versões.
+        settings: data[constants.STORES.SETTINGS] || [],
+        reports: data[constants.STORES.REPORTS] || [],
+        history: data[constants.STORES.HISTORY] || [],
+        statistics,
+        battleKnowledge,
+        battleCalibration,
+        scanner: data[constants.STORES.OASIS] || [],
+        oasis: data[constants.STORES.OASIS] || [],
+      };
+    }
+
+    /**
+     * @param {any} backup
+     * @returns {Promise<Record<string, number>>}
+     */
+    async importBackup(backup) {
+      if (!backup || typeof backup !== 'object') {
+        throw new Error('Backup inválido.');
+      }
+
+      const stores = this.getStoreNames();
+      const storeData = backup.stores && typeof backup.stores === 'object'
+        ? backup.stores
+        : {};
+
+      const asArray = (value) => {
+        if (Array.isArray(value)) return value;
+        if (value && typeof value === 'object') return [value];
+        return [];
+      };
+
+      const oasisRows = asArray(
+        storeData[constants.STORES.OASIS] ?? backup.oasis ?? backup.scanner,
+      );
+
+      const reportsRows = asArray(
+        storeData[constants.STORES.REPORTS] ?? backup.reports,
+      );
+
+      const settingsRows = asArray(
+        storeData[constants.STORES.SETTINGS] ?? backup.settings,
+      );
+
+      const historyRows = asArray(
+        storeData[constants.STORES.HISTORY] ?? backup.history,
+      );
+
+      const statisticsMap = new Map();
+
+      asArray(storeData[constants.STORES.STATISTICS] ?? backup.statistics).forEach(
+        (row) => {
+          if (row && row.id) statisticsMap.set(String(row.id), row);
+        },
+      );
+
+      asArray(backup.battleKnowledge).forEach((row) => {
+        if (row && row.id) statisticsMap.set(String(row.id), row);
+      });
+
+      asArray(backup.battleCalibration).forEach((row) => {
+        if (row && row.id) statisticsMap.set(String(row.id), row);
+      });
+
+      const statisticsRows = Array.from(statisticsMap.values());
+
+      for (const storeName of stores) {
+        await this.clear(storeName);
+      }
+
+      await this.putMany(constants.STORES.OASIS, oasisRows);
+      await this.putMany(constants.STORES.REPORTS, reportsRows);
+      await this.putMany(constants.STORES.SETTINGS, settingsRows);
+      await this.putMany(constants.STORES.HISTORY, historyRows);
+      await this.putMany(constants.STORES.STATISTICS, statisticsRows);
+
+      return {
+        [constants.STORES.OASIS]: oasisRows.length,
+        [constants.STORES.REPORTS]: reportsRows.length,
+        [constants.STORES.SETTINGS]: settingsRows.length,
+        [constants.STORES.HISTORY]: historyRows.length,
+        [constants.STORES.STATISTICS]: statisticsRows.length,
+      };
     }
   }
 
@@ -1636,6 +1765,60 @@
 
   const root = (global.NytrinA = global.NytrinA || {});
 
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
+
+  function confidenceFromCalibration(calibration) {
+    const samples = Number(calibration?.samples || 0);
+
+    if (samples <= 0) {
+      return {
+        label: "Sem dados",
+        stars: 1,
+        score: 0,
+      };
+    }
+
+    const successSamples = Number(calibration?.successSamples || 0);
+    const perfectSamples = Number(calibration?.perfectSamples || 0);
+    const failureSamples = Number(calibration?.failureSamples || 0);
+    const successRate =
+      samples > 0 ? clamp(successSamples / samples, 0, 1) : 0;
+    const perfectRate =
+      samples > 0 ? clamp(perfectSamples / samples, 0, 1) : 0;
+    const failureRate =
+      samples > 0 ? clamp(failureSamples / samples, 0, 1) : 0;
+
+    const sampleScore = clamp(samples / 15, 0, 1);
+
+    const score =
+      sampleScore * 0.45 +
+      successRate * 0.3 +
+      perfectRate * 0.2 +
+      (1 - failureRate) * 0.05;
+
+    const stars = clamp(Math.round(score * 4) + 1, 1, 5);
+
+    let label = "Baixa";
+    if (score >= 0.8) {
+      label = "Alta";
+    } else if (score >= 0.5) {
+      label = "Média";
+    }
+
+    return {
+      label,
+      stars,
+      score,
+    };
+  }
+
+  function starsText(stars) {
+    const safe = clamp(Math.round(Number(stars || 1)), 1, 5);
+    return "★".repeat(safe) + "☆".repeat(5 - safe);
+  }
+
   function normalizeAnimals(animals) {
     const empty = root.Animals.emptyAnimals();
 
@@ -1902,6 +2085,7 @@
     };
 
     const hasHero = Boolean(report.hasHero);
+    const troopsCasualtiesCount = Number(report.troopsCasualtiesCount || 0);
 
     const calibration = await updateCalibration({
       storage,
@@ -1913,6 +2097,8 @@
       cleared,
       troopsLostCount: Number(report.troopsLostCount || 0),
       troopsWoundedCount: Number(report.troopsWoundedCount || 0),
+      troopsCasualtiesCount,
+      totalAnimalsRemaining: remaining,
     });
 
     console.log("CALIBRAÇÃO ATUALIZADA", calibration);
@@ -2001,13 +2187,17 @@
   root.BattleKnowledge = {
     makeSignature,
     knowledgeId,
+    calibrationId,
     getKnowledge,
     learnFromReport,
     suggestFromKnowledge,
 
     getCalibration,
+    resetCalibration,
     updateCalibration,
     applyCalibration,
+    confidenceFromCalibration,
+    starsText,
   };
 
   function calibrationId(tribe, troopType, hasHero) {
@@ -2030,19 +2220,80 @@
       troopType,
       hasHero: Boolean(hasHero),
       samples: 0,
+
+      successSamples: 0,
+      failureSamples: 0,
+      perfectSamples: 0,
+      clearedWithLossesSamples: 0,
+
+      sumKillRate: 0,
+      sumCasualtyRate: 0,
+
+      minClearTroops: 0,
+      minPerfectTroops: 0,
+      maxFailedTroops: 0,
+
       factorSum: 0,
       averageFactor: 1,
       maxFactor: 1,
+      lastOutcome: null,
+      lastBattle: null,
       updatedAt: null,
     };
 
     calibration.samples = Number(calibration.samples || 0);
+    calibration.successSamples = Number(calibration.successSamples || 0);
+    calibration.failureSamples = Number(calibration.failureSamples || 0);
+    calibration.perfectSamples = Number(calibration.perfectSamples || 0);
+    calibration.clearedWithLossesSamples = Number(
+      calibration.clearedWithLossesSamples || 0,
+    );
+    calibration.sumKillRate = Number(calibration.sumKillRate || 0);
+    calibration.sumCasualtyRate = Number(calibration.sumCasualtyRate || 0);
+    calibration.minClearTroops = Number(calibration.minClearTroops || 0);
+    calibration.minPerfectTroops = Number(calibration.minPerfectTroops || 0);
+    calibration.maxFailedTroops = Number(calibration.maxFailedTroops || 0);
     calibration.factorSum = Number(calibration.factorSum || 0);
     calibration.averageFactor = Number(calibration.averageFactor || 1);
     calibration.maxFactor = Number(calibration.maxFactor || 1);
     calibration.hasHero = Boolean(hasHero);
 
+    if (calibration.lastOutcome === undefined) {
+      calibration.lastOutcome = null;
+    }
+
+    if (calibration.lastBattle === undefined) {
+      calibration.lastBattle = null;
+    }
+
+    calibration.avgKillRate =
+      calibration.samples > 0
+        ? calibration.sumKillRate / calibration.samples
+        : 0;
+
+    calibration.avgCasualtyRate =
+      calibration.samples > 0
+        ? calibration.sumCasualtyRate / calibration.samples
+        : 0;
+
+    const confidence = confidenceFromCalibration(calibration);
+    calibration.confidence = confidence.label;
+    calibration.confidenceStars = confidence.stars;
+
     return calibration;
+  }
+
+  async function resetCalibration({
+    storage,
+    tribe,
+    troopType,
+    hasHero,
+  }) {
+    if (!storage || !troopType) return false;
+
+    const id = calibrationId(tribe, troopType, hasHero);
+    await storage.delete(root.Constants.STORES.STATISTICS, id);
+    return true;
   }
 
   async function updateCalibration({
@@ -2055,10 +2306,27 @@
     cleared,
     troopsLostCount,
     troopsWoundedCount,
+    troopsCasualtiesCount,
+    totalAnimalsRemaining,
   }) {
     if (!storage || !troopType || sent <= 0 || killRate <= 0) {
       return null;
     }
+
+    const casualties =
+      Number(troopsCasualtiesCount || 0) ||
+      Number(troopsLostCount || 0) + Number(troopsWoundedCount || 0);
+
+    const casualtyRate = sent > 0 ? casualties / sent : 0;
+    const remaining = Number(totalAnimalsRemaining || 0);
+
+    const outcome = cleared
+      ? casualties === 0
+        ? "perfect"
+        : "cleared_with_losses"
+      : remaining > 0 && killRate >= 0.95
+        ? "almost_cleared"
+        : "failure";
 
     let requiredSafe = sent;
 
@@ -2079,11 +2347,6 @@
 
       requiredSafe = estimatedClear * margin;
     } else {
-      const casualties =
-        Number(troopsLostCount || 0) + Number(troopsWoundedCount || 0);
-
-      const casualtyRate = casualties / sent;
-
       if (casualtyRate > 0) {
         requiredSafe = sent * Math.max(1.05, 1 + casualtyRate * 2);
       }
@@ -2099,12 +2362,60 @@
     );
 
     calibration.samples += 1;
+    calibration.sumKillRate += clamp(killRate, 0, 1);
+    calibration.sumCasualtyRate += clamp(casualtyRate, 0, 1);
+
+    if (cleared) {
+      calibration.successSamples += 1;
+
+      calibration.minClearTroops =
+        calibration.minClearTroops > 0
+          ? Math.min(calibration.minClearTroops, sent)
+          : sent;
+
+      if (casualties === 0) {
+        calibration.perfectSamples += 1;
+        calibration.minPerfectTroops =
+          calibration.minPerfectTroops > 0
+            ? Math.min(calibration.minPerfectTroops, sent)
+            : sent;
+      } else {
+        calibration.clearedWithLossesSamples += 1;
+      }
+    } else {
+      calibration.failureSamples += 1;
+      calibration.maxFailedTroops = Math.max(
+        Number(calibration.maxFailedTroops || 0),
+        sent,
+      );
+    }
+
     calibration.factorSum += factor;
     calibration.averageFactor = calibration.factorSum / calibration.samples;
     calibration.maxFactor = Math.max(
       Number(calibration.maxFactor || 1),
       factor,
     );
+    calibration.lastOutcome = outcome;
+    calibration.lastBattle = {
+      sent,
+      killRate,
+      casualties,
+      casualtyRate,
+      remaining,
+      cleared,
+      outcome,
+      requiredSafe: Math.ceil(requiredSafe),
+      date: new Date().toISOString(),
+    };
+    calibration.avgKillRate = calibration.sumKillRate / calibration.samples;
+    calibration.avgCasualtyRate =
+      calibration.sumCasualtyRate / calibration.samples;
+
+    const confidence = confidenceFromCalibration(calibration);
+    calibration.confidence = confidence.label;
+    calibration.confidenceStars = confidence.stars;
+
     calibration.updatedAt = new Date().toISOString();
 
     await storage.put(root.Constants.STORES.STATISTICS, calibration);
@@ -2136,147 +2447,75 @@
       hasHero,
     );
 
-    if (Number(calibration.samples || 0) <= 0) {
+    const sampleCount = Number(calibration.samples || 0);
+
+    if (sampleCount <= 0) {
       return {
         troops: Math.ceil(theoretical),
         factor: 1,
         samples: 0,
+        source: "Cálculo teórico",
+        confidence: "Sem dados",
+        stars: 1,
+        starsText: starsText(1),
+        basedOn: 0,
+        learnedFloor: 0,
       };
     }
 
-    /*
-     * Usamos o maior entre a média e 90% do maior fator observado.
-     * Isso evita ficar agressivo demais depois de uma batalha ruim.
-     */
-    const learnedFactor =
-      Math.max(
-        Number(calibration.averageFactor || 1),
-        Number(calibration.maxFactor || 1),
-      ) * 1.0;
+    const averageFactor = Number(calibration.averageFactor || 1);
+    const maxFactor = Number(calibration.maxFactor || 1);
+    const boundedMaxInfluence = 1 + (Math.max(maxFactor, 1) - 1) * 0.9;
+    const maxWeight = clamp((sampleCount - 3) / 10, 0, 1) * 0.35;
+    const blendedFactor =
+      averageFactor * (1 - maxWeight) + boundedMaxInfluence * maxWeight;
+    const learnedFactor = Math.max(1, blendedFactor);
+
+    let learnedFloor = 0;
+
+    if (sampleCount >= 3 && Number(calibration.minPerfectTroops || 0) > 0) {
+      learnedFloor = Number(calibration.minPerfectTroops || 0);
+    } else if (sampleCount >= 3 && Number(calibration.minClearTroops || 0) > 0) {
+      const casualtyBias = clamp(Number(calibration.avgCasualtyRate || 0), 0, 1);
+      learnedFloor = Math.ceil(
+        Number(calibration.minClearTroops || 0) * Math.max(1.04, 1 + casualtyBias),
+      );
+    }
+
+    if (sampleCount >= 3 && Number(calibration.maxFailedTroops || 0) > 0) {
+      learnedFloor = Math.max(
+        Number(learnedFloor || 0),
+        Number(calibration.maxFailedTroops || 0) + 1,
+      );
+    }
+
+    const confidence = confidenceFromCalibration(calibration);
+    const canUseHardFloor = sampleCount >= 6 && confidence.score >= 0.5;
+    const effectiveFloor = canUseHardFloor ? Number(learnedFloor || 0) : 0;
+
+    let source = "Cálculo ajustado pelo aprendizado";
+    if (confidence.score >= 0.5) {
+      source = "IA Aprendida";
+    }
 
     return {
-      troops: Math.ceil(theoretical * learnedFactor),
+      troops: Math.max(
+        Math.ceil(theoretical * learnedFactor),
+        Math.ceil(effectiveFloor),
+      ),
       factor: learnedFactor,
       samples: Number(calibration.samples || 0),
+      source,
+      confidence: confidence.label,
+      stars: confidence.stars,
+      starsText: starsText(confidence.stars),
+      basedOn: Number(calibration.samples || 0),
+      learnedFloor: Math.ceil(Number(learnedFloor || 0)),
+      learnedFloorApplied: Boolean(canUseHardFloor && learnedFloor > 0),
     };
   }
 
   root.BattleLearning = root.BattleKnowledge;
-})(window);
-
-
-
-
-// FILE: core/scanner.js
-
-(function initScanner(global) {
-  'use strict';
-
-  const root = (global.NytrinA = global.NytrinA || {});
-  const constants = root.Constants;
-
-  class ScannerService {
-    /**
-     * @param {{storage:any,getSettings:Function,onUpdate:Function}} deps
-     */
-    constructor(deps) {
-      this.storage = deps.storage;
-      this.getSettings = deps.getSettings;
-      this.onUpdate = deps.onUpdate;
-      this.lastSignature = '';
-      this.intervalId = null;
-      this.mouseInside = false;
-    }
-
-    /**
-     * @returns {void}
-     */
-    start() {
-      global.document.addEventListener('mousemove', () => {
-        this.mouseInside = true;
-      });
-
-      this.intervalId = global.setInterval(() => {
-        this.scanNow().catch(() => {
-          return undefined;
-        });
-      }, constants.SCAN_INTERVAL_MS);
-    }
-
-    /**
-     * @returns {Promise<any|null>}
-     */
-    async scanNow() {
-      const settings = this.getSettings();
-      const parsed = root.OasisParser.parse({
-        speed: Number(settings.effectiveSpeed || settings.customSpeed || 14),
-        smallMap: Boolean(settings.smallMap)
-      });
-      if (!parsed) return null;
-
-      const signature = JSON.stringify({
-        coord: parsed.coord,
-        distance: parsed.distance,
-        bonus: parsed.bonus,
-        animals: parsed.animals
-      });
-
-      if (signature === this.lastSignature) {
-        return parsed;
-      }
-
-      this.lastSignature = signature;
-
-      const oasisId = parsed.coord || 'unknown:' + parsed.server + ':' + Math.round(parsed.distance * 100);
-      const existing = await this.storage.get(root.Constants.STORES.OASIS, oasisId);
-      const payload = {
-        ...parsed,
-        id: oasisId,
-        updatedAt: new Date().toISOString()
-      };
-
-      if (existing) {
-        const existingSignature = JSON.stringify({
-          coord: existing.coord,
-          distance: existing.distance,
-          bonus: existing.bonus,
-          animals: existing.animals
-        });
-        if (existingSignature === signature) {
-          return parsed;
-        }
-      }
-
-      await this.storage.put(root.Constants.STORES.OASIS, payload);
-      if (typeof this.onUpdate === 'function') this.onUpdate('oasis', payload);
-      return parsed;
-    }
-
-    /**
-     * @param {any} report
-     * @returns {Promise<void>}
-     */
-    async saveReport(report) {
-      if (!report) return;
-      await this.storage.put(root.Constants.STORES.REPORTS, report);
-
-      const historyId = (report.coord || 'unknown') + ':' + report.reportId;
-      await this.storage.put(root.Constants.STORES.HISTORY, {
-        id: historyId,
-        coord: report.coord || null,
-        reportId: report.reportId,
-        date: report.date,
-        lossCost: report.lossCost,
-        profit: report.profit,
-        xp: report.xp,
-        totalResources: report.totalResources
-      });
-
-      if (typeof this.onUpdate === 'function') this.onUpdate('report', report);
-    }
-  }
-
-  root.ScannerService = ScannerService;
 })(window);
 
 
@@ -2467,9 +2706,14 @@
       this.getSettings = deps.getSettings;
       this.saveSettings = deps.saveSettings;
       this.currentScan = null;
-      this.debugEnabled = false;
+      this.debugEnabled = true;
       this.overlay = null;
       this.titleClicks = 0;
+      this.currentTab = "scanner";
+      this.reportsPage = 1;
+      this.reportsPerPage = 25;
+      this.debugPage = 1;
+      this.debugPerPage = 20;
     }
 
     /**
@@ -2509,27 +2753,28 @@
      * @returns {string}
      */
     template() {
+      const activeTab = this.currentTab || "scanner";
       return [
         '<div class="head">',
         '<b id="nytrina-title">NytrinA Companion 4.0</b>',
         '<div class="actions"><button id="nytrina-toggle-minimize">Minimizar</button><button id="nytrina-refresh">Atualizar</button></div>',
         "</div>",
         '<div class="tabs">',
-        '<button class="tab active" data-tab="dashboard">Dashboard</button>',
-        '<button class="tab" data-tab="scanner">Scanner</button>',
-        '<button class="tab" data-tab="ranking">Ranking</button>',
-        '<button class="tab" data-tab="reports">Relatorios</button>',
-        '<button class="tab" data-tab="economy">Economia</button>',
-        '<button class="tab" data-tab="settings">Configuracoes</button>',
-        '<button class="tab hidden" data-tab="debug" id="nytrina-debug-tab">Debug</button>',
+        '<button class="tab' + (activeTab === "scanner" ? " active" : "") + '" data-tab="scanner">Scanner</button>',
+        '<button class="tab' + (activeTab === "dashboard" ? " active" : "") + '" data-tab="dashboard">Dashboard</button>',
+        '<button class="tab' + (activeTab === "ranking" ? " active" : "") + '" data-tab="ranking">Ranking</button>',
+        '<button class="tab' + (activeTab === "reports" ? " active" : "") + '" data-tab="reports">Relatorios</button>',
+        '<button class="tab' + (activeTab === "economy" ? " active" : "") + '" data-tab="economy">Economia</button>',
+        '<button class="tab' + (activeTab === "settings" ? " active" : "") + '" data-tab="settings">Configuracoes</button>',
+        '<button class="tab' + (activeTab === "debug" ? " active" : "") + '" data-tab="debug" id="nytrina-debug-tab">Debug</button>',
         "</div>",
-        '<div class="panel" data-panel="dashboard"></div>',
-        '<div class="panel hidden" data-panel="scanner"></div>',
-        '<div class="panel hidden" data-panel="ranking"></div>',
-        '<div class="panel hidden" data-panel="reports"></div>',
-        '<div class="panel hidden" data-panel="economy"></div>',
-        '<div class="panel hidden" data-panel="settings"></div>',
-        '<div class="panel hidden" data-panel="debug"></div>',
+        '<div class="panel' + (activeTab === "scanner" ? "" : " hidden") + '" data-panel="scanner"></div>',
+        '<div class="panel' + (activeTab === "dashboard" ? "" : " hidden") + '" data-panel="dashboard"></div>',
+        '<div class="panel' + (activeTab === "ranking" ? "" : " hidden") + '" data-panel="ranking"></div>',
+        '<div class="panel' + (activeTab === "reports" ? "" : " hidden") + '" data-panel="reports"></div>',
+        '<div class="panel' + (activeTab === "economy" ? "" : " hidden") + '" data-panel="economy"></div>',
+        '<div class="panel' + (activeTab === "settings" ? "" : " hidden") + '" data-panel="settings"></div>',
+        '<div class="panel' + (activeTab === "debug" ? "" : " hidden") + '" data-panel="debug"></div>',
       ].join("");
     }
 
@@ -2540,10 +2785,9 @@
       console.error("######## OVERLAY NOVO ########");
       this.overlay.querySelectorAll(".tab").forEach((button) => {
         button.addEventListener("click", () => {
-          root.Tabs.activateTab(
-            this.overlay,
-            button.getAttribute("data-tab") || "dashboard",
-          );
+          const tab = button.getAttribute("data-tab") || "scanner";
+          this.currentTab = tab;
+          root.Tabs.activateTab(this.overlay, tab);
         });
       });
 
@@ -2573,13 +2817,58 @@
         .querySelector("#nytrina-title")
         ?.addEventListener("click", () => {
           this.titleClicks += 1;
-          if (this.titleClicks >= 5) {
-            this.debugEnabled = true;
-            this.overlay
-              .querySelector("#nytrina-debug-tab")
-              ?.classList.remove("hidden");
-          }
         });
+    }
+
+    /**
+     * @param {number} totalItems
+     * @param {number} page
+     * @param {number} perPage
+     * @returns {{page:number,totalPages:number,start:number,end:number}}
+     */
+    paginationMeta(totalItems, page, perPage) {
+      const safePerPage = Math.max(1, Number(perPage || 1));
+      const totalPages = Math.max(1, Math.ceil(Number(totalItems || 0) / safePerPage));
+      const currentPage = Math.min(Math.max(1, Number(page || 1)), totalPages);
+      const start = (currentPage - 1) * safePerPage;
+      const end = start + safePerPage;
+
+      return {
+        page: currentPage,
+        totalPages,
+        start,
+        end,
+      };
+    }
+
+    /**
+     * @param {string} prefix
+     * @param {{page:number,totalPages:number,start:number,end:number}} meta
+     * @param {number} totalItems
+     * @returns {string}
+     */
+    paginationControls(prefix, meta, totalItems) {
+      const from = totalItems > 0 ? meta.start + 1 : 0;
+      const to = Math.min(meta.end, totalItems);
+
+      return [
+        '<div class="actions">',
+        '<button id="' + prefix + '-prev"' + (meta.page <= 1 ? ' disabled="disabled"' : '') + '>Anterior</button>',
+        '<button id="' + prefix + '-next"' + (meta.page >= meta.totalPages ? ' disabled="disabled"' : '') + '>Próxima</button>',
+        '<span>' +
+          'Página ' +
+          meta.page +
+          ' de ' +
+          meta.totalPages +
+          ' | Itens ' +
+          from +
+          '-' +
+          to +
+          ' de ' +
+          totalItems +
+          '</span>',
+        '</div>',
+      ].join('');
     }
 
     /**
@@ -2806,6 +3095,8 @@
         settings.troopTribe ||
         this.inferTribeByTroop(selectedTroopType) ||
         "romans";
+      const canResetCalibration =
+        selectedTroopType !== "hero" && selectedTroopType !== "custom";
 
       let calibratedWithHero = null;
       let calibratedWithoutHero = null;
@@ -2852,19 +3143,37 @@
 
       let suggestionText = "-";
       let suggestionSource = "Sem dados";
-      let suggestionConfidence = "-";
+      let suggestionConfidence = "Sem dados";
+      let suggestionStars = "☆☆☆☆☆";
+      let suggestionBasedOn = 0;
+      let learnedFactorText = "x1.00";
+      let withHeroSuggestion = "-";
+      let withoutHeroSuggestion = "-";
+      let usedLearning = false;
 
       if (learnedAdvice?.ok) {
+        usedLearning = true;
+        const learned = Math.round(Number(learnedAdvice.suggestedTroops || 0));
+
+        withHeroSuggestion = String(learned);
+        withoutHeroSuggestion = String(learned);
         suggestionText =
-          Math.round(Number(learnedAdvice.suggestedTroops || 0)) +
-          " " +
-          this.troopLabel(selectedTroopType);
+          "Com herói: " + learned + " | Sem herói: " + learned;
+        suggestionSource = "IA Aprendida";
 
-        suggestionSource = "Battle Knowledge";
-
+        suggestionBasedOn = Number(knowledge?.samples || 0);
         suggestionConfidence =
-          Number(knowledge?.samples || 0) +
-          (Number(knowledge?.samples || 0) === 1 ? " amostra" : " amostras");
+          suggestionBasedOn >= 10
+            ? "Alta"
+            : suggestionBasedOn >= 5
+              ? "Média"
+              : "Baixa";
+
+        const stars = Math.max(
+          1,
+          Math.min(5, Math.round((Math.min(suggestionBasedOn, 15) / 15) * 4 + 1)),
+        );
+        suggestionStars = "★".repeat(stars) + "☆".repeat(5 - stars);
       } else if (formulaAdvice?.ok) {
         const theoreticalWithHero = Number(
           formulaAdvice.withHero.safeTroops || 0,
@@ -2882,25 +3191,51 @@
           calibratedWithoutHero?.troops || theoreticalWithoutHero,
         );
 
+        withHeroSuggestion = String(finalWithHero);
+        withoutHeroSuggestion = String(finalWithoutHero);
         const withHeroSamples = Number(calibratedWithHero?.samples || 0);
-
         const withoutHeroSamples = Number(calibratedWithoutHero?.samples || 0);
+        suggestionBasedOn = withHeroSamples + withoutHeroSamples;
 
         suggestionText =
-          "Com herói: " + finalWithHero + " | Sem: " + finalWithoutHero;
+          "Com herói: " + finalWithHero + " | Sem herói: " + finalWithoutHero;
+
+        const heroSource = String(calibratedWithHero?.source || "");
+        const noHeroSource = String(calibratedWithoutHero?.source || "");
+        suggestionSource =
+          heroSource.includes("IA") || noHeroSource.includes("IA")
+            ? "IA Aprendida"
+            : withHeroSamples > 0 || withoutHeroSamples > 0
+              ? "Cálculo ajustado pelo aprendizado"
+              : "Cálculo teórico";
+
+        const heroFactor = Number(calibratedWithHero?.factor || 1);
+        const noHeroFactor = Number(calibratedWithoutHero?.factor || 1);
+        learnedFactorText =
+          "Hero: x" +
+          heroFactor.toFixed(2) +
+          " | Sem: x" +
+          noHeroFactor.toFixed(2);
+
+        const heroStars = Number(calibratedWithHero?.stars || 1);
+        const noHeroStars = Number(calibratedWithoutHero?.stars || 1);
+        const avgStars = Math.max(1, Math.round((heroStars + noHeroStars) / 2));
+        suggestionStars = "★".repeat(avgStars) + "☆".repeat(5 - avgStars);
+
+        const heroConfidence = String(
+          calibratedWithHero?.confidence || "Sem dados",
+        );
+        const noHeroConfidence = String(
+          calibratedWithoutHero?.confidence || "Sem dados",
+        );
 
         if (withHeroSamples > 0 || withoutHeroSamples > 0) {
-          suggestionSource = "Cálculo ajustado pelo aprendizado";
-
           suggestionConfidence =
-            "Com herói: " +
-            withHeroSamples +
-            " amostra(s) | Sem: " +
-            withoutHeroSamples +
-            " amostra(s)";
+            "Com herói: " + heroConfidence + " | Sem herói: " + noHeroConfidence;
+
+          usedLearning = true;
         } else {
-          suggestionSource = "Cálculo teórico";
-          suggestionConfidence = "Ainda sem calibração";
+          suggestionConfidence = "Sem calibração";
         }
       }
 
@@ -2933,14 +3268,29 @@
         '<div class="card"><span>Sugestão</span><b>' +
           suggestionText +
           "</b></div>",
+        '<div class="card"><span>Com herói</span><b>' +
+          withHeroSuggestion +
+          "</b></div>",
+        '<div class="card"><span>Sem herói</span><b>' +
+          withoutHeroSuggestion +
+          "</b></div>",
 
         '<div class="card"><span>Fonte</span><b>' +
           suggestionSource +
+          "</b></div>",
+        '<div class="card"><span>Avaliação</span><b>' +
+          suggestionStars +
           "</b></div>",
 
         '<div class="card"><span>Confiança</span><b>' +
           suggestionConfidence +
           "</b></div>",
+        '<div class="card"><span>Fator aprendido</span><b>' +
+          learnedFactorText +
+          "</b></div>",
+        '<div class="card"><span>Baseado em</span><b>' +
+          suggestionBasedOn +
+          " batalha(s) semelhantes</b></div>",
         "</div>",
         '<div class="stack">',
         "<label>Tipo de tropa (define tempo)</label>",
@@ -2956,6 +3306,14 @@
         '<div class="actions">',
         '<button id="nytrina-scan-now">Escanear agora</button>',
         '<button id="nytrina-import-report">Importar relatorio</button>',
+        '<button id="nytrina-reset-current-calibration"' +
+          (canResetCalibration ? "" : ' disabled="disabled"') +
+          '>Reset calibração atual</button>',
+        '<span class="hint">' +
+          (usedLearning
+            ? "Sugestão já usa aprendizado contínuo."
+            : "Sem histórico suficiente. Importe relatórios para treinar a IA.") +
+          "</span>",
         "</div>",
       ].join("");
 
@@ -3005,6 +3363,56 @@
       node.querySelector("#nytrina-scan-now")?.addEventListener("click", () => {
         this.scanner.scanNow().then(() => this.refresh());
       });
+
+      node
+        .querySelector("#nytrina-reset-current-calibration")
+        ?.addEventListener("click", async () => {
+          if (!canResetCalibration) {
+            root.Modal.show(
+              "Calibração",
+              "Selecione uma tropa real para resetar a calibração.",
+            );
+            return;
+          }
+
+          const confirmMessage =
+            "Resetar calibração atual para " +
+            selectedTribe +
+            " / " +
+            selectedTroopType.replace(/_/g, " ") +
+            " (com e sem herói)?";
+
+          if (!confirm(confirmMessage)) return;
+
+          try {
+            await root.BattleKnowledge.resetCalibration({
+              storage: this.storage,
+              tribe: selectedTribe,
+              troopType: selectedTroopType,
+              hasHero: true,
+            });
+
+            await root.BattleKnowledge.resetCalibration({
+              storage: this.storage,
+              tribe: selectedTribe,
+              troopType: selectedTroopType,
+              hasHero: false,
+            });
+
+            root.Modal.show(
+              "Calibração",
+              "Calibração resetada para o perfil atual (com e sem herói).",
+            );
+
+            await this.refresh();
+          } catch (error) {
+            console.error("ERRO AO RESETAR CALIBRAÇÃO:", error);
+            root.Modal.show(
+              "Erro",
+              "Falha ao resetar calibração atual. Veja o console.",
+            );
+          }
+        });
 
       node
         .querySelector("#nytrina-import-report")
@@ -3118,16 +3526,30 @@
       if (!node) return;
       const reports = await this.storage.getAll(root.Constants.STORES.REPORTS);
       const settings = this.getSettings();
+      const sortedReports = reports
+        .slice()
+        .sort((a, b) => {
+          const right = new Date(b.date || b.updatedAt || 0).getTime();
+          const left = new Date(a.date || a.updatedAt || 0).getTime();
+          return right - left;
+        });
+      const reportsMeta = this.paginationMeta(
+        sortedReports.length,
+        this.reportsPage,
+        this.reportsPerPage,
+      );
+      this.reportsPage = reportsMeta.page;
+      const reportsPageRows = sortedReports.slice(reportsMeta.start, reportsMeta.end);
 
       node.innerHTML = [
         '<div class="actions"><button id="nytrina-import-report-tab">Importar relatorio atual</button><button id="nytrina-clear-reports">Limpar Relatórios</button></div>',
-        "<table><thead><tr><th>ID</th><th>Coord</th><th>XP</th><th>Rec.</th><th>Perda</th><th>Lucro</th></tr></thead><tbody>",
-        reports
-          .slice()
-          .reverse()
+        "<table><thead><tr><th>Data/Hora</th><th>ID</th><th>Coord</th><th>XP</th><th>Rec.</th><th>Perda</th><th>Lucro</th></tr></thead><tbody>",
+        reportsPageRows
           .map(
             (report) =>
               "<tr><td>" +
+              this.formatDateTime(report.date || report.updatedAt) +
+              "</td><td>" +
               report.reportId +
               "</td><td>" +
               (report.coord || "-") +
@@ -3143,7 +3565,18 @@
           )
           .join(""),
         "</tbody></table>",
+        this.paginationControls("nytrina-reports-page", reportsMeta, sortedReports.length),
       ].join("");
+
+      node.querySelector("#nytrina-reports-page-prev")?.addEventListener("click", async () => {
+        this.reportsPage = Math.max(1, this.reportsPage - 1);
+        await this.refreshReports();
+      });
+
+      node.querySelector("#nytrina-reports-page-next")?.addEventListener("click", async () => {
+        this.reportsPage = this.reportsPage + 1;
+        await this.refreshReports();
+      });
 
       node
         .querySelector("#nytrina-import-report-tab")
@@ -3314,7 +3747,7 @@
         '<div id="nytrina-setting-server-warning" class="server-warning' +
           (isManualInvalid ? " show" : "") +
           '">Servidor manual invalido. Informe um host travian valido ou use Auto.</div>',
-        '<div class="actions"><button id="nytrina-save-settings">Salvar</button></div>',
+        '<div class="actions"><button id="nytrina-save-settings">Salvar</button><button id="nytrina-export-backup">Exportar Backup</button><button id="nytrina-import-backup">Importar Backup</button><input id="nytrina-import-backup-file" type="file" accept="application/json" style="display:none"></div>',
         "</div>",
       ].join("");
 
@@ -3325,6 +3758,9 @@
       const speedInput = node.querySelector("#nytrina-setting-speed");
       const warning = node.querySelector("#nytrina-setting-server-warning");
       const smallMapInput = node.querySelector("#nytrina-setting-small-map");
+      const exportBackupButton = node.querySelector("#nytrina-export-backup");
+      const importBackupButton = node.querySelector("#nytrina-import-backup");
+      const importBackupFile = node.querySelector("#nytrina-import-backup-file");
 
       if (smallMapInput) {
         smallMapInput.checked = Boolean(settings.smallMap);
@@ -3434,6 +3870,75 @@
 
           await this.refresh();
         });
+
+      exportBackupButton?.addEventListener("click", async () => {
+        try {
+          const backup = await this.storage.exportBackup();
+          const json = JSON.stringify(backup, null, 2);
+          const blob = new Blob([json], { type: "application/json" });
+          const now = new Date();
+          const datePart =
+            now.getFullYear() +
+            "-" +
+            String(now.getMonth() + 1).padStart(2, "0") +
+            "-" +
+            String(now.getDate()).padStart(2, "0");
+          const fileName = "NytrinA_Backup_" + datePart + ".json";
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+
+          root.Modal.show("Backup", "Backup exportado com sucesso: " + fileName);
+        } catch (error) {
+          console.error("Falha ao exportar backup", error);
+          root.Modal.show("Erro", "Falha ao exportar backup. Veja o console.");
+        }
+      });
+
+      importBackupButton?.addEventListener("click", () => {
+        importBackupFile?.click();
+      });
+
+      importBackupFile?.addEventListener("change", async (event) => {
+        const input = event.target;
+        const file = input?.files && input.files[0] ? input.files[0] : null;
+        if (!file) return;
+
+        try {
+          const content = await file.text();
+          const parsed = JSON.parse(content);
+
+          if (!confirm("Importar backup irá substituir todos os dados atuais. Continuar?")) {
+            input.value = "";
+            return;
+          }
+
+          const result = await this.storage.importBackup(parsed);
+
+          this.scanner.lastSignature = "";
+          await this.refresh();
+
+          root.Modal.show(
+            "Backup",
+            "Backup importado com sucesso. OASIS: " +
+              Number(result?.OASIS || 0) +
+              " | REPORTS: " +
+              Number(result?.REPORTS || 0) +
+              " | STATISTICS: " +
+              Number(result?.STATISTICS || 0),
+          );
+        } catch (error) {
+          console.error("Falha ao importar backup", error);
+          root.Modal.show("Erro", "Falha ao importar backup JSON. Verifique o arquivo.");
+        } finally {
+          input.value = "";
+        }
+      });
     }
 
     /**
@@ -3453,6 +3958,23 @@
         String(row?.id || "").startsWith("battleKnowledge:"),
       );
 
+      const sortedKnowledgeRows = knowledgeRows
+        .slice()
+        .sort((a, b) => {
+          const right = new Date(b.updatedAt || b.lastBattle?.date || 0).getTime();
+          const left = new Date(a.updatedAt || a.lastBattle?.date || 0).getTime();
+          if (right !== left) return right - left;
+          return String(a.troopType).localeCompare(String(b.troopType));
+        });
+
+      const debugMeta = this.paginationMeta(
+        sortedKnowledgeRows.length,
+        this.debugPage,
+        this.debugPerPage,
+      );
+      this.debugPage = debugMeta.page;
+      const debugPageRows = sortedKnowledgeRows.slice(debugMeta.start, debugMeta.end);
+
       node.innerHTML = [
         '<div class="actions">',
         '<button id="nytrina-clear-knowledge">Limpar Battle Knowledge</button>',
@@ -3468,14 +3990,10 @@
         "</div>",
 
         "<table><thead><tr>",
-        "<th>Tropa</th><th>XP</th><th>Amostras</th><th>Resultado</th><th>Enviadas</th><th>Mortas</th><th>Enfermaria</th><th>Baixas</th><th>Eliminação</th><th>Próxima sugestão</th>",
+        "<th>Data/Hora</th><th>Tropa</th><th>XP</th><th>Amostras</th><th>Resultado</th><th>Enviadas</th><th>Mortas</th><th>Enfermaria</th><th>Baixas</th><th>Eliminação</th><th>Próxima sugestão</th>",
         "</tr></thead><tbody>",
 
-        knowledgeRows
-          .slice()
-          .sort((a, b) =>
-            String(a.troopType).localeCompare(String(b.troopType)),
-          )
+        debugPageRows
           .map((row) => {
             const last = row.lastBattle || {};
 
@@ -3489,6 +4007,8 @@
 
             return (
               "<tr><td>" +
+              this.formatDateTime(row.updatedAt || last.date) +
+              "</td><td>" +
               (row.troopType || "-") +
               "</td><td>" +
               Math.round(row.xp || 0) +
@@ -3514,7 +4034,18 @@
           .join(""),
 
         "</tbody></table>",
+        this.paginationControls("nytrina-debug-page", debugMeta, sortedKnowledgeRows.length),
       ].join("");
+
+      node.querySelector("#nytrina-debug-page-prev")?.addEventListener("click", async () => {
+        this.debugPage = Math.max(1, this.debugPage - 1);
+        await this.refreshDebug();
+      });
+
+      node.querySelector("#nytrina-debug-page-next")?.addEventListener("click", async () => {
+        this.debugPage = this.debugPage + 1;
+        await this.refreshDebug();
+      });
 
       node
         .querySelector("#nytrina-clear-knowledge")
@@ -3527,6 +4058,22 @@
 
           await this.refresh();
         });
+    }
+
+    /**
+     * @param {string|number|Date|null|undefined} value
+     * @returns {string}
+     */
+    formatDateTime(value) {
+      const date = new Date(value || 0);
+      if (!Number.isFinite(date.getTime())) return "-";
+      return date.toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     }
   }
 

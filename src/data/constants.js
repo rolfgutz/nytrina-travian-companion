@@ -6,7 +6,7 @@
 
   root.Constants = {
     APP_NAME: 'NytrinA Travian Companion',
-    APP_VERSION: '4.0.0',
+    APP_VERSION: '4.0.4',
     APP_NAMESPACE: 'nytrina_companion_v4',
     DB_NAME_PREFIX: 'nytrina_companion_db',
     DB_VERSION: 1,

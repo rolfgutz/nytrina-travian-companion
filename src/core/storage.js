@@ -119,6 +119,135 @@
       const request = this.store(storeName, 'readwrite').clear();
       await requestToPromise(request);
     }
+
+    /**
+     * @returns {Array<string>}
+     */
+    getStoreNames() {
+      return Object.values(constants.STORES || {});
+    }
+
+    /**
+     * @param {string} storeName
+     * @param {Array<any>} values
+     * @returns {Promise<void>}
+     */
+    async putMany(storeName, values) {
+      const list = Array.isArray(values) ? values : [];
+      for (const value of list) {
+        await this.put(storeName, value);
+      }
+    }
+
+    /**
+     * @returns {Promise<any>}
+     */
+    async exportBackup() {
+      const stores = this.getStoreNames();
+      const data = {};
+
+      for (const storeName of stores) {
+        data[storeName] = await this.getAll(storeName);
+      }
+
+      const statistics = data[constants.STORES.STATISTICS] || [];
+      const battleKnowledge = statistics.filter((row) =>
+        String(row?.id || '').startsWith('battleKnowledge:'),
+      );
+      const battleCalibration = statistics.filter((row) =>
+        String(row?.id || '').startsWith('battleCalibration:'),
+      );
+
+      return {
+        version: String(constants.APP_VERSION || '4.0.0'),
+        createdAt: new Date().toISOString(),
+        host: this.host,
+        stores: data,
+
+        // Seções amigáveis para restauração entre versões.
+        settings: data[constants.STORES.SETTINGS] || [],
+        reports: data[constants.STORES.REPORTS] || [],
+        history: data[constants.STORES.HISTORY] || [],
+        statistics,
+        battleKnowledge,
+        battleCalibration,
+        scanner: data[constants.STORES.OASIS] || [],
+        oasis: data[constants.STORES.OASIS] || [],
+      };
+    }
+
+    /**
+     * @param {any} backup
+     * @returns {Promise<Record<string, number>>}
+     */
+    async importBackup(backup) {
+      if (!backup || typeof backup !== 'object') {
+        throw new Error('Backup inválido.');
+      }
+
+      const stores = this.getStoreNames();
+      const storeData = backup.stores && typeof backup.stores === 'object'
+        ? backup.stores
+        : {};
+
+      const asArray = (value) => {
+        if (Array.isArray(value)) return value;
+        if (value && typeof value === 'object') return [value];
+        return [];
+      };
+
+      const oasisRows = asArray(
+        storeData[constants.STORES.OASIS] ?? backup.oasis ?? backup.scanner,
+      );
+
+      const reportsRows = asArray(
+        storeData[constants.STORES.REPORTS] ?? backup.reports,
+      );
+
+      const settingsRows = asArray(
+        storeData[constants.STORES.SETTINGS] ?? backup.settings,
+      );
+
+      const historyRows = asArray(
+        storeData[constants.STORES.HISTORY] ?? backup.history,
+      );
+
+      const statisticsMap = new Map();
+
+      asArray(storeData[constants.STORES.STATISTICS] ?? backup.statistics).forEach(
+        (row) => {
+          if (row && row.id) statisticsMap.set(String(row.id), row);
+        },
+      );
+
+      asArray(backup.battleKnowledge).forEach((row) => {
+        if (row && row.id) statisticsMap.set(String(row.id), row);
+      });
+
+      asArray(backup.battleCalibration).forEach((row) => {
+        if (row && row.id) statisticsMap.set(String(row.id), row);
+      });
+
+      const statisticsRows = Array.from(statisticsMap.values());
+
+      for (const storeName of stores) {
+        await this.clear(storeName);
+      }
+
+      await this.putMany(constants.STORES.OASIS, oasisRows);
+      await this.putMany(constants.STORES.REPORTS, reportsRows);
+      await this.putMany(constants.STORES.SETTINGS, settingsRows);
+      await this.putMany(constants.STORES.HISTORY, historyRows);
+      await this.putMany(constants.STORES.STATISTICS, statisticsRows);
+
+      return {
+        [constants.STORES.OASIS]: oasisRows.length,
+        [constants.STORES.REPORTS]: reportsRows.length,
+        [constants.STORES.SETTINGS]: settingsRows.length,
+        [constants.STORES.HISTORY]: historyRows.length,
+        [constants.STORES.STATISTICS]: statisticsRows.length,
+      };
+    }
   }
 
   root.StorageService = StorageService;

@@ -13,9 +13,14 @@
       this.getSettings = deps.getSettings;
       this.saveSettings = deps.saveSettings;
       this.currentScan = null;
-      this.debugEnabled = false;
+      this.debugEnabled = true;
       this.overlay = null;
       this.titleClicks = 0;
+      this.currentTab = "scanner";
+      this.reportsPage = 1;
+      this.reportsPerPage = 25;
+      this.debugPage = 1;
+      this.debugPerPage = 20;
     }
 
     /**
@@ -55,27 +60,28 @@
      * @returns {string}
      */
     template() {
+      const activeTab = this.currentTab || "scanner";
       return [
         '<div class="head">',
         '<b id="nytrina-title">NytrinA Companion 4.0</b>',
         '<div class="actions"><button id="nytrina-toggle-minimize">Minimizar</button><button id="nytrina-refresh">Atualizar</button></div>',
         "</div>",
         '<div class="tabs">',
-        '<button class="tab active" data-tab="dashboard">Dashboard</button>',
-        '<button class="tab" data-tab="scanner">Scanner</button>',
-        '<button class="tab" data-tab="ranking">Ranking</button>',
-        '<button class="tab" data-tab="reports">Relatorios</button>',
-        '<button class="tab" data-tab="economy">Economia</button>',
-        '<button class="tab" data-tab="settings">Configuracoes</button>',
-        '<button class="tab hidden" data-tab="debug" id="nytrina-debug-tab">Debug</button>',
+        '<button class="tab' + (activeTab === "scanner" ? " active" : "") + '" data-tab="scanner">Scanner</button>',
+        '<button class="tab' + (activeTab === "dashboard" ? " active" : "") + '" data-tab="dashboard">Dashboard</button>',
+        '<button class="tab' + (activeTab === "ranking" ? " active" : "") + '" data-tab="ranking">Ranking</button>',
+        '<button class="tab' + (activeTab === "reports" ? " active" : "") + '" data-tab="reports">Relatorios</button>',
+        '<button class="tab' + (activeTab === "economy" ? " active" : "") + '" data-tab="economy">Economia</button>',
+        '<button class="tab' + (activeTab === "settings" ? " active" : "") + '" data-tab="settings">Configuracoes</button>',
+        '<button class="tab' + (activeTab === "debug" ? " active" : "") + '" data-tab="debug" id="nytrina-debug-tab">Debug</button>',
         "</div>",
-        '<div class="panel" data-panel="dashboard"></div>',
-        '<div class="panel hidden" data-panel="scanner"></div>',
-        '<div class="panel hidden" data-panel="ranking"></div>',
-        '<div class="panel hidden" data-panel="reports"></div>',
-        '<div class="panel hidden" data-panel="economy"></div>',
-        '<div class="panel hidden" data-panel="settings"></div>',
-        '<div class="panel hidden" data-panel="debug"></div>',
+        '<div class="panel' + (activeTab === "scanner" ? "" : " hidden") + '" data-panel="scanner"></div>',
+        '<div class="panel' + (activeTab === "dashboard" ? "" : " hidden") + '" data-panel="dashboard"></div>',
+        '<div class="panel' + (activeTab === "ranking" ? "" : " hidden") + '" data-panel="ranking"></div>',
+        '<div class="panel' + (activeTab === "reports" ? "" : " hidden") + '" data-panel="reports"></div>',
+        '<div class="panel' + (activeTab === "economy" ? "" : " hidden") + '" data-panel="economy"></div>',
+        '<div class="panel' + (activeTab === "settings" ? "" : " hidden") + '" data-panel="settings"></div>',
+        '<div class="panel' + (activeTab === "debug" ? "" : " hidden") + '" data-panel="debug"></div>',
       ].join("");
     }
 
@@ -86,10 +92,9 @@
       console.error("######## OVERLAY NOVO ########");
       this.overlay.querySelectorAll(".tab").forEach((button) => {
         button.addEventListener("click", () => {
-          root.Tabs.activateTab(
-            this.overlay,
-            button.getAttribute("data-tab") || "dashboard",
-          );
+          const tab = button.getAttribute("data-tab") || "scanner";
+          this.currentTab = tab;
+          root.Tabs.activateTab(this.overlay, tab);
         });
       });
 
@@ -119,13 +124,58 @@
         .querySelector("#nytrina-title")
         ?.addEventListener("click", () => {
           this.titleClicks += 1;
-          if (this.titleClicks >= 5) {
-            this.debugEnabled = true;
-            this.overlay
-              .querySelector("#nytrina-debug-tab")
-              ?.classList.remove("hidden");
-          }
         });
+    }
+
+    /**
+     * @param {number} totalItems
+     * @param {number} page
+     * @param {number} perPage
+     * @returns {{page:number,totalPages:number,start:number,end:number}}
+     */
+    paginationMeta(totalItems, page, perPage) {
+      const safePerPage = Math.max(1, Number(perPage || 1));
+      const totalPages = Math.max(1, Math.ceil(Number(totalItems || 0) / safePerPage));
+      const currentPage = Math.min(Math.max(1, Number(page || 1)), totalPages);
+      const start = (currentPage - 1) * safePerPage;
+      const end = start + safePerPage;
+
+      return {
+        page: currentPage,
+        totalPages,
+        start,
+        end,
+      };
+    }
+
+    /**
+     * @param {string} prefix
+     * @param {{page:number,totalPages:number,start:number,end:number}} meta
+     * @param {number} totalItems
+     * @returns {string}
+     */
+    paginationControls(prefix, meta, totalItems) {
+      const from = totalItems > 0 ? meta.start + 1 : 0;
+      const to = Math.min(meta.end, totalItems);
+
+      return [
+        '<div class="actions">',
+        '<button id="' + prefix + '-prev"' + (meta.page <= 1 ? ' disabled="disabled"' : '') + '>Anterior</button>',
+        '<button id="' + prefix + '-next"' + (meta.page >= meta.totalPages ? ' disabled="disabled"' : '') + '>Próxima</button>',
+        '<span>' +
+          'Página ' +
+          meta.page +
+          ' de ' +
+          meta.totalPages +
+          ' | Itens ' +
+          from +
+          '-' +
+          to +
+          ' de ' +
+          totalItems +
+          '</span>',
+        '</div>',
+      ].join('');
     }
 
     /**
@@ -352,6 +402,8 @@
         settings.troopTribe ||
         this.inferTribeByTroop(selectedTroopType) ||
         "romans";
+      const canResetCalibration =
+        selectedTroopType !== "hero" && selectedTroopType !== "custom";
 
       let calibratedWithHero = null;
       let calibratedWithoutHero = null;
@@ -398,19 +450,37 @@
 
       let suggestionText = "-";
       let suggestionSource = "Sem dados";
-      let suggestionConfidence = "-";
+      let suggestionConfidence = "Sem dados";
+      let suggestionStars = "☆☆☆☆☆";
+      let suggestionBasedOn = 0;
+      let learnedFactorText = "x1.00";
+      let withHeroSuggestion = "-";
+      let withoutHeroSuggestion = "-";
+      let usedLearning = false;
 
       if (learnedAdvice?.ok) {
+        usedLearning = true;
+        const learned = Math.round(Number(learnedAdvice.suggestedTroops || 0));
+
+        withHeroSuggestion = String(learned);
+        withoutHeroSuggestion = String(learned);
         suggestionText =
-          Math.round(Number(learnedAdvice.suggestedTroops || 0)) +
-          " " +
-          this.troopLabel(selectedTroopType);
+          "Com herói: " + learned + " | Sem herói: " + learned;
+        suggestionSource = "IA Aprendida";
 
-        suggestionSource = "Battle Knowledge";
-
+        suggestionBasedOn = Number(knowledge?.samples || 0);
         suggestionConfidence =
-          Number(knowledge?.samples || 0) +
-          (Number(knowledge?.samples || 0) === 1 ? " amostra" : " amostras");
+          suggestionBasedOn >= 10
+            ? "Alta"
+            : suggestionBasedOn >= 5
+              ? "Média"
+              : "Baixa";
+
+        const stars = Math.max(
+          1,
+          Math.min(5, Math.round((Math.min(suggestionBasedOn, 15) / 15) * 4 + 1)),
+        );
+        suggestionStars = "★".repeat(stars) + "☆".repeat(5 - stars);
       } else if (formulaAdvice?.ok) {
         const theoreticalWithHero = Number(
           formulaAdvice.withHero.safeTroops || 0,
@@ -428,25 +498,51 @@
           calibratedWithoutHero?.troops || theoreticalWithoutHero,
         );
 
+        withHeroSuggestion = String(finalWithHero);
+        withoutHeroSuggestion = String(finalWithoutHero);
         const withHeroSamples = Number(calibratedWithHero?.samples || 0);
-
         const withoutHeroSamples = Number(calibratedWithoutHero?.samples || 0);
+        suggestionBasedOn = withHeroSamples + withoutHeroSamples;
 
         suggestionText =
-          "Com herói: " + finalWithHero + " | Sem: " + finalWithoutHero;
+          "Com herói: " + finalWithHero + " | Sem herói: " + finalWithoutHero;
+
+        const heroSource = String(calibratedWithHero?.source || "");
+        const noHeroSource = String(calibratedWithoutHero?.source || "");
+        suggestionSource =
+          heroSource.includes("IA") || noHeroSource.includes("IA")
+            ? "IA Aprendida"
+            : withHeroSamples > 0 || withoutHeroSamples > 0
+              ? "Cálculo ajustado pelo aprendizado"
+              : "Cálculo teórico";
+
+        const heroFactor = Number(calibratedWithHero?.factor || 1);
+        const noHeroFactor = Number(calibratedWithoutHero?.factor || 1);
+        learnedFactorText =
+          "Hero: x" +
+          heroFactor.toFixed(2) +
+          " | Sem: x" +
+          noHeroFactor.toFixed(2);
+
+        const heroStars = Number(calibratedWithHero?.stars || 1);
+        const noHeroStars = Number(calibratedWithoutHero?.stars || 1);
+        const avgStars = Math.max(1, Math.round((heroStars + noHeroStars) / 2));
+        suggestionStars = "★".repeat(avgStars) + "☆".repeat(5 - avgStars);
+
+        const heroConfidence = String(
+          calibratedWithHero?.confidence || "Sem dados",
+        );
+        const noHeroConfidence = String(
+          calibratedWithoutHero?.confidence || "Sem dados",
+        );
 
         if (withHeroSamples > 0 || withoutHeroSamples > 0) {
-          suggestionSource = "Cálculo ajustado pelo aprendizado";
-
           suggestionConfidence =
-            "Com herói: " +
-            withHeroSamples +
-            " amostra(s) | Sem: " +
-            withoutHeroSamples +
-            " amostra(s)";
+            "Com herói: " + heroConfidence + " | Sem herói: " + noHeroConfidence;
+
+          usedLearning = true;
         } else {
-          suggestionSource = "Cálculo teórico";
-          suggestionConfidence = "Ainda sem calibração";
+          suggestionConfidence = "Sem calibração";
         }
       }
 
@@ -479,14 +575,29 @@
         '<div class="card"><span>Sugestão</span><b>' +
           suggestionText +
           "</b></div>",
+        '<div class="card"><span>Com herói</span><b>' +
+          withHeroSuggestion +
+          "</b></div>",
+        '<div class="card"><span>Sem herói</span><b>' +
+          withoutHeroSuggestion +
+          "</b></div>",
 
         '<div class="card"><span>Fonte</span><b>' +
           suggestionSource +
+          "</b></div>",
+        '<div class="card"><span>Avaliação</span><b>' +
+          suggestionStars +
           "</b></div>",
 
         '<div class="card"><span>Confiança</span><b>' +
           suggestionConfidence +
           "</b></div>",
+        '<div class="card"><span>Fator aprendido</span><b>' +
+          learnedFactorText +
+          "</b></div>",
+        '<div class="card"><span>Baseado em</span><b>' +
+          suggestionBasedOn +
+          " batalha(s) semelhantes</b></div>",
         "</div>",
         '<div class="stack">',
         "<label>Tipo de tropa (define tempo)</label>",
@@ -502,6 +613,14 @@
         '<div class="actions">',
         '<button id="nytrina-scan-now">Escanear agora</button>',
         '<button id="nytrina-import-report">Importar relatorio</button>',
+        '<button id="nytrina-reset-current-calibration"' +
+          (canResetCalibration ? "" : ' disabled="disabled"') +
+          '>Reset calibração atual</button>',
+        '<span class="hint">' +
+          (usedLearning
+            ? "Sugestão já usa aprendizado contínuo."
+            : "Sem histórico suficiente. Importe relatórios para treinar a IA.") +
+          "</span>",
         "</div>",
       ].join("");
 
@@ -551,6 +670,56 @@
       node.querySelector("#nytrina-scan-now")?.addEventListener("click", () => {
         this.scanner.scanNow().then(() => this.refresh());
       });
+
+      node
+        .querySelector("#nytrina-reset-current-calibration")
+        ?.addEventListener("click", async () => {
+          if (!canResetCalibration) {
+            root.Modal.show(
+              "Calibração",
+              "Selecione uma tropa real para resetar a calibração.",
+            );
+            return;
+          }
+
+          const confirmMessage =
+            "Resetar calibração atual para " +
+            selectedTribe +
+            " / " +
+            selectedTroopType.replace(/_/g, " ") +
+            " (com e sem herói)?";
+
+          if (!confirm(confirmMessage)) return;
+
+          try {
+            await root.BattleKnowledge.resetCalibration({
+              storage: this.storage,
+              tribe: selectedTribe,
+              troopType: selectedTroopType,
+              hasHero: true,
+            });
+
+            await root.BattleKnowledge.resetCalibration({
+              storage: this.storage,
+              tribe: selectedTribe,
+              troopType: selectedTroopType,
+              hasHero: false,
+            });
+
+            root.Modal.show(
+              "Calibração",
+              "Calibração resetada para o perfil atual (com e sem herói).",
+            );
+
+            await this.refresh();
+          } catch (error) {
+            console.error("ERRO AO RESETAR CALIBRAÇÃO:", error);
+            root.Modal.show(
+              "Erro",
+              "Falha ao resetar calibração atual. Veja o console.",
+            );
+          }
+        });
 
       node
         .querySelector("#nytrina-import-report")
@@ -664,16 +833,30 @@
       if (!node) return;
       const reports = await this.storage.getAll(root.Constants.STORES.REPORTS);
       const settings = this.getSettings();
+      const sortedReports = reports
+        .slice()
+        .sort((a, b) => {
+          const right = new Date(b.date || b.updatedAt || 0).getTime();
+          const left = new Date(a.date || a.updatedAt || 0).getTime();
+          return right - left;
+        });
+      const reportsMeta = this.paginationMeta(
+        sortedReports.length,
+        this.reportsPage,
+        this.reportsPerPage,
+      );
+      this.reportsPage = reportsMeta.page;
+      const reportsPageRows = sortedReports.slice(reportsMeta.start, reportsMeta.end);
 
       node.innerHTML = [
         '<div class="actions"><button id="nytrina-import-report-tab">Importar relatorio atual</button><button id="nytrina-clear-reports">Limpar Relatórios</button></div>',
-        "<table><thead><tr><th>ID</th><th>Coord</th><th>XP</th><th>Rec.</th><th>Perda</th><th>Lucro</th></tr></thead><tbody>",
-        reports
-          .slice()
-          .reverse()
+        "<table><thead><tr><th>Data/Hora</th><th>ID</th><th>Coord</th><th>XP</th><th>Rec.</th><th>Perda</th><th>Lucro</th></tr></thead><tbody>",
+        reportsPageRows
           .map(
             (report) =>
               "<tr><td>" +
+              this.formatDateTime(report.date || report.updatedAt) +
+              "</td><td>" +
               report.reportId +
               "</td><td>" +
               (report.coord || "-") +
@@ -689,7 +872,18 @@
           )
           .join(""),
         "</tbody></table>",
+        this.paginationControls("nytrina-reports-page", reportsMeta, sortedReports.length),
       ].join("");
+
+      node.querySelector("#nytrina-reports-page-prev")?.addEventListener("click", async () => {
+        this.reportsPage = Math.max(1, this.reportsPage - 1);
+        await this.refreshReports();
+      });
+
+      node.querySelector("#nytrina-reports-page-next")?.addEventListener("click", async () => {
+        this.reportsPage = this.reportsPage + 1;
+        await this.refreshReports();
+      });
 
       node
         .querySelector("#nytrina-import-report-tab")
@@ -860,7 +1054,7 @@
         '<div id="nytrina-setting-server-warning" class="server-warning' +
           (isManualInvalid ? " show" : "") +
           '">Servidor manual invalido. Informe um host travian valido ou use Auto.</div>',
-        '<div class="actions"><button id="nytrina-save-settings">Salvar</button></div>',
+        '<div class="actions"><button id="nytrina-save-settings">Salvar</button><button id="nytrina-export-backup">Exportar Backup</button><button id="nytrina-import-backup">Importar Backup</button><input id="nytrina-import-backup-file" type="file" accept="application/json" style="display:none"></div>',
         "</div>",
       ].join("");
 
@@ -871,6 +1065,9 @@
       const speedInput = node.querySelector("#nytrina-setting-speed");
       const warning = node.querySelector("#nytrina-setting-server-warning");
       const smallMapInput = node.querySelector("#nytrina-setting-small-map");
+      const exportBackupButton = node.querySelector("#nytrina-export-backup");
+      const importBackupButton = node.querySelector("#nytrina-import-backup");
+      const importBackupFile = node.querySelector("#nytrina-import-backup-file");
 
       if (smallMapInput) {
         smallMapInput.checked = Boolean(settings.smallMap);
@@ -980,6 +1177,75 @@
 
           await this.refresh();
         });
+
+      exportBackupButton?.addEventListener("click", async () => {
+        try {
+          const backup = await this.storage.exportBackup();
+          const json = JSON.stringify(backup, null, 2);
+          const blob = new Blob([json], { type: "application/json" });
+          const now = new Date();
+          const datePart =
+            now.getFullYear() +
+            "-" +
+            String(now.getMonth() + 1).padStart(2, "0") +
+            "-" +
+            String(now.getDate()).padStart(2, "0");
+          const fileName = "NytrinA_Backup_" + datePart + ".json";
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+
+          root.Modal.show("Backup", "Backup exportado com sucesso: " + fileName);
+        } catch (error) {
+          console.error("Falha ao exportar backup", error);
+          root.Modal.show("Erro", "Falha ao exportar backup. Veja o console.");
+        }
+      });
+
+      importBackupButton?.addEventListener("click", () => {
+        importBackupFile?.click();
+      });
+
+      importBackupFile?.addEventListener("change", async (event) => {
+        const input = event.target;
+        const file = input?.files && input.files[0] ? input.files[0] : null;
+        if (!file) return;
+
+        try {
+          const content = await file.text();
+          const parsed = JSON.parse(content);
+
+          if (!confirm("Importar backup irá substituir todos os dados atuais. Continuar?")) {
+            input.value = "";
+            return;
+          }
+
+          const result = await this.storage.importBackup(parsed);
+
+          this.scanner.lastSignature = "";
+          await this.refresh();
+
+          root.Modal.show(
+            "Backup",
+            "Backup importado com sucesso. OASIS: " +
+              Number(result?.OASIS || 0) +
+              " | REPORTS: " +
+              Number(result?.REPORTS || 0) +
+              " | STATISTICS: " +
+              Number(result?.STATISTICS || 0),
+          );
+        } catch (error) {
+          console.error("Falha ao importar backup", error);
+          root.Modal.show("Erro", "Falha ao importar backup JSON. Verifique o arquivo.");
+        } finally {
+          input.value = "";
+        }
+      });
     }
 
     /**
@@ -999,6 +1265,23 @@
         String(row?.id || "").startsWith("battleKnowledge:"),
       );
 
+      const sortedKnowledgeRows = knowledgeRows
+        .slice()
+        .sort((a, b) => {
+          const right = new Date(b.updatedAt || b.lastBattle?.date || 0).getTime();
+          const left = new Date(a.updatedAt || a.lastBattle?.date || 0).getTime();
+          if (right !== left) return right - left;
+          return String(a.troopType).localeCompare(String(b.troopType));
+        });
+
+      const debugMeta = this.paginationMeta(
+        sortedKnowledgeRows.length,
+        this.debugPage,
+        this.debugPerPage,
+      );
+      this.debugPage = debugMeta.page;
+      const debugPageRows = sortedKnowledgeRows.slice(debugMeta.start, debugMeta.end);
+
       node.innerHTML = [
         '<div class="actions">',
         '<button id="nytrina-clear-knowledge">Limpar Battle Knowledge</button>',
@@ -1014,14 +1297,10 @@
         "</div>",
 
         "<table><thead><tr>",
-        "<th>Tropa</th><th>XP</th><th>Amostras</th><th>Resultado</th><th>Enviadas</th><th>Mortas</th><th>Enfermaria</th><th>Baixas</th><th>Eliminação</th><th>Próxima sugestão</th>",
+        "<th>Data/Hora</th><th>Tropa</th><th>XP</th><th>Amostras</th><th>Resultado</th><th>Enviadas</th><th>Mortas</th><th>Enfermaria</th><th>Baixas</th><th>Eliminação</th><th>Próxima sugestão</th>",
         "</tr></thead><tbody>",
 
-        knowledgeRows
-          .slice()
-          .sort((a, b) =>
-            String(a.troopType).localeCompare(String(b.troopType)),
-          )
+        debugPageRows
           .map((row) => {
             const last = row.lastBattle || {};
 
@@ -1035,6 +1314,8 @@
 
             return (
               "<tr><td>" +
+              this.formatDateTime(row.updatedAt || last.date) +
+              "</td><td>" +
               (row.troopType || "-") +
               "</td><td>" +
               Math.round(row.xp || 0) +
@@ -1060,7 +1341,18 @@
           .join(""),
 
         "</tbody></table>",
+        this.paginationControls("nytrina-debug-page", debugMeta, sortedKnowledgeRows.length),
       ].join("");
+
+      node.querySelector("#nytrina-debug-page-prev")?.addEventListener("click", async () => {
+        this.debugPage = Math.max(1, this.debugPage - 1);
+        await this.refreshDebug();
+      });
+
+      node.querySelector("#nytrina-debug-page-next")?.addEventListener("click", async () => {
+        this.debugPage = this.debugPage + 1;
+        await this.refreshDebug();
+      });
 
       node
         .querySelector("#nytrina-clear-knowledge")
@@ -1073,6 +1365,22 @@
 
           await this.refresh();
         });
+    }
+
+    /**
+     * @param {string|number|Date|null|undefined} value
+     * @returns {string}
+     */
+    formatDateTime(value) {
+      const date = new Date(value || 0);
+      if (!Number.isFinite(date.getTime())) return "-";
+      return date.toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     }
   }
 

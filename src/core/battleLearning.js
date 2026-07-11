@@ -3,6 +3,60 @@
 
   const root = (global.NytrinA = global.NytrinA || {});
 
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
+
+  function confidenceFromCalibration(calibration) {
+    const samples = Number(calibration?.samples || 0);
+
+    if (samples <= 0) {
+      return {
+        label: "Sem dados",
+        stars: 1,
+        score: 0,
+      };
+    }
+
+    const successSamples = Number(calibration?.successSamples || 0);
+    const perfectSamples = Number(calibration?.perfectSamples || 0);
+    const failureSamples = Number(calibration?.failureSamples || 0);
+    const successRate =
+      samples > 0 ? clamp(successSamples / samples, 0, 1) : 0;
+    const perfectRate =
+      samples > 0 ? clamp(perfectSamples / samples, 0, 1) : 0;
+    const failureRate =
+      samples > 0 ? clamp(failureSamples / samples, 0, 1) : 0;
+
+    const sampleScore = clamp(samples / 15, 0, 1);
+
+    const score =
+      sampleScore * 0.45 +
+      successRate * 0.3 +
+      perfectRate * 0.2 +
+      (1 - failureRate) * 0.05;
+
+    const stars = clamp(Math.round(score * 4) + 1, 1, 5);
+
+    let label = "Baixa";
+    if (score >= 0.8) {
+      label = "Alta";
+    } else if (score >= 0.5) {
+      label = "Média";
+    }
+
+    return {
+      label,
+      stars,
+      score,
+    };
+  }
+
+  function starsText(stars) {
+    const safe = clamp(Math.round(Number(stars || 1)), 1, 5);
+    return "★".repeat(safe) + "☆".repeat(5 - safe);
+  }
+
   function normalizeAnimals(animals) {
     const empty = root.Animals.emptyAnimals();
 
@@ -269,6 +323,7 @@
     };
 
     const hasHero = Boolean(report.hasHero);
+    const troopsCasualtiesCount = Number(report.troopsCasualtiesCount || 0);
 
     const calibration = await updateCalibration({
       storage,
@@ -280,6 +335,8 @@
       cleared,
       troopsLostCount: Number(report.troopsLostCount || 0),
       troopsWoundedCount: Number(report.troopsWoundedCount || 0),
+      troopsCasualtiesCount,
+      totalAnimalsRemaining: remaining,
     });
 
     console.log("CALIBRAÇÃO ATUALIZADA", calibration);
@@ -368,13 +425,17 @@
   root.BattleKnowledge = {
     makeSignature,
     knowledgeId,
+    calibrationId,
     getKnowledge,
     learnFromReport,
     suggestFromKnowledge,
 
     getCalibration,
+    resetCalibration,
     updateCalibration,
     applyCalibration,
+    confidenceFromCalibration,
+    starsText,
   };
 
   function calibrationId(tribe, troopType, hasHero) {
@@ -397,19 +458,80 @@
       troopType,
       hasHero: Boolean(hasHero),
       samples: 0,
+
+      successSamples: 0,
+      failureSamples: 0,
+      perfectSamples: 0,
+      clearedWithLossesSamples: 0,
+
+      sumKillRate: 0,
+      sumCasualtyRate: 0,
+
+      minClearTroops: 0,
+      minPerfectTroops: 0,
+      maxFailedTroops: 0,
+
       factorSum: 0,
       averageFactor: 1,
       maxFactor: 1,
+      lastOutcome: null,
+      lastBattle: null,
       updatedAt: null,
     };
 
     calibration.samples = Number(calibration.samples || 0);
+    calibration.successSamples = Number(calibration.successSamples || 0);
+    calibration.failureSamples = Number(calibration.failureSamples || 0);
+    calibration.perfectSamples = Number(calibration.perfectSamples || 0);
+    calibration.clearedWithLossesSamples = Number(
+      calibration.clearedWithLossesSamples || 0,
+    );
+    calibration.sumKillRate = Number(calibration.sumKillRate || 0);
+    calibration.sumCasualtyRate = Number(calibration.sumCasualtyRate || 0);
+    calibration.minClearTroops = Number(calibration.minClearTroops || 0);
+    calibration.minPerfectTroops = Number(calibration.minPerfectTroops || 0);
+    calibration.maxFailedTroops = Number(calibration.maxFailedTroops || 0);
     calibration.factorSum = Number(calibration.factorSum || 0);
     calibration.averageFactor = Number(calibration.averageFactor || 1);
     calibration.maxFactor = Number(calibration.maxFactor || 1);
     calibration.hasHero = Boolean(hasHero);
 
+    if (calibration.lastOutcome === undefined) {
+      calibration.lastOutcome = null;
+    }
+
+    if (calibration.lastBattle === undefined) {
+      calibration.lastBattle = null;
+    }
+
+    calibration.avgKillRate =
+      calibration.samples > 0
+        ? calibration.sumKillRate / calibration.samples
+        : 0;
+
+    calibration.avgCasualtyRate =
+      calibration.samples > 0
+        ? calibration.sumCasualtyRate / calibration.samples
+        : 0;
+
+    const confidence = confidenceFromCalibration(calibration);
+    calibration.confidence = confidence.label;
+    calibration.confidenceStars = confidence.stars;
+
     return calibration;
+  }
+
+  async function resetCalibration({
+    storage,
+    tribe,
+    troopType,
+    hasHero,
+  }) {
+    if (!storage || !troopType) return false;
+
+    const id = calibrationId(tribe, troopType, hasHero);
+    await storage.delete(root.Constants.STORES.STATISTICS, id);
+    return true;
   }
 
   async function updateCalibration({
@@ -422,10 +544,27 @@
     cleared,
     troopsLostCount,
     troopsWoundedCount,
+    troopsCasualtiesCount,
+    totalAnimalsRemaining,
   }) {
     if (!storage || !troopType || sent <= 0 || killRate <= 0) {
       return null;
     }
+
+    const casualties =
+      Number(troopsCasualtiesCount || 0) ||
+      Number(troopsLostCount || 0) + Number(troopsWoundedCount || 0);
+
+    const casualtyRate = sent > 0 ? casualties / sent : 0;
+    const remaining = Number(totalAnimalsRemaining || 0);
+
+    const outcome = cleared
+      ? casualties === 0
+        ? "perfect"
+        : "cleared_with_losses"
+      : remaining > 0 && killRate >= 0.95
+        ? "almost_cleared"
+        : "failure";
 
     let requiredSafe = sent;
 
@@ -446,11 +585,6 @@
 
       requiredSafe = estimatedClear * margin;
     } else {
-      const casualties =
-        Number(troopsLostCount || 0) + Number(troopsWoundedCount || 0);
-
-      const casualtyRate = casualties / sent;
-
       if (casualtyRate > 0) {
         requiredSafe = sent * Math.max(1.05, 1 + casualtyRate * 2);
       }
@@ -466,12 +600,60 @@
     );
 
     calibration.samples += 1;
+    calibration.sumKillRate += clamp(killRate, 0, 1);
+    calibration.sumCasualtyRate += clamp(casualtyRate, 0, 1);
+
+    if (cleared) {
+      calibration.successSamples += 1;
+
+      calibration.minClearTroops =
+        calibration.minClearTroops > 0
+          ? Math.min(calibration.minClearTroops, sent)
+          : sent;
+
+      if (casualties === 0) {
+        calibration.perfectSamples += 1;
+        calibration.minPerfectTroops =
+          calibration.minPerfectTroops > 0
+            ? Math.min(calibration.minPerfectTroops, sent)
+            : sent;
+      } else {
+        calibration.clearedWithLossesSamples += 1;
+      }
+    } else {
+      calibration.failureSamples += 1;
+      calibration.maxFailedTroops = Math.max(
+        Number(calibration.maxFailedTroops || 0),
+        sent,
+      );
+    }
+
     calibration.factorSum += factor;
     calibration.averageFactor = calibration.factorSum / calibration.samples;
     calibration.maxFactor = Math.max(
       Number(calibration.maxFactor || 1),
       factor,
     );
+    calibration.lastOutcome = outcome;
+    calibration.lastBattle = {
+      sent,
+      killRate,
+      casualties,
+      casualtyRate,
+      remaining,
+      cleared,
+      outcome,
+      requiredSafe: Math.ceil(requiredSafe),
+      date: new Date().toISOString(),
+    };
+    calibration.avgKillRate = calibration.sumKillRate / calibration.samples;
+    calibration.avgCasualtyRate =
+      calibration.sumCasualtyRate / calibration.samples;
+
+    const confidence = confidenceFromCalibration(calibration);
+    calibration.confidence = confidence.label;
+    calibration.confidenceStars = confidence.stars;
+
     calibration.updatedAt = new Date().toISOString();
 
     await storage.put(root.Constants.STORES.STATISTICS, calibration);
@@ -503,28 +685,71 @@
       hasHero,
     );
 
-    if (Number(calibration.samples || 0) <= 0) {
+    const sampleCount = Number(calibration.samples || 0);
+
+    if (sampleCount <= 0) {
       return {
         troops: Math.ceil(theoretical),
         factor: 1,
         samples: 0,
+        source: "Cálculo teórico",
+        confidence: "Sem dados",
+        stars: 1,
+        starsText: starsText(1),
+        basedOn: 0,
+        learnedFloor: 0,
       };
     }
 
-    /*
-     * Usamos o maior entre a média e 90% do maior fator observado.
-     * Isso evita ficar agressivo demais depois de uma batalha ruim.
-     */
-    const learnedFactor =
-      Math.max(
-        Number(calibration.averageFactor || 1),
-        Number(calibration.maxFactor || 1),
-      ) * 1.0;
+    const averageFactor = Number(calibration.averageFactor || 1);
+    const maxFactor = Number(calibration.maxFactor || 1);
+    const boundedMaxInfluence = 1 + (Math.max(maxFactor, 1) - 1) * 0.9;
+    const maxWeight = clamp((sampleCount - 3) / 10, 0, 1) * 0.35;
+    const blendedFactor =
+      averageFactor * (1 - maxWeight) + boundedMaxInfluence * maxWeight;
+    const learnedFactor = Math.max(1, blendedFactor);
+
+    let learnedFloor = 0;
+
+    if (sampleCount >= 3 && Number(calibration.minPerfectTroops || 0) > 0) {
+      learnedFloor = Number(calibration.minPerfectTroops || 0);
+    } else if (sampleCount >= 3 && Number(calibration.minClearTroops || 0) > 0) {
+      const casualtyBias = clamp(Number(calibration.avgCasualtyRate || 0), 0, 1);
+      learnedFloor = Math.ceil(
+        Number(calibration.minClearTroops || 0) * Math.max(1.04, 1 + casualtyBias),
+      );
+    }
+
+    if (sampleCount >= 3 && Number(calibration.maxFailedTroops || 0) > 0) {
+      learnedFloor = Math.max(
+        Number(learnedFloor || 0),
+        Number(calibration.maxFailedTroops || 0) + 1,
+      );
+    }
+
+    const confidence = confidenceFromCalibration(calibration);
+    const canUseHardFloor = sampleCount >= 6 && confidence.score >= 0.5;
+    const effectiveFloor = canUseHardFloor ? Number(learnedFloor || 0) : 0;
+
+    let source = "Cálculo ajustado pelo aprendizado";
+    if (confidence.score >= 0.5) {
+      source = "IA Aprendida";
+    }
 
     return {
-      troops: Math.ceil(theoretical * learnedFactor),
+      troops: Math.max(
+        Math.ceil(theoretical * learnedFactor),
+        Math.ceil(effectiveFloor),
+      ),
       factor: learnedFactor,
       samples: Number(calibration.samples || 0),
+      source,
+      confidence: confidence.label,
+      stars: confidence.stars,
+      starsText: starsText(confidence.stars),
+      basedOn: Number(calibration.samples || 0),
+      learnedFloor: Math.ceil(Number(learnedFloor || 0)),
+      learnedFloorApplied: Boolean(canUseHardFloor && learnedFloor > 0),
     };
   }
 

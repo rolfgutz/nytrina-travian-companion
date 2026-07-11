@@ -22,7 +22,6 @@ const orderedFiles = [
   "core/battleAdvisor.js",
   "core/battleLearning.js",
   "core/scanner.js",
-  "core/scanner.js",
   "ui/tabs.js",
   "ui/modal.js",
   "ui/overlay.js",
