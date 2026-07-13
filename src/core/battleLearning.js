@@ -57,6 +57,38 @@
     return "★".repeat(safe) + "☆".repeat(5 - safe);
   }
 
+  function confidenceSafetyMultiplier(score) {
+    const safeScore = clamp(Number(score || 0), 0, 1);
+
+    // Margem automática para reduzir risco quando a base ainda é incerta.
+    if (safeScore < 0.5) return 1.15;
+    if (safeScore < 0.8) return 1.08;
+    return 1;
+  }
+
+  function percentile(sortedValues, p) {
+    const list = Array.isArray(sortedValues) ? sortedValues : [];
+
+    if (!list.length) return 1;
+
+    const safeP = clamp(Number(p || 0), 0, 1);
+    const idx = Math.max(0, Math.min(list.length - 1, Math.ceil(list.length * safeP) - 1));
+    return Number(list[idx] || 1);
+  }
+
+  function operationalConfidenceExtraMultiplier(score, sampleCount) {
+    const safeScore = clamp(Number(score || 0), 0, 1);
+    const samples = Number(sampleCount || 0);
+
+    // Com base ampla, desliga o extra operacional para evitar inflação.
+    if (samples >= 20) return 1;
+
+    // Modo operacional: extra aplicado por cima da margem base de confiança.
+    if (safeScore < 0.5) return 1.25;
+    if (safeScore < 0.8) return 1.12;
+    return 1;
+  }
+
   function normalizeAnimals(animals) {
     const empty = root.Animals.emptyAnimals();
 
@@ -484,6 +516,7 @@
       factorSum: 0,
       averageFactor: 1,
       maxFactor: 1,
+      factorSamples: [],
       lastOutcome: null,
       lastBattle: null,
       updatedAt: null,
@@ -504,6 +537,11 @@
     calibration.factorSum = Number(calibration.factorSum || 0);
     calibration.averageFactor = Number(calibration.averageFactor || 1);
     calibration.maxFactor = Number(calibration.maxFactor || 1);
+    calibration.factorSamples = Array.isArray(calibration.factorSamples)
+      ? calibration.factorSamples
+          .map((value) => Number(value || 0))
+          .filter((value) => Number.isFinite(value) && value >= 1)
+      : [];
     calibration.hasHero = Boolean(hasHero);
 
     if (calibration.lastOutcome === undefined) {
@@ -644,6 +682,10 @@
       Number(calibration.maxFactor || 1),
       factor,
     );
+    calibration.factorSamples.push(factor);
+    if (calibration.factorSamples.length > 200) {
+      calibration.factorSamples = calibration.factorSamples.slice(-200);
+    }
     calibration.lastOutcome = outcome;
     calibration.lastBattle = {
       sent,
@@ -712,8 +754,23 @@
     }
 
     const averageFactor = Number(calibration.averageFactor || 1);
-    const maxFactor = Number(calibration.maxFactor || 1);
-    const boundedMaxInfluence = 1 + (Math.max(maxFactor, 1) - 1) * 0.9;
+    const sortedFactorSamples = Array.isArray(calibration.factorSamples)
+      ? calibration.factorSamples
+          .map((value) => Number(value || 0))
+          .filter((value) => Number.isFinite(value) && value >= 1)
+          .sort((a, b) => a - b)
+      : [];
+
+    const percentileP90 = percentile(sortedFactorSamples, 0.9);
+    const robustHighFactor = Math.max(averageFactor, percentileP90);
+
+    // Limita quanto o fator alto pode puxar acima da média aprendida.
+    const cappedHighFactor = Math.min(
+      robustHighFactor,
+      Math.max(1.8, averageFactor * 1.65),
+    );
+
+    const boundedMaxInfluence = 1 + (Math.max(cappedHighFactor, 1) - 1) * 0.9;
     const maxWeight = clamp((sampleCount - 3) / 10, 0, 1) * 0.35;
     const blendedFactor =
       averageFactor * (1 - maxWeight) + boundedMaxInfluence * maxWeight;
@@ -738,8 +795,29 @@
     }
 
     const confidence = confidenceFromCalibration(calibration);
-    const canUseHardFloor = sampleCount >= 6 && confidence.score >= 0.5;
-    const effectiveFloor = canUseHardFloor ? Number(learnedFloor || 0) : 0;
+    const factorTroops = Math.ceil(theoretical * learnedFactor);
+    const floorCandidate = Number(learnedFloor || 0);
+
+    // Evita "congelar" recomendações em um valor fixo quando o piso aprendido
+    // fica muito acima do cálculo atual para o oásis.
+    const hardFloorLimit = Math.ceil(factorTroops * 1.35);
+
+    const canUseHardFloor =
+      sampleCount >= 6 &&
+      confidence.score >= 0.5 &&
+      floorCandidate > 0 &&
+      floorCandidate <= hardFloorLimit;
+
+    const effectiveFloor = canUseHardFloor ? floorCandidate : 0;
+    const baseTroops = Math.max(factorTroops, Math.ceil(effectiveFloor));
+    const baseSafetyMultiplier = confidenceSafetyMultiplier(confidence.score);
+    const operationalExtraMultiplier = operationalConfidenceExtraMultiplier(
+      confidence.score,
+      sampleCount,
+    );
+    const safetyMultiplier =
+      baseSafetyMultiplier * operationalExtraMultiplier;
+    const troopsWithSafety = Math.ceil(baseTroops * safetyMultiplier);
 
     let source = "Cálculo ajustado pelo aprendizado";
     if (confidence.score >= 0.5) {
@@ -747,10 +825,7 @@
     }
 
     return {
-      troops: Math.max(
-        Math.ceil(theoretical * learnedFactor),
-        Math.ceil(effectiveFloor),
-      ),
+      troops: troopsWithSafety,
       factor: learnedFactor,
       samples: Number(calibration.samples || 0),
       source,
@@ -760,6 +835,7 @@
       basedOn: Number(calibration.samples || 0),
       learnedFloor: Math.ceil(Number(learnedFloor || 0)),
       learnedFloorApplied: Boolean(canUseHardFloor && learnedFloor > 0),
+      confidenceSafetyMultiplier: safetyMultiplier,
     };
   }
 

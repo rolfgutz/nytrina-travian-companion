@@ -317,6 +317,110 @@
     }
 
     /**
+     * @returns {string}
+     */
+    suggestionCacheKey() {
+      const host = String(root.Server.getContext().host || "default");
+      return "nytrina:lastSuggestion:" + host;
+    }
+
+    /**
+     * @returns {Array<any>}
+     */
+    loadSuggestionCache() {
+      try {
+        const raw = global.localStorage.getItem(this.suggestionCacheKey());
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed?.items)) return parsed.items;
+        if (parsed && typeof parsed === "object") return [parsed];
+        return [];
+      } catch (error) {
+        console.warn("NytrinA: não foi possível ler cache de sugestão", error);
+        return [];
+      }
+    }
+
+    /**
+     * @param {any} payload
+     * @returns {void}
+     */
+    saveSuggestionCache(payload) {
+      try {
+        const currentList = this.loadSuggestionCache();
+        const next = {
+          ...(payload || {}),
+          coord: String(payload?.coord || "-").trim(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        const sameKey = (item) => {
+          return (
+            String(item?.coord || "") === String(next.coord || "") &&
+            String(item?.troopType || "") === String(next.troopType || "") &&
+            String(item?.troopTribe || "") === String(next.troopTribe || "")
+          );
+        };
+
+        const merged = [next, ...currentList.filter((item) => !sameKey(item))].slice(0, 120);
+
+        global.localStorage.setItem(
+          this.suggestionCacheKey(),
+          JSON.stringify({ items: merged }),
+        );
+      } catch (error) {
+        console.warn("NytrinA: não foi possível salvar cache de sugestão", error);
+      }
+    }
+
+    /**
+     * @returns {string|null}
+     */
+    readRallyCoordFromForm() {
+      const xInput = global.document.querySelector(
+        'input[name="x"], input#x, input[data-name="x"]',
+      );
+      const yInput = global.document.querySelector(
+        'input[name="y"], input#y, input[data-name="y"]',
+      );
+
+      const x = String(xInput?.value || "").trim();
+      const y = String(yInput?.value || "").trim();
+
+      if (!/^[+-]?\d+$/.test(x) || !/^[+-]?\d+$/.test(y)) return null;
+      return String(Number(x)) + "|" + String(Number(y));
+    }
+
+    /**
+     * @param {Array<any>} cachedSuggestions
+     * @param {string} selectedTribe
+     * @param {string} selectedTroopType
+     * @returns {any|null}
+     */
+    findBestCachedSuggestion(cachedSuggestions, selectedTribe, selectedTroopType) {
+      const list = Array.isArray(cachedSuggestions) ? cachedSuggestions : [];
+      if (!list.length) return null;
+
+      const sameProfile = list.filter(
+        (item) =>
+          String(item?.troopType || "") === String(selectedTroopType || "") &&
+          String(item?.troopTribe || "") === String(selectedTribe || ""),
+      );
+
+      if (!sameProfile.length) return null;
+
+      const rallyCoord = this.readRallyCoordFromForm();
+      if (!rallyCoord) return null;
+
+      const exact = sameProfile.find(
+        (item) => String(item?.coord || "") === String(rallyCoord),
+      );
+
+      return exact || null;
+    }
+
+    /**
      * @param {number} serverSpeed
      * @param {string} selected
      * @returns {string}
@@ -515,9 +619,11 @@
       let suggestionStars = "☆☆☆☆☆";
       let suggestionBasedOn = 0;
       let learnedFactorText = "x1.00";
+      let confidenceSafetyText = "-";
       let withHeroSuggestion = "-";
       let withoutHeroSuggestion = "-";
       let usedLearning = false;
+      const cachedSuggestions = this.loadSuggestionCache();
 
       const formatScannerXph = (value) => {
         const number = Number(value || 0);
@@ -593,6 +699,23 @@
           " | Sem: x" +
           noHeroFactor.toFixed(2);
 
+        const heroSafetyPct = Math.max(
+          0,
+          Math.round(
+            (Number(calibratedWithHero?.confidenceSafetyMultiplier || 1) - 1) * 100,
+          ),
+        );
+        const noHeroSafetyPct = Math.max(
+          0,
+          Math.round(
+            (Number(calibratedWithoutHero?.confidenceSafetyMultiplier || 1) - 1) *
+              100,
+          ),
+        );
+
+        confidenceSafetyText =
+          "Hero: +" + heroSafetyPct + "% | Sem: +" + noHeroSafetyPct + "%";
+
         const heroStars = Number(calibratedWithHero?.stars || 1);
         const noHeroStars = Number(calibratedWithoutHero?.stars || 1);
         const avgStars = Math.max(1, Math.round((heroStars + noHeroStars) / 2));
@@ -615,22 +738,98 @@
         }
       }
 
+      if (
+        parsed?.coord &&
+        (withHeroSuggestion !== "-" || withoutHeroSuggestion !== "-")
+      ) {
+        this.saveSuggestionCache({
+          troopType: selectedTroopType,
+          troopTribe: selectedTribe,
+          coord: parsed?.coord || "-",
+          distance: parsed?.distance || "-",
+          xp: parsed?.xp || 0,
+          xph: parsed?.xph || 0,
+          time: parsed?.time || "-",
+          suggestionText,
+          suggestionSource,
+          suggestionConfidence,
+          suggestionStars,
+          suggestionBasedOn,
+          learnedFactorText,
+          confidenceSafetyText,
+          withHeroSuggestion,
+          withoutHeroSuggestion,
+        });
+      }
+
+      const cachedSuggestion = this.findBestCachedSuggestion(
+        cachedSuggestions,
+        selectedTribe,
+        selectedTroopType,
+      );
+      const sameProfileCache = Boolean(cachedSuggestion);
+
+      if (!parsed && sameProfileCache) {
+        suggestionText = String(cachedSuggestion.suggestionText || suggestionText);
+        suggestionSource =
+          String(cachedSuggestion.suggestionSource || "Cálculo salvo") +
+          " (última leitura)";
+        suggestionConfidence = String(
+          cachedSuggestion.suggestionConfidence || suggestionConfidence,
+        );
+        suggestionStars = String(cachedSuggestion.suggestionStars || suggestionStars);
+        suggestionBasedOn = Number(cachedSuggestion.suggestionBasedOn || suggestionBasedOn || 0);
+        learnedFactorText = String(cachedSuggestion.learnedFactorText || learnedFactorText);
+        confidenceSafetyText = String(
+          cachedSuggestion.confidenceSafetyText || confidenceSafetyText,
+        );
+        withHeroSuggestion = String(cachedSuggestion.withHeroSuggestion || withHeroSuggestion);
+        withoutHeroSuggestion = String(cachedSuggestion.withoutHeroSuggestion || withoutHeroSuggestion);
+      }
+
+      const isMapPage = /karte\.php/i.test(String(global.location.pathname || ""));
+
+      if (!parsed && !sameProfileCache && isMapPage) {
+        suggestionText = "Oásis vazio: envie o que quiser.";
+        withHeroSuggestion = "Livre";
+        withoutHeroSuggestion = "Livre";
+        suggestionSource = "Sem animais detectados";
+        suggestionConfidence = "-";
+        suggestionStars = "☆☆☆☆☆";
+        suggestionBasedOn = 0;
+        learnedFactorText = "x1.00";
+        confidenceSafetyText = "-";
+      }
+
+      const displayCoord =
+        parsed?.coord || (sameProfileCache ? cachedSuggestion?.coord : null) || "-";
+      const displayDistance =
+        parsed?.distance || (sameProfileCache ? cachedSuggestion?.distance : null) || "-";
+      const displayXp = Number(
+        parsed?.xp || (sameProfileCache ? cachedSuggestion?.xp : 0) || 0,
+      );
+      const displayXph = Number(
+        parsed?.xph || (sameProfileCache ? cachedSuggestion?.xph : 0) || 0,
+      );
+      const displayTime =
+        parsed?.time || (sameProfileCache ? cachedSuggestion?.time : null) || "-";
+
       node.innerHTML = [
         '<div class="grid">',
         '<div class="card"><span>Coord</span><b>' +
-          (parsed?.coord || "-") +
+          displayCoord +
           "</b></div>",
         '<div class="card"><span>Distancia</span><b>' +
-          (parsed?.distance || "-") +
+          displayDistance +
           "</b></div>",
         '<div class="card"><span>XP</span><b>' +
-          (parsed?.xp || 0) +
+          displayXp +
           "</b></div>",
         '<div class="card"><span>XP/h</span><b>' +
-          formatScannerXph(parsed?.xph || 0) +
+          formatScannerXph(displayXph) +
           "</b></div>",
         '<div class="card"><span>Tempo</span><b>' +
-          (parsed?.time || "-") +
+          displayTime +
           "</b></div>",
         '<div class="card"><span>Velocidade</span><b>' +
           Number(settings.effectiveSpeed || 14) +
@@ -663,6 +862,9 @@
           "</b></div>",
         '<div class="card"><span>Fator aprendido</span><b>' +
           learnedFactorText +
+          "</b></div>",
+        '<div class="card"><span>Margem confiança</span><b>' +
+          confidenceSafetyText +
           "</b></div>",
         '<div class="card"><span>Baseado em</span><b>' +
           suggestionBasedOn +

@@ -1854,6 +1854,38 @@
     return "★".repeat(safe) + "☆".repeat(5 - safe);
   }
 
+  function confidenceSafetyMultiplier(score) {
+    const safeScore = clamp(Number(score || 0), 0, 1);
+
+    // Margem automática para reduzir risco quando a base ainda é incerta.
+    if (safeScore < 0.5) return 1.15;
+    if (safeScore < 0.8) return 1.08;
+    return 1;
+  }
+
+  function percentile(sortedValues, p) {
+    const list = Array.isArray(sortedValues) ? sortedValues : [];
+
+    if (!list.length) return 1;
+
+    const safeP = clamp(Number(p || 0), 0, 1);
+    const idx = Math.max(0, Math.min(list.length - 1, Math.ceil(list.length * safeP) - 1));
+    return Number(list[idx] || 1);
+  }
+
+  function operationalConfidenceExtraMultiplier(score, sampleCount) {
+    const safeScore = clamp(Number(score || 0), 0, 1);
+    const samples = Number(sampleCount || 0);
+
+    // Com base ampla, desliga o extra operacional para evitar inflação.
+    if (samples >= 20) return 1;
+
+    // Modo operacional: extra aplicado por cima da margem base de confiança.
+    if (safeScore < 0.5) return 1.25;
+    if (safeScore < 0.8) return 1.12;
+    return 1;
+  }
+
   function normalizeAnimals(animals) {
     const empty = root.Animals.emptyAnimals();
 
@@ -2281,6 +2313,7 @@
       factorSum: 0,
       averageFactor: 1,
       maxFactor: 1,
+      factorSamples: [],
       lastOutcome: null,
       lastBattle: null,
       updatedAt: null,
@@ -2301,6 +2334,11 @@
     calibration.factorSum = Number(calibration.factorSum || 0);
     calibration.averageFactor = Number(calibration.averageFactor || 1);
     calibration.maxFactor = Number(calibration.maxFactor || 1);
+    calibration.factorSamples = Array.isArray(calibration.factorSamples)
+      ? calibration.factorSamples
+          .map((value) => Number(value || 0))
+          .filter((value) => Number.isFinite(value) && value >= 1)
+      : [];
     calibration.hasHero = Boolean(hasHero);
 
     if (calibration.lastOutcome === undefined) {
@@ -2441,6 +2479,10 @@
       Number(calibration.maxFactor || 1),
       factor,
     );
+    calibration.factorSamples.push(factor);
+    if (calibration.factorSamples.length > 200) {
+      calibration.factorSamples = calibration.factorSamples.slice(-200);
+    }
     calibration.lastOutcome = outcome;
     calibration.lastBattle = {
       sent,
@@ -2509,8 +2551,23 @@
     }
 
     const averageFactor = Number(calibration.averageFactor || 1);
-    const maxFactor = Number(calibration.maxFactor || 1);
-    const boundedMaxInfluence = 1 + (Math.max(maxFactor, 1) - 1) * 0.9;
+    const sortedFactorSamples = Array.isArray(calibration.factorSamples)
+      ? calibration.factorSamples
+          .map((value) => Number(value || 0))
+          .filter((value) => Number.isFinite(value) && value >= 1)
+          .sort((a, b) => a - b)
+      : [];
+
+    const percentileP90 = percentile(sortedFactorSamples, 0.9);
+    const robustHighFactor = Math.max(averageFactor, percentileP90);
+
+    // Limita quanto o fator alto pode puxar acima da média aprendida.
+    const cappedHighFactor = Math.min(
+      robustHighFactor,
+      Math.max(1.8, averageFactor * 1.65),
+    );
+
+    const boundedMaxInfluence = 1 + (Math.max(cappedHighFactor, 1) - 1) * 0.9;
     const maxWeight = clamp((sampleCount - 3) / 10, 0, 1) * 0.35;
     const blendedFactor =
       averageFactor * (1 - maxWeight) + boundedMaxInfluence * maxWeight;
@@ -2535,8 +2592,29 @@
     }
 
     const confidence = confidenceFromCalibration(calibration);
-    const canUseHardFloor = sampleCount >= 6 && confidence.score >= 0.5;
-    const effectiveFloor = canUseHardFloor ? Number(learnedFloor || 0) : 0;
+    const factorTroops = Math.ceil(theoretical * learnedFactor);
+    const floorCandidate = Number(learnedFloor || 0);
+
+    // Evita "congelar" recomendações em um valor fixo quando o piso aprendido
+    // fica muito acima do cálculo atual para o oásis.
+    const hardFloorLimit = Math.ceil(factorTroops * 1.35);
+
+    const canUseHardFloor =
+      sampleCount >= 6 &&
+      confidence.score >= 0.5 &&
+      floorCandidate > 0 &&
+      floorCandidate <= hardFloorLimit;
+
+    const effectiveFloor = canUseHardFloor ? floorCandidate : 0;
+    const baseTroops = Math.max(factorTroops, Math.ceil(effectiveFloor));
+    const baseSafetyMultiplier = confidenceSafetyMultiplier(confidence.score);
+    const operationalExtraMultiplier = operationalConfidenceExtraMultiplier(
+      confidence.score,
+      sampleCount,
+    );
+    const safetyMultiplier =
+      baseSafetyMultiplier * operationalExtraMultiplier;
+    const troopsWithSafety = Math.ceil(baseTroops * safetyMultiplier);
 
     let source = "Cálculo ajustado pelo aprendizado";
     if (confidence.score >= 0.5) {
@@ -2544,10 +2622,7 @@
     }
 
     return {
-      troops: Math.max(
-        Math.ceil(theoretical * learnedFactor),
-        Math.ceil(effectiveFloor),
-      ),
+      troops: troopsWithSafety,
       factor: learnedFactor,
       samples: Number(calibration.samples || 0),
       source,
@@ -2557,6 +2632,7 @@
       basedOn: Number(calibration.samples || 0),
       learnedFloor: Math.ceil(Number(learnedFloor || 0)),
       learnedFloorApplied: Boolean(canUseHardFloor && learnedFloor > 0),
+      confidenceSafetyMultiplier: safetyMultiplier,
     };
   }
 
@@ -3055,6 +3131,110 @@
     }
 
     /**
+     * @returns {string}
+     */
+    suggestionCacheKey() {
+      const host = String(root.Server.getContext().host || "default");
+      return "nytrina:lastSuggestion:" + host;
+    }
+
+    /**
+     * @returns {Array<any>}
+     */
+    loadSuggestionCache() {
+      try {
+        const raw = global.localStorage.getItem(this.suggestionCacheKey());
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed?.items)) return parsed.items;
+        if (parsed && typeof parsed === "object") return [parsed];
+        return [];
+      } catch (error) {
+        console.warn("NytrinA: não foi possível ler cache de sugestão", error);
+        return [];
+      }
+    }
+
+    /**
+     * @param {any} payload
+     * @returns {void}
+     */
+    saveSuggestionCache(payload) {
+      try {
+        const currentList = this.loadSuggestionCache();
+        const next = {
+          ...(payload || {}),
+          coord: String(payload?.coord || "-").trim(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        const sameKey = (item) => {
+          return (
+            String(item?.coord || "") === String(next.coord || "") &&
+            String(item?.troopType || "") === String(next.troopType || "") &&
+            String(item?.troopTribe || "") === String(next.troopTribe || "")
+          );
+        };
+
+        const merged = [next, ...currentList.filter((item) => !sameKey(item))].slice(0, 120);
+
+        global.localStorage.setItem(
+          this.suggestionCacheKey(),
+          JSON.stringify({ items: merged }),
+        );
+      } catch (error) {
+        console.warn("NytrinA: não foi possível salvar cache de sugestão", error);
+      }
+    }
+
+    /**
+     * @returns {string|null}
+     */
+    readRallyCoordFromForm() {
+      const xInput = global.document.querySelector(
+        'input[name="x"], input#x, input[data-name="x"]',
+      );
+      const yInput = global.document.querySelector(
+        'input[name="y"], input#y, input[data-name="y"]',
+      );
+
+      const x = String(xInput?.value || "").trim();
+      const y = String(yInput?.value || "").trim();
+
+      if (!/^[+-]?\d+$/.test(x) || !/^[+-]?\d+$/.test(y)) return null;
+      return String(Number(x)) + "|" + String(Number(y));
+    }
+
+    /**
+     * @param {Array<any>} cachedSuggestions
+     * @param {string} selectedTribe
+     * @param {string} selectedTroopType
+     * @returns {any|null}
+     */
+    findBestCachedSuggestion(cachedSuggestions, selectedTribe, selectedTroopType) {
+      const list = Array.isArray(cachedSuggestions) ? cachedSuggestions : [];
+      if (!list.length) return null;
+
+      const sameProfile = list.filter(
+        (item) =>
+          String(item?.troopType || "") === String(selectedTroopType || "") &&
+          String(item?.troopTribe || "") === String(selectedTribe || ""),
+      );
+
+      if (!sameProfile.length) return null;
+
+      const rallyCoord = this.readRallyCoordFromForm();
+      if (!rallyCoord) return null;
+
+      const exact = sameProfile.find(
+        (item) => String(item?.coord || "") === String(rallyCoord),
+      );
+
+      return exact || null;
+    }
+
+    /**
      * @param {number} serverSpeed
      * @param {string} selected
      * @returns {string}
@@ -3253,9 +3433,11 @@
       let suggestionStars = "☆☆☆☆☆";
       let suggestionBasedOn = 0;
       let learnedFactorText = "x1.00";
+      let confidenceSafetyText = "-";
       let withHeroSuggestion = "-";
       let withoutHeroSuggestion = "-";
       let usedLearning = false;
+      const cachedSuggestions = this.loadSuggestionCache();
 
       const formatScannerXph = (value) => {
         const number = Number(value || 0);
@@ -3331,6 +3513,23 @@
           " | Sem: x" +
           noHeroFactor.toFixed(2);
 
+        const heroSafetyPct = Math.max(
+          0,
+          Math.round(
+            (Number(calibratedWithHero?.confidenceSafetyMultiplier || 1) - 1) * 100,
+          ),
+        );
+        const noHeroSafetyPct = Math.max(
+          0,
+          Math.round(
+            (Number(calibratedWithoutHero?.confidenceSafetyMultiplier || 1) - 1) *
+              100,
+          ),
+        );
+
+        confidenceSafetyText =
+          "Hero: +" + heroSafetyPct + "% | Sem: +" + noHeroSafetyPct + "%";
+
         const heroStars = Number(calibratedWithHero?.stars || 1);
         const noHeroStars = Number(calibratedWithoutHero?.stars || 1);
         const avgStars = Math.max(1, Math.round((heroStars + noHeroStars) / 2));
@@ -3353,22 +3552,98 @@
         }
       }
 
+      if (
+        parsed?.coord &&
+        (withHeroSuggestion !== "-" || withoutHeroSuggestion !== "-")
+      ) {
+        this.saveSuggestionCache({
+          troopType: selectedTroopType,
+          troopTribe: selectedTribe,
+          coord: parsed?.coord || "-",
+          distance: parsed?.distance || "-",
+          xp: parsed?.xp || 0,
+          xph: parsed?.xph || 0,
+          time: parsed?.time || "-",
+          suggestionText,
+          suggestionSource,
+          suggestionConfidence,
+          suggestionStars,
+          suggestionBasedOn,
+          learnedFactorText,
+          confidenceSafetyText,
+          withHeroSuggestion,
+          withoutHeroSuggestion,
+        });
+      }
+
+      const cachedSuggestion = this.findBestCachedSuggestion(
+        cachedSuggestions,
+        selectedTribe,
+        selectedTroopType,
+      );
+      const sameProfileCache = Boolean(cachedSuggestion);
+
+      if (!parsed && sameProfileCache) {
+        suggestionText = String(cachedSuggestion.suggestionText || suggestionText);
+        suggestionSource =
+          String(cachedSuggestion.suggestionSource || "Cálculo salvo") +
+          " (última leitura)";
+        suggestionConfidence = String(
+          cachedSuggestion.suggestionConfidence || suggestionConfidence,
+        );
+        suggestionStars = String(cachedSuggestion.suggestionStars || suggestionStars);
+        suggestionBasedOn = Number(cachedSuggestion.suggestionBasedOn || suggestionBasedOn || 0);
+        learnedFactorText = String(cachedSuggestion.learnedFactorText || learnedFactorText);
+        confidenceSafetyText = String(
+          cachedSuggestion.confidenceSafetyText || confidenceSafetyText,
+        );
+        withHeroSuggestion = String(cachedSuggestion.withHeroSuggestion || withHeroSuggestion);
+        withoutHeroSuggestion = String(cachedSuggestion.withoutHeroSuggestion || withoutHeroSuggestion);
+      }
+
+      const isMapPage = /karte\.php/i.test(String(global.location.pathname || ""));
+
+      if (!parsed && !sameProfileCache && isMapPage) {
+        suggestionText = "Oásis vazio: envie o que quiser.";
+        withHeroSuggestion = "Livre";
+        withoutHeroSuggestion = "Livre";
+        suggestionSource = "Sem animais detectados";
+        suggestionConfidence = "-";
+        suggestionStars = "☆☆☆☆☆";
+        suggestionBasedOn = 0;
+        learnedFactorText = "x1.00";
+        confidenceSafetyText = "-";
+      }
+
+      const displayCoord =
+        parsed?.coord || (sameProfileCache ? cachedSuggestion?.coord : null) || "-";
+      const displayDistance =
+        parsed?.distance || (sameProfileCache ? cachedSuggestion?.distance : null) || "-";
+      const displayXp = Number(
+        parsed?.xp || (sameProfileCache ? cachedSuggestion?.xp : 0) || 0,
+      );
+      const displayXph = Number(
+        parsed?.xph || (sameProfileCache ? cachedSuggestion?.xph : 0) || 0,
+      );
+      const displayTime =
+        parsed?.time || (sameProfileCache ? cachedSuggestion?.time : null) || "-";
+
       node.innerHTML = [
         '<div class="grid">',
         '<div class="card"><span>Coord</span><b>' +
-          (parsed?.coord || "-") +
+          displayCoord +
           "</b></div>",
         '<div class="card"><span>Distancia</span><b>' +
-          (parsed?.distance || "-") +
+          displayDistance +
           "</b></div>",
         '<div class="card"><span>XP</span><b>' +
-          (parsed?.xp || 0) +
+          displayXp +
           "</b></div>",
         '<div class="card"><span>XP/h</span><b>' +
-          formatScannerXph(parsed?.xph || 0) +
+          formatScannerXph(displayXph) +
           "</b></div>",
         '<div class="card"><span>Tempo</span><b>' +
-          (parsed?.time || "-") +
+          displayTime +
           "</b></div>",
         '<div class="card"><span>Velocidade</span><b>' +
           Number(settings.effectiveSpeed || 14) +
@@ -3401,6 +3676,9 @@
           "</b></div>",
         '<div class="card"><span>Fator aprendido</span><b>' +
           learnedFactorText +
+          "</b></div>",
+        '<div class="card"><span>Margem confiança</span><b>' +
+          confidenceSafetyText +
           "</b></div>",
         '<div class="card"><span>Baseado em</span><b>' +
           suggestionBasedOn +
