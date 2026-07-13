@@ -634,16 +634,40 @@
       };
 
       if (learnedAdvice?.ok) {
-        usedLearning = true;
         const learned = Math.round(Number(learnedAdvice.suggestedTroops || 0));
+        const fallbackWithHero = Math.round(
+          Number(
+            calibratedWithHero?.troops || formulaAdvice?.withHero?.safeTroops || 0,
+          ),
+        );
+        const fallbackWithoutHero = Math.round(
+          Number(
+            calibratedWithoutHero?.troops || formulaAdvice?.withoutHero?.safeTroops || 0,
+          ),
+        );
+        const exactSamples = Number(knowledge?.samples || 0);
+        const exactOutcome = String(
+          knowledge?.lastOutcome || knowledge?.lastBattle?.outcome || "",
+        );
+        const canTrustExactKnowledge =
+          exactSamples >= 2 || exactOutcome === "perfect";
 
-        withHeroSuggestion = String(learned);
-        withoutHeroSuggestion = String(learned);
+        const finalWithHero = Math.max(learned, fallbackWithHero || 0);
+        const finalWithoutHero = Math.max(learned, fallbackWithoutHero || 0);
+
+        usedLearning = true;
+        withHeroSuggestion = String(finalWithHero || learned);
+        withoutHeroSuggestion = String(finalWithoutHero || learned);
         suggestionText =
-          "Com herói: " + learned + " | Sem herói: " + learned;
-        suggestionSource = "IA Aprendida";
+          "Com herói: " +
+          withHeroSuggestion +
+          " | Sem herói: " +
+          withoutHeroSuggestion;
+        suggestionSource = canTrustExactKnowledge
+          ? "IA Aprendida"
+          : "Cálculo ajustado pelo aprendizado";
 
-        suggestionBasedOn = Number(knowledge?.samples || 0);
+        suggestionBasedOn = exactSamples;
         suggestionConfidence =
           suggestionBasedOn >= 10
             ? "Alta"
@@ -656,6 +680,10 @@
           Math.min(5, Math.round((Math.min(suggestionBasedOn, 15) / 15) * 4 + 1)),
         );
         suggestionStars = "★".repeat(stars) + "☆".repeat(5 - stars);
+
+        if (!canTrustExactKnowledge) {
+          suggestionConfidence += " | memória exata ainda fraca";
+        }
       } else if (formulaAdvice?.ok) {
         const theoreticalWithHero = Number(
           formulaAdvice.withHero.safeTroops || 0,
@@ -828,7 +856,7 @@
         '<div class="card"><span>XP/h</span><b>' +
           formatScannerXph(displayXph) +
           "</b></div>",
-        '<div class="card"><span>Tempo</span><b>' +
+        '<div class="card"><span>Tempo ida</span><b>' +
           displayTime +
           "</b></div>",
         '<div class="card"><span>Velocidade</span><b>' +

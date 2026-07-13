@@ -89,6 +89,85 @@
     return 1;
   }
 
+  function troopUnitTotalCost(tribe, troopType) {
+    const tribeCosts = root.Troops?.costs?.[tribe] || {};
+    const match = Object.values(tribeCosts).find(
+      (unit) => String(unit?.key || "") === String(troopType || ""),
+    );
+
+    if (!match) return 0;
+
+    return (
+      Number(match.wood || 0) +
+      Number(match.clay || 0) +
+      Number(match.iron || 0) +
+      Number(match.crop || 0)
+    );
+  }
+
+  function targetCasualtyRateForTroop(unitCost) {
+    const safeUnitCost = Number(unitCost || 0);
+
+    if (safeUnitCost >= 1800) return 0.03;
+    if (safeUnitCost >= 1200) return 0.04;
+    if (safeUnitCost >= 700) return 0.055;
+    return 0.07;
+  }
+
+  function preservationMultiplier({
+    tribe,
+    troopType,
+    casualtyRate,
+    confidenceScore,
+    sampleCount,
+  }) {
+    const safeCasualtyRate = clamp(Number(casualtyRate || 0), 0, 1);
+
+    if (safeCasualtyRate <= 0) return 1;
+
+    const unitCost = troopUnitTotalCost(tribe, troopType);
+    const targetRate = targetCasualtyRateForTroop(unitCost);
+
+    if (safeCasualtyRate <= targetRate) return 1;
+
+    const ratio = safeCasualtyRate / Math.max(targetRate, 0.01);
+    const confidenceDampener = Number(sampleCount || 0) >= 20 && Number(confidenceScore || 0) >= 0.8
+      ? 0.78
+      : Number(sampleCount || 0) >= 10 && Number(confidenceScore || 0) >= 0.5
+        ? 0.86
+        : 0.92;
+
+    return Math.max(1, Math.pow(ratio, confidenceDampener));
+  }
+
+  function preservationMultiplierCap(theoreticalTroops) {
+    const troops = Number(theoreticalTroops || 0);
+
+    if (troops <= 40) return 1.35;
+    if (troops <= 70) return 1.6;
+    if (troops <= 110) return 1.95;
+    if (troops <= 170) return 2.35;
+    return 2.8;
+  }
+
+  function nonClearSafetyMultiplier(killRate, casualtyRate) {
+    const safeKillRate = clamp(Number(killRate || 0), 0, 1);
+    const safeCasualtyRate = clamp(Number(casualtyRate || 0), 0, 1);
+
+    let baseMultiplier = 1.15;
+
+    if (safeKillRate >= 0.95) {
+      baseMultiplier = 1.05;
+    } else if (safeKillRate >= 0.85) {
+      baseMultiplier = 1.08;
+    } else if (safeKillRate >= 0.7) {
+      baseMultiplier = 1.12;
+    }
+
+    const casualtyMultiplier = 1 + safeCasualtyRate * 1.35;
+    return Math.max(baseMultiplier, casualtyMultiplier);
+  }
+
   function normalizeAnimals(animals) {
     const empty = root.Animals.emptyAnimals();
 
@@ -259,17 +338,11 @@
       // Estimativa proporcional para atingir 100% de eliminação.
       estimatedClear = Math.ceil(sent / killRate);
 
-      // Quanto menor a taxa de eliminação, maior a margem necessária.
-      let safetyMultiplier = 1.15;
-
-      if (killRate >= 0.95) {
-        safetyMultiplier = 1.05;
-      } else if (killRate >= 0.85) {
-        safetyMultiplier = 1.08;
-      } else if (killRate >= 0.7) {
-        safetyMultiplier = 1.12;
-      }
-
+      // Considera tanto taxa de abate quanto o peso real das baixas.
+      const safetyMultiplier = nonClearSafetyMultiplier(
+        killRate,
+        troopCasualtyRate,
+      );
       estimatedSafe = Math.ceil(estimatedClear * safetyMultiplier);
     } else if (outcome === "cleared_with_losses" && sent > 0) {
       estimatedClear = sent;
@@ -619,18 +692,7 @@
     if (!cleared) {
       const estimatedClear = sent / killRate;
 
-      let margin = 1.15;
-
-      if (killRate >= 0.95) {
-        margin = 1.05;
-      } else if (killRate >= 0.85) {
-        margin = 1.1;
-      } else if (killRate >= 0.7) {
-        margin = 1.15;
-      } else {
-        margin = 1.25;
-      }
-
+      const margin = nonClearSafetyMultiplier(killRate, casualtyRate);
       requiredSafe = estimatedClear * margin;
     } else {
       if (casualtyRate > 0) {
@@ -815,8 +877,21 @@
       confidence.score,
       sampleCount,
     );
+    const rawPreservationSafetyMultiplier = preservationMultiplier({
+      tribe,
+      troopType,
+      casualtyRate: Number(calibration.avgCasualtyRate || 0),
+      confidenceScore: confidence.score,
+      sampleCount,
+    });
+    const preservationSafetyMultiplier = Math.min(
+      rawPreservationSafetyMultiplier,
+      preservationMultiplierCap(theoretical),
+    );
     const safetyMultiplier =
-      baseSafetyMultiplier * operationalExtraMultiplier;
+      baseSafetyMultiplier *
+      operationalExtraMultiplier *
+      preservationSafetyMultiplier;
     const troopsWithSafety = Math.ceil(baseTroops * safetyMultiplier);
 
     let source = "Cálculo ajustado pelo aprendizado";
@@ -836,6 +911,7 @@
       learnedFloor: Math.ceil(Number(learnedFloor || 0)),
       learnedFloorApplied: Boolean(canUseHardFloor && learnedFloor > 0),
       confidenceSafetyMultiplier: safetyMultiplier,
+      preservationSafetyMultiplier,
     };
   }
 

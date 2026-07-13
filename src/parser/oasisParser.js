@@ -153,20 +153,28 @@
    * @param {number} distance
    * @param {number} speed
    * @param {boolean} smallMap
-   * @returns {{travelSeconds:number,xph:number,time:string}}
+   * @returns {{travelSeconds:number,cycleSeconds:number,xph:number,time:string,cycleTime:string}}
    */
   function computeTime(distance, speed, smallMap) {
     if (!distance || !speed) {
-      return { travelSeconds: 0, xph: 0, time: '-' };
+      return {
+        travelSeconds: 0,
+        cycleSeconds: 0,
+        xph: 0,
+        time: '-',
+        cycleTime: '-'
+      };
     }
 
     const oneWay = (distance / speed) * 3600;
     const returnTime = smallMap ? oneWay / 2 : oneWay;
-    const travelSeconds = oneWay + returnTime;
+    const cycleSeconds = oneWay + returnTime;
     return {
-      travelSeconds,
+      travelSeconds: oneWay,
+      cycleSeconds,
       xph: 0,
-      time: utils.secondsToClock(travelSeconds)
+      time: utils.secondsToClock(oneWay),
+      cycleTime: utils.secondsToClock(cycleSeconds)
     };
   }
 
@@ -189,7 +197,7 @@
     const xp = animalsData.calcXp(animals);
 
     const timeInfo = computeTime(distance, options.speed, options.smallMap);
-    const xph = timeInfo.travelSeconds ? xp / (timeInfo.travelSeconds / 3600) : 0;
+    const xph = timeInfo.cycleSeconds ? xp / (timeInfo.cycleSeconds / 3600) : 0;
 
     return {
       server: server.getContext().key,
