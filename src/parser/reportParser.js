@@ -118,6 +118,46 @@
     return result;
   }
 
+  function inferTroopTypeFromAttackerData(attackerData, tribe) {
+    const selectedTribe = String(tribe || "romans");
+    const troopClassMap = {
+      romans: {
+        u1: "legionnaire",
+        u2: "praetorian",
+        u3: "imperian",
+        u4: "equites_legati",
+        u5: "equites_imperatoris",
+        u6: "equites_caesaris",
+      },
+      teutons: {
+        u1: "clubman",
+        u2: "spearman",
+        u3: "axeman",
+        u4: "scout",
+        u5: "paladin",
+        u6: "teutonic_knight",
+      },
+      gauls: {
+        u1: "phalanx",
+        u2: "swordsman",
+        u3: "pathfinder",
+        u4: "theutates_thunder",
+        u5: "druidrider",
+        u6: "haeduan",
+      },
+    };
+
+    const classMap = troopClassMap[selectedTribe] || troopClassMap.romans;
+    const unitEntries = Object.entries(attackerData?.total || {})
+      .filter(([key, value]) => key !== "hero" && Number(value || 0) > 0)
+      .map(([key]) => key);
+
+    if (unitEntries.length !== 1) return null;
+
+    const troopClass = unitEntries[0];
+    return classMap[troopClass] || null;
+  }
+
   function parseNatureTableExact() {
     const result = {
       total: animalsData.emptyAnimals(),
@@ -367,7 +407,8 @@
     const finalLoss = lossFromReport > 0 ? lossFromReport : loss.total;
     const profit = totalResources - finalLoss;
 
-    const selectedTroopType = options.troopType || null;
+    const selectedTroopType =
+      options.troopType || inferTroopTypeFromAttackerData(attackerData, options.tribe) || null;
 
     const TROOP_CLASS = {
       romans: {

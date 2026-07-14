@@ -843,7 +843,32 @@
         parsed?.time || (sameProfileCache ? cachedSuggestion?.time : null) || "-";
 
       node.innerHTML = [
-        '<div class="grid">',
+        '<div class="scanner-controls">',
+        '<div class="stack">',
+        "<label>Tipo de tropa (define tempo)</label>",
+        '<select id="nytrina-scanner-troop">' + groupedOptions + "</select>",
+        "<label>Velocidade personalizada</label>",
+        '<input id="nytrina-scanner-custom-speed" type="number" step="0.1" value="' +
+          Number(settings.customSpeed || 14) +
+          '">',
+        '<label class="check-row"><input id="nytrina-scanner-small-map" type="checkbox"' +
+          (settings.smallMap ? ' checked="checked"' : "") +
+          ">Mapa pequeno na volta</label>",
+        "</div>",
+        '<div class="actions scanner-actions">',
+        '<button id="nytrina-import-report">Importar relatorio</button>',
+        '<button id="nytrina-scan-now">Escanear agora</button>',
+        '<button id="nytrina-reset-current-calibration"' +
+          (canResetCalibration ? "" : ' disabled="disabled"') +
+          '>Reset calibração atual</button>',
+        '<span class="hint">' +
+          (usedLearning
+            ? "Sugestão já usa aprendizado contínuo."
+            : "Sem histórico suficiente. Importe relatórios para treinar a IA.") +
+          "</span>",
+        "</div>",
+        "</div>",
+        '<div class="grid scanner-summary">',
         '<div class="card"><span>Coord</span><b>' +
           displayCoord +
           "</b></div>",
@@ -877,14 +902,12 @@
         '<div class="card"><span>Sem herói</span><b>' +
           withoutHeroSuggestion +
           "</b></div>",
-
         '<div class="card"><span>Fonte</span><b>' +
           suggestionSource +
           "</b></div>",
         '<div class="card"><span>Avaliação</span><b>' +
           suggestionStars +
           "</b></div>",
-
         '<div class="card"><span>Confiança</span><b>' +
           suggestionConfidence +
           "</b></div>",
@@ -897,29 +920,6 @@
         '<div class="card"><span>Baseado em</span><b>' +
           suggestionBasedOn +
           " batalha(s) semelhantes</b></div>",
-        "</div>",
-        '<div class="stack">',
-        "<label>Tipo de tropa (define tempo)</label>",
-        '<select id="nytrina-scanner-troop">' + groupedOptions + "</select>",
-        "<label>Velocidade personalizada</label>",
-        '<input id="nytrina-scanner-custom-speed" type="number" step="0.1" value="' +
-          Number(settings.customSpeed || 14) +
-          '">',
-        '<label class="check-row"><input id="nytrina-scanner-small-map" type="checkbox"' +
-          (settings.smallMap ? ' checked="checked"' : "") +
-          ">Mapa pequeno na volta</label>",
-        "</div>",
-        '<div class="actions">',
-        '<button id="nytrina-scan-now">Escanear agora</button>',
-        '<button id="nytrina-import-report">Importar relatorio</button>',
-        '<button id="nytrina-reset-current-calibration"' +
-          (canResetCalibration ? "" : ' disabled="disabled"') +
-          '>Reset calibração atual</button>',
-        '<span class="hint">' +
-          (usedLearning
-            ? "Sugestão já usa aprendizado contínuo."
-            : "Sem histórico suficiente. Importe relatórios para treinar a IA.") +
-          "</span>",
         "</div>",
       ].join("");
 
@@ -1027,7 +1027,6 @@
 
           const report = root.ReportParser.parse({
             tribe: settings.troopTribe || "romans",
-            troopType: settings.troopType || null,
           });
 
           if (!report) {

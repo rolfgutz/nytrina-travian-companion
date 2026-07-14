@@ -72,6 +72,37 @@
   gap: 8px;
 }
 
+#nytrina-overlay .scanner-controls {
+  background: #342114;
+  border: 1px solid #8b5a22;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+  box-shadow: inset 0 0 0 1px rgba(255, 223, 168, 0.06);
+}
+
+#nytrina-overlay .scanner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+#nytrina-overlay .scanner-actions button {
+  flex: 1 1 150px;
+}
+
+#nytrina-overlay .scanner-actions .hint {
+  flex: 1 1 100%;
+  color: #f2d7aa;
+  font-size: 12px;
+  padding-top: 2px;
+}
+
+#nytrina-overlay .scanner-summary {
+  margin-top: 2px;
+}
+
 #nytrina-overlay .card {
   background: #28190d;
   border: 1px solid #6e4518;
