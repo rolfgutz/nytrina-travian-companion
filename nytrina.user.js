@@ -1182,43 +1182,81 @@
   }
 
   function inferTroopTypeFromAttackerData(attackerData, tribe) {
-    const selectedTribe = String(tribe || "romans");
-    const troopClassMap = {
+    const info = inferUnitInfoFromAttackerData(attackerData, tribe);
+    return info ? info.troopType : null;
+  }
+
+  function getTroopClassDefinitions() {
+    return {
       romans: {
-        u1: "legionnaire",
-        u2: "praetorian",
-        u3: "imperian",
-        u4: "equites_legati",
-        u5: "equites_imperatoris",
-        u6: "equites_caesaris",
+        legionnaire: "u1",
+        praetorian: "u2",
+        imperian: "u3",
+        equites_legati: "u4",
+        equites_imperatoris: "u5",
+        equites_caesaris: "u6",
       },
       teutons: {
-        u1: "clubman",
-        u2: "spearman",
-        u3: "axeman",
-        u4: "scout",
-        u5: "paladin",
-        u6: "teutonic_knight",
+        clubman: "u11",
+        spearman: "u12",
+        axeman: "u13",
+        scout: "u14",
+        paladin: "u15",
+        teutonic_knight: "u16",
       },
       gauls: {
-        u1: "phalanx",
-        u2: "swordsman",
-        u3: "pathfinder",
-        u4: "theutates_thunder",
-        u5: "druidrider",
-        u6: "haeduan",
+        phalanx: "u21",
+        swordsman: "u22",
+        pathfinder: "u23",
+        theutates_thunder: "u24",
+        druidrider: "u25",
+        haeduan: "u26",
       },
     };
+  }
 
-    const classMap = troopClassMap[selectedTribe] || troopClassMap.romans;
-    const unitEntries = Object.entries(attackerData?.total || {})
+  function getClassInfoIndex() {
+    const defs = getTroopClassDefinitions();
+    const index = {};
+
+    Object.entries(defs).forEach(([tribeName, units]) => {
+      Object.entries(units).forEach(([troopType, troopClass]) => {
+        index[troopClass] = {
+          tribe: tribeName,
+          troopType,
+          troopClass,
+        };
+      });
+    });
+
+    return index;
+  }
+
+  function inferUnitInfoFromAttackerData(attackerData, fallbackTribe) {
+    const totals = attackerData?.total || {};
+    const candidates = Object.entries(totals)
       .filter(([key, value]) => key !== "hero" && Number(value || 0) > 0)
       .map(([key]) => key);
 
-    if (unitEntries.length !== 1) return null;
+    if (candidates.length !== 1) return null;
 
-    const troopClass = unitEntries[0];
-    return classMap[troopClass] || null;
+    const troopClass = String(candidates[0] || "");
+    const classInfo = getClassInfoIndex()[troopClass];
+
+    if (classInfo) return classInfo;
+
+    const selectedTribe = String(fallbackTribe || "romans");
+    const defs = getTroopClassDefinitions();
+    const byTribe = defs[selectedTribe] || defs.romans;
+    const byClass = Object.entries(byTribe).find(([, cls]) => cls === troopClass);
+
+    if (!byClass) return null;
+
+    return {
+      tribe: selectedTribe,
+      troopType: byClass[0],
+      troopClass,
+    };
   }
 
   function parseNatureTableExact() {
@@ -1456,10 +1494,14 @@
       xp = animalsData.calcXp(animalsKilled);
     }
 
-    const loss = troops.calcLossCost(
-      options.tribe || "romans",
-      attackerData.lost || {},
+    const inferredUnitInfo = inferUnitInfoFromAttackerData(
+      attackerData,
+      options.tribe,
     );
+    const resolvedTribe =
+      inferredUnitInfo?.tribe || String(options.tribe || "romans");
+
+    const loss = troops.calcLossCost(resolvedTribe, attackerData.lost || {});
 
     const lossFromReport = parseLossFromStatisticsTable();
 
@@ -1470,40 +1512,21 @@
     const finalLoss = lossFromReport > 0 ? lossFromReport : loss.total;
     const profit = totalResources - finalLoss;
 
+    const preferredTroopType = String(options.troopType || "").trim();
+    const canUsePreferredTroopType =
+      preferredTroopType &&
+      preferredTroopType !== "hero" &&
+      preferredTroopType !== "custom";
+
     const selectedTroopType =
-      options.troopType || inferTroopTypeFromAttackerData(attackerData, options.tribe) || null;
+      inferredUnitInfo?.troopType ||
+      (canUsePreferredTroopType ? preferredTroopType : null);
 
-    const TROOP_CLASS = {
-      romans: {
-        legionnaire: "u1",
-        praetorian: "u2",
-        imperian: "u3",
-        equites_legati: "u4",
-        equites_imperatoris: "u5",
-        equites_caesaris: "u6",
-      },
-
-      teutons: {
-        clubman: "u11",
-        spearman: "u12",
-        axeman: "u13",
-        scout: "u14",
-        paladin: "u15",
-        teutonic_knight: "u16",
-      },
-
-      gauls: {
-        phalanx: "u21",
-        swordsman: "u22",
-        pathfinder: "u23",
-        theutates_thunder: "u24",
-        druidrider: "u25",
-        haeduan: "u26",
-      },
-    };
-
+    const troopClassDefs = getTroopClassDefinitions();
     const selectedTroopClass =
-      TROOP_CLASS[options.tribe || "romans"]?.[selectedTroopType] || null;
+      inferredUnitInfo?.troopClass ||
+      troopClassDefs[resolvedTribe]?.[selectedTroopType] ||
+      null;
 
     const troopsSentCount = selectedTroopClass
       ? Number((attackerData.total || {})[selectedTroopClass] || 0)
@@ -1563,7 +1586,7 @@
       url: global.location.href,
       reportId: parseReportIdFromUrl(),
       server: server.getContext().key,
-      tribe: options.tribe || "romans",
+      tribe: resolvedTribe,
       date: new Date().toISOString(),
       coord: parseReportCoord(),
       animalsInitial,
@@ -2023,6 +2046,165 @@
     };
   }
 
+  function troopClassMapByTribe(tribe) {
+    const selected = String(tribe || "romans");
+
+    const map = {
+      romans: {
+        legionnaire: "u1",
+        praetorian: "u2",
+        imperian: "u3",
+        equites_legati: "u4",
+        equites_imperatoris: "u5",
+        equites_caesaris: "u6",
+      },
+      teutons: {
+        clubman: "u11",
+        spearman: "u12",
+        axeman: "u13",
+        scout: "u14",
+        paladin: "u15",
+        teutonic_knight: "u16",
+      },
+      gauls: {
+        phalanx: "u21",
+        swordsman: "u22",
+        pathfinder: "u23",
+        theutates_thunder: "u24",
+        druidrider: "u25",
+        haeduan: "u26",
+      },
+    };
+
+    return map[selected] || map.romans;
+  }
+
+  function allTroopClassMaps() {
+    return {
+      romans: troopClassMapByTribe("romans"),
+      teutons: troopClassMapByTribe("teutons"),
+      gauls: troopClassMapByTribe("gauls"),
+    };
+  }
+
+  function classInfoByClassToken(troopClass) {
+    const token = String(troopClass || "");
+    const allMaps = allTroopClassMaps();
+
+    for (const [tribeName, map] of Object.entries(allMaps)) {
+      const match = Object.entries(map).find(([, cls]) => String(cls) === token);
+      if (match) {
+        return {
+          tribe: tribeName,
+          troopType: match[0],
+          troopClass: token,
+        };
+      }
+    }
+
+    return null;
+  }
+
+  function inferTroopTypeFromTroopsSent(tribe, troopsSent) {
+    const sent = troopsSent && typeof troopsSent === "object" ? troopsSent : {};
+    const classMap = troopClassMapByTribe(tribe);
+
+    const classToType = Object.entries(classMap).reduce((acc, [type, cls]) => {
+      acc[cls] = type;
+      return acc;
+    }, {});
+
+    const candidates = Object.entries(sent)
+      .filter(([key, value]) => key !== "hero" && Number(value || 0) > 0)
+      .map(([key]) => key);
+
+    if (candidates.length !== 1) return null;
+
+    return classToType[candidates[0]] || null;
+  }
+
+  function inferTroopInfoFromTroopsSentAnyTribe(troopsSent, preferredTribe) {
+    const sent = troopsSent && typeof troopsSent === "object" ? troopsSent : {};
+    const candidates = Object.entries(sent)
+      .filter(([key, value]) => key !== "hero" && Number(value || 0) > 0)
+      .map(([key]) => key);
+
+    if (candidates.length !== 1) return null;
+
+    const troopClass = String(candidates[0] || "");
+    const byClass = classInfoByClassToken(troopClass);
+    if (byClass) return byClass;
+
+    const tribe = String(preferredTribe || "romans");
+    const classMap = troopClassMapByTribe(tribe);
+    const byTribe = Object.entries(classMap).find(
+      ([, cls]) => String(cls) === troopClass,
+    );
+
+    if (!byTribe) return null;
+
+    return {
+      troopClass,
+      tribe,
+      troopType: byTribe[0],
+    };
+  }
+
+  function resolveTroopTypeAndSent(report) {
+    let tribe = report?.tribe || "romans";
+    let classMap = troopClassMapByTribe(tribe);
+    const troopsSent =
+      report?.troopsSent && typeof report.troopsSent === "object"
+        ? report.troopsSent
+        : {};
+
+    let troopType = String(report?.troopType || "").trim() || null;
+
+    if (!troopType && report?.troopClass) {
+      const classInfo = classInfoByClassToken(report.troopClass);
+      if (classInfo?.troopType) {
+        tribe = classInfo.tribe;
+        classMap = troopClassMapByTribe(tribe);
+        troopType = classInfo.troopType;
+      } else {
+        const byClass = Object.entries(classMap).find(
+          ([, cls]) => String(cls) === String(report.troopClass),
+        );
+        troopType = byClass ? byClass[0] : null;
+      }
+    }
+
+    if (!troopType) {
+      const anyInfo = inferTroopInfoFromTroopsSentAnyTribe(troopsSent, tribe);
+      if (anyInfo?.troopType) {
+        tribe = anyInfo.tribe;
+        classMap = troopClassMapByTribe(tribe);
+        troopType = anyInfo.troopType;
+      } else {
+        troopType = inferTroopTypeFromTroopsSent(tribe, troopsSent);
+      }
+    }
+
+    let sent = Number(report?.troopsSentCount || 0);
+
+    if (sent <= 0 && troopType) {
+      const troopClass = classMap[troopType] || null;
+      if (troopClass) {
+        sent = Number(troopsSent[troopClass] || 0);
+      }
+    }
+
+    if (sent <= 0 && report?.troopClass) {
+      sent = Number(troopsSent[report.troopClass] || 0);
+    }
+
+    return {
+      tribe,
+      troopType,
+      sent,
+    };
+  }
+
   function makeSignature(xp, animals) {
     const a = normalizeAnimals(animals);
 
@@ -2132,9 +2314,11 @@
 
     console.log(report);
 
-    const tribe = report.tribe || "romans";
-    const troopType = report.troopType || null;
-    const sent = Number(report.troopsSentCount || 0);
+    const defaultTribe = report.tribe || "romans";
+    const resolved = resolveTroopTypeAndSent(report);
+    const tribe = resolved.tribe || defaultTribe;
+    const troopType = resolved.troopType;
+    const sent = Number(resolved.sent || 0);
     const xp = Number(report.xp || 0);
     const animals = report.animalsInitial || report.animalsKilled || {};
 
@@ -3169,6 +3353,61 @@
     }
 
     /**
+     * @returns {Promise<void>}
+     */
+    async clearLearningData() {
+      const stats = await this.storage.getAll(root.Constants.STORES.STATISTICS);
+      const learningRows = stats.filter((row) => {
+        const id = String(row?.id || "");
+        return (
+          id.startsWith("battleKnowledge:") ||
+          id.startsWith("battleCalibration:")
+        );
+      });
+
+      for (const row of learningRows) {
+        await this.storage.delete(root.Constants.STORES.STATISTICS, row.id);
+      }
+    }
+
+    /**
+     * @returns {Promise<{learned:number,skipped:number}>}
+     */
+    async rebuildLearningFromReports() {
+      const reports = await this.storage.getAll(root.Constants.STORES.REPORTS);
+      const settings = this.getSettings();
+      const ordered = reports.slice().sort((a, b) => {
+        const left = new Date(a.date || a.updatedAt || 0).getTime();
+        const right = new Date(b.date || b.updatedAt || 0).getTime();
+        return left - right;
+      });
+
+      let learned = 0;
+      let skipped = 0;
+
+      for (const report of ordered) {
+        const result = await root.BattleKnowledge.learnFromReport({
+          storage: this.storage,
+          report: {
+            ...report,
+            tribe: report?.tribe || settings.troopTribe || "romans",
+          },
+        });
+
+        if (result) {
+          learned += 1;
+        } else {
+          skipped += 1;
+        }
+      }
+
+      return {
+        learned,
+        skipped,
+      };
+    }
+
+    /**
      * @returns {Array<{value:string,label:string}>}
      */
     tribeOptions() {
@@ -3980,20 +4219,27 @@
 
           console.log("ANTES DO BATTLE - ABA RELATORIOS");
 
-          await root.BattleKnowledge.learnFromReport({
+          const learningResult = await root.BattleKnowledge.learnFromReport({
             storage: this.storage,
             report,
           });
 
           console.log("DEPOIS DO BATTLE - ABA RELATORIOS");
 
-          root.Modal.show(
-            "Relatorio",
-            "Importado com sucesso. Coord: " +
-              (report.coord || "-") +
-              " | Lucro: " +
-              Math.round(report.profit || 0),
-          );
+          if (learningResult) {
+            root.Modal.show(
+              "Relatorio",
+              "Importado e aprendido com sucesso. Coord: " +
+                (report.coord || "-") +
+                " | Lucro: " +
+                Math.round(report.profit || 0),
+            );
+          } else {
+            root.Modal.show(
+              "Relatorio",
+              "Relatório salvo, mas sem dados suficientes para aprendizado automático (tipo de tropa/quantidade enviada).",
+            );
+          }
 
           await this.refresh();
         });
@@ -4158,13 +4404,20 @@
 
             console.log("RELATORIOS: REPORT SALVO");
 
-            root.Modal.show(
-              "Relatorio",
-              "Importado com sucesso. Coord: " +
-                (report.coord || "-") +
-                " | Lucro: " +
-                Math.round(report.profit || 0),
-            );
+            if (learningResult) {
+              root.Modal.show(
+                "Relatorio",
+                "Importado e aprendido com sucesso. Coord: " +
+                  (report.coord || "-") +
+                  " | Lucro: " +
+                  Math.round(report.profit || 0),
+              );
+            } else {
+              root.Modal.show(
+                "Relatorio",
+                "Relatório salvo, mas sem dados suficientes para aprendizado automático (tipo de tropa/quantidade enviada).",
+              );
+            }
 
             await this.refresh();
           } catch (error) {
@@ -4517,6 +4770,7 @@
       node.innerHTML = [
         '<div class="actions">',
         '<button id="nytrina-clear-knowledge">Limpar Battle Knowledge</button>',
+        '<button id="nytrina-rebuild-knowledge">Reconstruir via Relatórios</button>',
         "</div>",
 
         '<div class="grid">',
@@ -4614,6 +4868,29 @@
           for (const row of knowledgeRows) {
             await this.storage.delete(root.Constants.STORES.STATISTICS, row.id);
           }
+
+          await this.refresh();
+        });
+
+      node
+        .querySelector("#nytrina-rebuild-knowledge")
+        ?.addEventListener("click", async () => {
+          const confirmed = confirm(
+            "Reconstruir aprendizado irá limpar o conhecimento atual e reaprender usando os relatórios salvos. Continuar?",
+          );
+
+          if (!confirmed) return;
+
+          await this.clearLearningData();
+          const result = await this.rebuildLearningFromReports();
+
+          root.Modal.show(
+            "Debug",
+            "Reconstrução concluída. Aprendidos: " +
+              Number(result?.learned || 0) +
+              " | Ignorados: " +
+              Number(result?.skipped || 0),
+          );
 
           await this.refresh();
         });

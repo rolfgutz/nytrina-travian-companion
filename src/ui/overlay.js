@@ -230,6 +230,61 @@
     }
 
     /**
+     * @returns {Promise<void>}
+     */
+    async clearLearningData() {
+      const stats = await this.storage.getAll(root.Constants.STORES.STATISTICS);
+      const learningRows = stats.filter((row) => {
+        const id = String(row?.id || "");
+        return (
+          id.startsWith("battleKnowledge:") ||
+          id.startsWith("battleCalibration:")
+        );
+      });
+
+      for (const row of learningRows) {
+        await this.storage.delete(root.Constants.STORES.STATISTICS, row.id);
+      }
+    }
+
+    /**
+     * @returns {Promise<{learned:number,skipped:number}>}
+     */
+    async rebuildLearningFromReports() {
+      const reports = await this.storage.getAll(root.Constants.STORES.REPORTS);
+      const settings = this.getSettings();
+      const ordered = reports.slice().sort((a, b) => {
+        const left = new Date(a.date || a.updatedAt || 0).getTime();
+        const right = new Date(b.date || b.updatedAt || 0).getTime();
+        return left - right;
+      });
+
+      let learned = 0;
+      let skipped = 0;
+
+      for (const report of ordered) {
+        const result = await root.BattleKnowledge.learnFromReport({
+          storage: this.storage,
+          report: {
+            ...report,
+            tribe: report?.tribe || settings.troopTribe || "romans",
+          },
+        });
+
+        if (result) {
+          learned += 1;
+        } else {
+          skipped += 1;
+        }
+      }
+
+      return {
+        learned,
+        skipped,
+      };
+    }
+
+    /**
      * @returns {Array<{value:string,label:string}>}
      */
     tribeOptions() {
@@ -1041,20 +1096,27 @@
 
           console.log("ANTES DO BATTLE - ABA RELATORIOS");
 
-          await root.BattleKnowledge.learnFromReport({
+          const learningResult = await root.BattleKnowledge.learnFromReport({
             storage: this.storage,
             report,
           });
 
           console.log("DEPOIS DO BATTLE - ABA RELATORIOS");
 
-          root.Modal.show(
-            "Relatorio",
-            "Importado com sucesso. Coord: " +
-              (report.coord || "-") +
-              " | Lucro: " +
-              Math.round(report.profit || 0),
-          );
+          if (learningResult) {
+            root.Modal.show(
+              "Relatorio",
+              "Importado e aprendido com sucesso. Coord: " +
+                (report.coord || "-") +
+                " | Lucro: " +
+                Math.round(report.profit || 0),
+            );
+          } else {
+            root.Modal.show(
+              "Relatorio",
+              "Relatório salvo, mas sem dados suficientes para aprendizado automático (tipo de tropa/quantidade enviada).",
+            );
+          }
 
           await this.refresh();
         });
@@ -1219,13 +1281,20 @@
 
             console.log("RELATORIOS: REPORT SALVO");
 
-            root.Modal.show(
-              "Relatorio",
-              "Importado com sucesso. Coord: " +
-                (report.coord || "-") +
-                " | Lucro: " +
-                Math.round(report.profit || 0),
-            );
+            if (learningResult) {
+              root.Modal.show(
+                "Relatorio",
+                "Importado e aprendido com sucesso. Coord: " +
+                  (report.coord || "-") +
+                  " | Lucro: " +
+                  Math.round(report.profit || 0),
+              );
+            } else {
+              root.Modal.show(
+                "Relatorio",
+                "Relatório salvo, mas sem dados suficientes para aprendizado automático (tipo de tropa/quantidade enviada).",
+              );
+            }
 
             await this.refresh();
           } catch (error) {
@@ -1578,6 +1647,7 @@
       node.innerHTML = [
         '<div class="actions">',
         '<button id="nytrina-clear-knowledge">Limpar Battle Knowledge</button>',
+        '<button id="nytrina-rebuild-knowledge">Reconstruir via Relatórios</button>',
         "</div>",
 
         '<div class="grid">',
@@ -1675,6 +1745,29 @@
           for (const row of knowledgeRows) {
             await this.storage.delete(root.Constants.STORES.STATISTICS, row.id);
           }
+
+          await this.refresh();
+        });
+
+      node
+        .querySelector("#nytrina-rebuild-knowledge")
+        ?.addEventListener("click", async () => {
+          const confirmed = confirm(
+            "Reconstruir aprendizado irá limpar o conhecimento atual e reaprender usando os relatórios salvos. Continuar?",
+          );
+
+          if (!confirmed) return;
+
+          await this.clearLearningData();
+          const result = await this.rebuildLearningFromReports();
+
+          root.Modal.show(
+            "Debug",
+            "Reconstrução concluída. Aprendidos: " +
+              Number(result?.learned || 0) +
+              " | Ignorados: " +
+              Number(result?.skipped || 0),
+          );
 
           await this.refresh();
         });

@@ -177,6 +177,165 @@
     };
   }
 
+  function troopClassMapByTribe(tribe) {
+    const selected = String(tribe || "romans");
+
+    const map = {
+      romans: {
+        legionnaire: "u1",
+        praetorian: "u2",
+        imperian: "u3",
+        equites_legati: "u4",
+        equites_imperatoris: "u5",
+        equites_caesaris: "u6",
+      },
+      teutons: {
+        clubman: "u11",
+        spearman: "u12",
+        axeman: "u13",
+        scout: "u14",
+        paladin: "u15",
+        teutonic_knight: "u16",
+      },
+      gauls: {
+        phalanx: "u21",
+        swordsman: "u22",
+        pathfinder: "u23",
+        theutates_thunder: "u24",
+        druidrider: "u25",
+        haeduan: "u26",
+      },
+    };
+
+    return map[selected] || map.romans;
+  }
+
+  function allTroopClassMaps() {
+    return {
+      romans: troopClassMapByTribe("romans"),
+      teutons: troopClassMapByTribe("teutons"),
+      gauls: troopClassMapByTribe("gauls"),
+    };
+  }
+
+  function classInfoByClassToken(troopClass) {
+    const token = String(troopClass || "");
+    const allMaps = allTroopClassMaps();
+
+    for (const [tribeName, map] of Object.entries(allMaps)) {
+      const match = Object.entries(map).find(([, cls]) => String(cls) === token);
+      if (match) {
+        return {
+          tribe: tribeName,
+          troopType: match[0],
+          troopClass: token,
+        };
+      }
+    }
+
+    return null;
+  }
+
+  function inferTroopTypeFromTroopsSent(tribe, troopsSent) {
+    const sent = troopsSent && typeof troopsSent === "object" ? troopsSent : {};
+    const classMap = troopClassMapByTribe(tribe);
+
+    const classToType = Object.entries(classMap).reduce((acc, [type, cls]) => {
+      acc[cls] = type;
+      return acc;
+    }, {});
+
+    const candidates = Object.entries(sent)
+      .filter(([key, value]) => key !== "hero" && Number(value || 0) > 0)
+      .map(([key]) => key);
+
+    if (candidates.length !== 1) return null;
+
+    return classToType[candidates[0]] || null;
+  }
+
+  function inferTroopInfoFromTroopsSentAnyTribe(troopsSent, preferredTribe) {
+    const sent = troopsSent && typeof troopsSent === "object" ? troopsSent : {};
+    const candidates = Object.entries(sent)
+      .filter(([key, value]) => key !== "hero" && Number(value || 0) > 0)
+      .map(([key]) => key);
+
+    if (candidates.length !== 1) return null;
+
+    const troopClass = String(candidates[0] || "");
+    const byClass = classInfoByClassToken(troopClass);
+    if (byClass) return byClass;
+
+    const tribe = String(preferredTribe || "romans");
+    const classMap = troopClassMapByTribe(tribe);
+    const byTribe = Object.entries(classMap).find(
+      ([, cls]) => String(cls) === troopClass,
+    );
+
+    if (!byTribe) return null;
+
+    return {
+      troopClass,
+      tribe,
+      troopType: byTribe[0],
+    };
+  }
+
+  function resolveTroopTypeAndSent(report) {
+    let tribe = report?.tribe || "romans";
+    let classMap = troopClassMapByTribe(tribe);
+    const troopsSent =
+      report?.troopsSent && typeof report.troopsSent === "object"
+        ? report.troopsSent
+        : {};
+
+    let troopType = String(report?.troopType || "").trim() || null;
+
+    if (!troopType && report?.troopClass) {
+      const classInfo = classInfoByClassToken(report.troopClass);
+      if (classInfo?.troopType) {
+        tribe = classInfo.tribe;
+        classMap = troopClassMapByTribe(tribe);
+        troopType = classInfo.troopType;
+      } else {
+        const byClass = Object.entries(classMap).find(
+          ([, cls]) => String(cls) === String(report.troopClass),
+        );
+        troopType = byClass ? byClass[0] : null;
+      }
+    }
+
+    if (!troopType) {
+      const anyInfo = inferTroopInfoFromTroopsSentAnyTribe(troopsSent, tribe);
+      if (anyInfo?.troopType) {
+        tribe = anyInfo.tribe;
+        classMap = troopClassMapByTribe(tribe);
+        troopType = anyInfo.troopType;
+      } else {
+        troopType = inferTroopTypeFromTroopsSent(tribe, troopsSent);
+      }
+    }
+
+    let sent = Number(report?.troopsSentCount || 0);
+
+    if (sent <= 0 && troopType) {
+      const troopClass = classMap[troopType] || null;
+      if (troopClass) {
+        sent = Number(troopsSent[troopClass] || 0);
+      }
+    }
+
+    if (sent <= 0 && report?.troopClass) {
+      sent = Number(troopsSent[report.troopClass] || 0);
+    }
+
+    return {
+      tribe,
+      troopType,
+      sent,
+    };
+  }
+
   function makeSignature(xp, animals) {
     const a = normalizeAnimals(animals);
 
@@ -286,9 +445,11 @@
 
     console.log(report);
 
-    const tribe = report.tribe || "romans";
-    const troopType = report.troopType || null;
-    const sent = Number(report.troopsSentCount || 0);
+    const defaultTribe = report.tribe || "romans";
+    const resolved = resolveTroopTypeAndSent(report);
+    const tribe = resolved.tribe || defaultTribe;
+    const troopType = resolved.troopType;
+    const sent = Number(resolved.sent || 0);
     const xp = Number(report.xp || 0);
     const animals = report.animalsInitial || report.animalsKilled || {};
 

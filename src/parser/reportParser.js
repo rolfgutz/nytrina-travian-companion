@@ -119,43 +119,81 @@
   }
 
   function inferTroopTypeFromAttackerData(attackerData, tribe) {
-    const selectedTribe = String(tribe || "romans");
-    const troopClassMap = {
+    const info = inferUnitInfoFromAttackerData(attackerData, tribe);
+    return info ? info.troopType : null;
+  }
+
+  function getTroopClassDefinitions() {
+    return {
       romans: {
-        u1: "legionnaire",
-        u2: "praetorian",
-        u3: "imperian",
-        u4: "equites_legati",
-        u5: "equites_imperatoris",
-        u6: "equites_caesaris",
+        legionnaire: "u1",
+        praetorian: "u2",
+        imperian: "u3",
+        equites_legati: "u4",
+        equites_imperatoris: "u5",
+        equites_caesaris: "u6",
       },
       teutons: {
-        u1: "clubman",
-        u2: "spearman",
-        u3: "axeman",
-        u4: "scout",
-        u5: "paladin",
-        u6: "teutonic_knight",
+        clubman: "u11",
+        spearman: "u12",
+        axeman: "u13",
+        scout: "u14",
+        paladin: "u15",
+        teutonic_knight: "u16",
       },
       gauls: {
-        u1: "phalanx",
-        u2: "swordsman",
-        u3: "pathfinder",
-        u4: "theutates_thunder",
-        u5: "druidrider",
-        u6: "haeduan",
+        phalanx: "u21",
+        swordsman: "u22",
+        pathfinder: "u23",
+        theutates_thunder: "u24",
+        druidrider: "u25",
+        haeduan: "u26",
       },
     };
+  }
 
-    const classMap = troopClassMap[selectedTribe] || troopClassMap.romans;
-    const unitEntries = Object.entries(attackerData?.total || {})
+  function getClassInfoIndex() {
+    const defs = getTroopClassDefinitions();
+    const index = {};
+
+    Object.entries(defs).forEach(([tribeName, units]) => {
+      Object.entries(units).forEach(([troopType, troopClass]) => {
+        index[troopClass] = {
+          tribe: tribeName,
+          troopType,
+          troopClass,
+        };
+      });
+    });
+
+    return index;
+  }
+
+  function inferUnitInfoFromAttackerData(attackerData, fallbackTribe) {
+    const totals = attackerData?.total || {};
+    const candidates = Object.entries(totals)
       .filter(([key, value]) => key !== "hero" && Number(value || 0) > 0)
       .map(([key]) => key);
 
-    if (unitEntries.length !== 1) return null;
+    if (candidates.length !== 1) return null;
 
-    const troopClass = unitEntries[0];
-    return classMap[troopClass] || null;
+    const troopClass = String(candidates[0] || "");
+    const classInfo = getClassInfoIndex()[troopClass];
+
+    if (classInfo) return classInfo;
+
+    const selectedTribe = String(fallbackTribe || "romans");
+    const defs = getTroopClassDefinitions();
+    const byTribe = defs[selectedTribe] || defs.romans;
+    const byClass = Object.entries(byTribe).find(([, cls]) => cls === troopClass);
+
+    if (!byClass) return null;
+
+    return {
+      tribe: selectedTribe,
+      troopType: byClass[0],
+      troopClass,
+    };
   }
 
   function parseNatureTableExact() {
@@ -393,10 +431,14 @@
       xp = animalsData.calcXp(animalsKilled);
     }
 
-    const loss = troops.calcLossCost(
-      options.tribe || "romans",
-      attackerData.lost || {},
+    const inferredUnitInfo = inferUnitInfoFromAttackerData(
+      attackerData,
+      options.tribe,
     );
+    const resolvedTribe =
+      inferredUnitInfo?.tribe || String(options.tribe || "romans");
+
+    const loss = troops.calcLossCost(resolvedTribe, attackerData.lost || {});
 
     const lossFromReport = parseLossFromStatisticsTable();
 
@@ -407,40 +449,21 @@
     const finalLoss = lossFromReport > 0 ? lossFromReport : loss.total;
     const profit = totalResources - finalLoss;
 
+    const preferredTroopType = String(options.troopType || "").trim();
+    const canUsePreferredTroopType =
+      preferredTroopType &&
+      preferredTroopType !== "hero" &&
+      preferredTroopType !== "custom";
+
     const selectedTroopType =
-      options.troopType || inferTroopTypeFromAttackerData(attackerData, options.tribe) || null;
+      inferredUnitInfo?.troopType ||
+      (canUsePreferredTroopType ? preferredTroopType : null);
 
-    const TROOP_CLASS = {
-      romans: {
-        legionnaire: "u1",
-        praetorian: "u2",
-        imperian: "u3",
-        equites_legati: "u4",
-        equites_imperatoris: "u5",
-        equites_caesaris: "u6",
-      },
-
-      teutons: {
-        clubman: "u11",
-        spearman: "u12",
-        axeman: "u13",
-        scout: "u14",
-        paladin: "u15",
-        teutonic_knight: "u16",
-      },
-
-      gauls: {
-        phalanx: "u21",
-        swordsman: "u22",
-        pathfinder: "u23",
-        theutates_thunder: "u24",
-        druidrider: "u25",
-        haeduan: "u26",
-      },
-    };
-
+    const troopClassDefs = getTroopClassDefinitions();
     const selectedTroopClass =
-      TROOP_CLASS[options.tribe || "romans"]?.[selectedTroopType] || null;
+      inferredUnitInfo?.troopClass ||
+      troopClassDefs[resolvedTribe]?.[selectedTroopType] ||
+      null;
 
     const troopsSentCount = selectedTroopClass
       ? Number((attackerData.total || {})[selectedTroopClass] || 0)
@@ -500,7 +523,7 @@
       url: global.location.href,
       reportId: parseReportIdFromUrl(),
       server: server.getContext().key,
-      tribe: options.tribe || "romans",
+      tribe: resolvedTribe,
       date: new Date().toISOString(),
       coord: parseReportCoord(),
       animalsInitial,
