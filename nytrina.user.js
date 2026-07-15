@@ -786,16 +786,16 @@
   function resolveCoordinate(contextElement) {
     const sequence = [
       {
-        source: "tooltip",
-        fn: () => fromTooltip(),
+        source: "written",
+        fn: () => fromWrittenCoordinate(contextElement),
       },
       {
         source: "oasis-window",
         fn: () => fromOasisWindow(),
       },
       {
-        source: "written",
-        fn: () => fromWrittenCoordinate(contextElement),
+        source: "tooltip",
+        fn: () => fromTooltip(),
       },
       {
         source: "map-fields",
@@ -865,7 +865,26 @@
       }
     });
 
-    return Array.from(roots);
+    const scoreRoot = (rootElement) => {
+      const text = utils.normalizeText(rootElement?.textContent || "");
+      let score = 0;
+
+      if (/oasis\s+desocupado|oasis\s+abandonado/.test(text)) score += 8;
+      if (/simular\s+raid/.test(text)) score += 6;
+      if (/relatorios|vizinhanca/.test(text)) score += 5;
+      if (/bonus|distancia|tropas/.test(text)) score += 3;
+
+      if (rootElement?.closest(".dialog, #content, .contentNavi, .content")) {
+        score += 4;
+      }
+
+      const textLength = String(rootElement?.textContent || "").trim().length;
+      if (textLength >= 120) score += 2;
+
+      return score;
+    };
+
+    return Array.from(roots).sort((a, b) => scoreRoot(b) - scoreRoot(a));
   }
 
   /**

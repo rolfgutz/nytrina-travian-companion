@@ -164,16 +164,16 @@
   function resolveCoordinate(contextElement) {
     const sequence = [
       {
-        source: "tooltip",
-        fn: () => fromTooltip(),
+        source: "written",
+        fn: () => fromWrittenCoordinate(contextElement),
       },
       {
         source: "oasis-window",
         fn: () => fromOasisWindow(),
       },
       {
-        source: "written",
-        fn: () => fromWrittenCoordinate(contextElement),
+        source: "tooltip",
+        fn: () => fromTooltip(),
       },
       {
         source: "map-fields",
