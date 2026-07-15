@@ -145,9 +145,13 @@
     async exportBackup() {
       const stores = this.getStoreNames();
       const data = {};
+      const counts = {};
 
       for (const storeName of stores) {
         data[storeName] = await this.getAll(storeName);
+        counts[storeName] = Array.isArray(data[storeName])
+          ? data[storeName].length
+          : 0;
       }
 
       const statistics = data[constants.STORES.STATISTICS] || [];
@@ -163,6 +167,7 @@
         createdAt: new Date().toISOString(),
         host: this.host,
         stores: data,
+        counts,
 
         // Seções amigáveis para restauração entre versões.
         settings: data[constants.STORES.SETTINGS] || [],
