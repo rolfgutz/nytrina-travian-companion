@@ -600,7 +600,7 @@
       if (!node) return;
       const settings = this.getSettings();
       const server = root.Server.getContext();
-      const parsed = await this.scanner.scanNow();
+      let parsed = await this.scanner.scanNow();
       this.currentScan = parsed;
 
       const groupedOptions = this.groupedTroopOptions(
@@ -624,6 +624,17 @@
         "romans";
       const canResetCalibration =
         selectedTroopType !== "hero" && selectedTroopType !== "custom";
+      const rallyCoord = this.readRallyCoordFromForm();
+
+      // Na tela de envio, fixa a leitura no alvo informado (x|y) para evitar
+      // que tooltip/hover de outro oásis troque a sugestão exibida.
+      if (
+        rallyCoord &&
+        parsed?.coord &&
+        String(parsed.coord) !== String(rallyCoord)
+      ) {
+        parsed = null;
+      }
 
       let calibratedWithHero = null;
       let calibratedWithoutHero = null;
@@ -821,8 +832,12 @@
         }
       }
 
-      if (
+      const canPersistCurrentScan =
         parsed?.coord &&
+        (!rallyCoord || String(parsed.coord) === String(rallyCoord));
+
+      if (
+        canPersistCurrentScan &&
         (withHeroSuggestion !== "-" || withoutHeroSuggestion !== "-")
       ) {
         this.saveSuggestionCache({
@@ -897,8 +912,13 @@
       const displayTime =
         parsed?.time || (sameProfileCache ? cachedSuggestion?.time : null) || "-";
 
+      const lockedTargetDisplay = rallyCoord
+        ? '<div class="card" style="background: #3d5a2a; border-color: #6b9f35;"><span>Alvo travado</span><b>' + rallyCoord + '</b></div>'
+        : '';
+
       node.innerHTML = [
         '<div class="scanner-controls">',
+        lockedTargetDisplay,
         '<div class="stack">',
         "<label>Tipo de tropa (define tempo)</label>",
         '<select id="nytrina-scanner-troop">' + groupedOptions + "</select>",
@@ -1200,13 +1220,14 @@
           const left = new Date(a.date || a.updatedAt || 0).getTime();
           return right - left;
         });
+      const recentReports = sortedReports.slice(0, 50);
       const reportsMeta = this.paginationMeta(
-        sortedReports.length,
+        recentReports.length,
         this.reportsPage,
         this.reportsPerPage,
       );
       this.reportsPage = reportsMeta.page;
-      const reportsPageRows = sortedReports.slice(reportsMeta.start, reportsMeta.end);
+      const reportsPageRows = recentReports.slice(reportsMeta.start, reportsMeta.end);
 
       node.innerHTML = [
         '<div class="actions"><button id="nytrina-import-report-tab">Importar relatorio atual</button><button id="nytrina-clear-reports">Limpar Relatórios</button></div>',
@@ -1232,7 +1253,7 @@
           )
           .join(""),
         "</tbody></table>",
-        this.paginationControls("nytrina-reports-page", reportsMeta, sortedReports.length),
+        this.paginationControls("nytrina-reports-page", reportsMeta, recentReports.length),
       ].join("");
 
       node.querySelector("#nytrina-reports-page-prev")?.addEventListener("click", async () => {
@@ -1694,14 +1715,15 @@
           if (right !== left) return right - left;
           return String(a.troopType).localeCompare(String(b.troopType));
         });
+      const recentKnowledgeRows = sortedKnowledgeRows.slice(0, 50);
 
       const debugMeta = this.paginationMeta(
-        sortedKnowledgeRows.length,
+        recentKnowledgeRows.length,
         this.debugPage,
         this.debugPerPage,
       );
       this.debugPage = debugMeta.page;
-      const debugPageRows = sortedKnowledgeRows.slice(debugMeta.start, debugMeta.end);
+      const debugPageRows = recentKnowledgeRows.slice(debugMeta.start, debugMeta.end);
 
       node.innerHTML = [
         '<div class="actions">',
@@ -1710,11 +1732,11 @@
         "</div>",
 
         '<div class="grid">',
-        '<div class="card"><span>Conhecimentos</span><b>' +
-          knowledgeRows.length +
+        '<div class="card"><span>Conhecimentos (últimos 50)</span><b>' +
+          recentKnowledgeRows.length +
           "</b></div>",
-        '<div class="card"><span>Amostras</span><b>' +
-          knowledgeRows.reduce((s, r) => s + Number(r.samples || 0), 0) +
+        '<div class="card"><span>Amostras (últimos 50)</span><b>' +
+          recentKnowledgeRows.reduce((s, r) => s + Number(r.samples || 0), 0) +
           "</b></div>",
         "</div>",
 
@@ -1783,7 +1805,7 @@
 
         "</tbody></table>",
         "</div>",
-        this.paginationControls("nytrina-debug-page", debugMeta, sortedKnowledgeRows.length),
+        this.paginationControls("nytrina-debug-page", debugMeta, recentKnowledgeRows.length),
       ].join("");
 
       node.querySelector("#nytrina-debug-page-prev")?.addEventListener("click", async () => {

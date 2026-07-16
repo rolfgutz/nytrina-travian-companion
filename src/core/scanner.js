@@ -3,6 +3,8 @@
 
   const root = (global.NytrinA = global.NytrinA || {});
   const constants = root.Constants;
+  const MAX_REPORT_ROWS = 50;
+  const MAX_HISTORY_ROWS = 50;
 
   class ScannerService {
     /**
@@ -89,6 +91,25 @@
       if (!report) return;
       await this.storage.put(root.Constants.STORES.REPORTS, report);
 
+      const reports = await this.storage.getAll(root.Constants.STORES.REPORTS);
+      const orderedReports = reports
+        .slice()
+        .sort((a, b) => {
+          const right = new Date(b.date || b.updatedAt || 0).getTime();
+          const left = new Date(a.date || a.updatedAt || 0).getTime();
+          return right - left;
+        });
+
+      const toDelete = orderedReports.slice(MAX_REPORT_ROWS);
+      if (toDelete.length > 0) {
+        console.log('[NytrinA] Limpando banco: deletando', toDelete.length, 'relatórios antigos');
+        for (const oldReport of toDelete) {
+          if (oldReport?.reportId) {
+            await this.storage.delete(root.Constants.STORES.REPORTS, oldReport.reportId);
+          }
+        }
+      }
+
       const historyId = (report.coord || 'unknown') + ':' + report.reportId;
       await this.storage.put(root.Constants.STORES.HISTORY, {
         id: historyId,
@@ -100,6 +121,25 @@
         xp: report.xp,
         totalResources: report.totalResources
       });
+
+      const historyRows = await this.storage.getAll(root.Constants.STORES.HISTORY);
+      const orderedHistory = historyRows
+        .slice()
+        .sort((a, b) => {
+          const right = new Date(b.date || b.updatedAt || 0).getTime();
+          const left = new Date(a.date || a.updatedAt || 0).getTime();
+          return right - left;
+        });
+
+      const historyToDelete = orderedHistory.slice(MAX_HISTORY_ROWS);
+      if (historyToDelete.length > 0) {
+        console.log('[NytrinA] Limpando banco: deletando', historyToDelete.length, 'históricos antigos');
+        for (const oldHistory of historyToDelete) {
+          if (oldHistory?.id) {
+            await this.storage.delete(root.Constants.STORES.HISTORY, oldHistory.id);
+          }
+        }
+      }
 
       if (typeof this.onUpdate === 'function') this.onUpdate('report', report);
     }

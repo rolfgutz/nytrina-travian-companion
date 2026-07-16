@@ -507,9 +507,13 @@
     async exportBackup() {
       const stores = this.getStoreNames();
       const data = {};
+      const counts = {};
 
       for (const storeName of stores) {
         data[storeName] = await this.getAll(storeName);
+        counts[storeName] = Array.isArray(data[storeName])
+          ? data[storeName].length
+          : 0;
       }
 
       const statistics = data[constants.STORES.STATISTICS] || [];
@@ -525,6 +529,7 @@
         createdAt: new Date().toISOString(),
         host: this.host,
         stores: data,
+        counts,
 
         // Seções amigáveis para restauração entre versões.
         settings: data[constants.STORES.SETTINGS] || [],
@@ -4690,6 +4695,30 @@
       exportBackupButton?.addEventListener("click", async () => {
         try {
           const backup = await this.storage.exportBackup();
+          const reportCount = Number(
+            backup?.counts?.REPORTS || backup?.reports?.length || 0,
+          );
+          const historyCount = Number(
+            backup?.counts?.HISTORY || backup?.history?.length || 0,
+          );
+          const statisticsCount = Number(
+            backup?.counts?.STATISTICS || backup?.statistics?.length || 0,
+          );
+
+          const appearsEmpty =
+            reportCount <= 0 && historyCount <= 0 && statisticsCount <= 0;
+
+          if (appearsEmpty) {
+            const proceed = confirm(
+              "Atenção: este backup parece vazio para REPORTS/HISTORY/STATISTICS.\n\n" +
+                "Host atual: " +
+                String(root.Server.getContext().host || "-") +
+                "\n\n" +
+                "Deseja exportar mesmo assim?",
+            );
+            if (!proceed) return;
+          }
+
           const json = JSON.stringify(backup, null, 2);
           const blob = new Blob([json], { type: "application/json" });
           const serverHost = String(root.Server.getContext().host || "servidor");
@@ -4704,7 +4733,17 @@
           document.body.removeChild(link);
           URL.revokeObjectURL(url);
 
-          root.Modal.show("Backup", "Backup exportado com sucesso: " + fileName);
+          root.Modal.show(
+            "Backup",
+            "Backup exportado: " +
+              fileName +
+              " | REPORTS: " +
+              reportCount +
+              " | HISTORY: " +
+              historyCount +
+              " | STATISTICS: " +
+              statisticsCount,
+          );
         } catch (error) {
           console.error("Falha ao exportar backup", error);
           root.Modal.show("Erro", "Falha ao exportar backup. Veja o console.");
@@ -4723,6 +4762,31 @@
         try {
           const content = await file.text();
           const parsed = JSON.parse(content);
+
+          const reportCount = Number(
+            parsed?.counts?.REPORTS || parsed?.reports?.length || 0,
+          );
+          const historyCount = Number(
+            parsed?.counts?.HISTORY || parsed?.history?.length || 0,
+          );
+          const statisticsCount = Number(
+            parsed?.counts?.STATISTICS || parsed?.statistics?.length || 0,
+          );
+
+          const appearsEmpty =
+            reportCount <= 0 && historyCount <= 0 && statisticsCount <= 0;
+
+          if (appearsEmpty) {
+            const confirmEmpty = confirm(
+              "Atenção: este backup parece vazio para REPORTS/HISTORY/STATISTICS.\n\n" +
+                "Importar isso pode apagar seu histórico atual.\n\n" +
+                "Deseja continuar mesmo assim?",
+            );
+            if (!confirmEmpty) {
+              input.value = "";
+              return;
+            }
+          }
 
           if (!confirm("Importar backup irá substituir todos os dados atuais. Continuar?")) {
             input.value = "";
