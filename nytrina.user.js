@@ -2982,6 +2982,8 @@
 
   const root = (global.NytrinA = global.NytrinA || {});
   const constants = root.Constants;
+  const MAX_REPORT_ROWS = 50;
+  const MAX_HISTORY_ROWS = 50;
 
   class ScannerService {
     /**
@@ -3068,6 +3070,25 @@
       if (!report) return;
       await this.storage.put(root.Constants.STORES.REPORTS, report);
 
+      const reports = await this.storage.getAll(root.Constants.STORES.REPORTS);
+      const orderedReports = reports
+        .slice()
+        .sort((a, b) => {
+          const right = new Date(b.date || b.updatedAt || 0).getTime();
+          const left = new Date(a.date || a.updatedAt || 0).getTime();
+          return right - left;
+        });
+
+      const toDelete = orderedReports.slice(MAX_REPORT_ROWS);
+      if (toDelete.length > 0) {
+        console.log('[NytrinA] Limpando banco: deletando', toDelete.length, 'relatórios antigos');
+        for (const oldReport of toDelete) {
+          if (oldReport?.reportId) {
+            await this.storage.delete(root.Constants.STORES.REPORTS, oldReport.reportId);
+          }
+        }
+      }
+
       const historyId = (report.coord || 'unknown') + ':' + report.reportId;
       await this.storage.put(root.Constants.STORES.HISTORY, {
         id: historyId,
@@ -3079,6 +3100,25 @@
         xp: report.xp,
         totalResources: report.totalResources
       });
+
+      const historyRows = await this.storage.getAll(root.Constants.STORES.HISTORY);
+      const orderedHistory = historyRows
+        .slice()
+        .sort((a, b) => {
+          const right = new Date(b.date || b.updatedAt || 0).getTime();
+          const left = new Date(a.date || a.updatedAt || 0).getTime();
+          return right - left;
+        });
+
+      const historyToDelete = orderedHistory.slice(MAX_HISTORY_ROWS);
+      if (historyToDelete.length > 0) {
+        console.log('[NytrinA] Limpando banco: deletando', historyToDelete.length, 'históricos antigos');
+        for (const oldHistory of historyToDelete) {
+          if (oldHistory?.id) {
+            await this.storage.delete(root.Constants.STORES.HISTORY, oldHistory.id);
+          }
+        }
+      }
 
       if (typeof this.onUpdate === 'function') this.onUpdate('report', report);
     }
@@ -3747,19 +3787,13 @@
       if (!node) return;
       const settings = this.getSettings();
       const server = root.Server.getContext();
-      const parsed = await this.scanner.scanNow();
+      let parsed = await this.scanner.scanNow();
       this.currentScan = parsed;
 
       const groupedOptions = this.groupedTroopOptions(
         server.speed,
         settings.troopType || "hero",
       );
-
-      const formulaAdvice = root.BattleAdvisor?.recommend({
-        animals: parsed?.animals || {},
-        troopType: settings.troopType || "hero",
-        hero: true,
-      });
 
       let knowledge = null;
       let learnedAdvice = null;
@@ -3771,6 +3805,39 @@
         "romans";
       const canResetCalibration =
         selectedTroopType !== "hero" && selectedTroopType !== "custom";
+      const rallyCoord = this.readRallyCoordFromForm();
+
+      // Na tela de envio, fixa a leitura no alvo informado (x|y) para evitar
+      // que tooltip/hover de outro oásis troque a sugestão exibida.
+      if (
+        rallyCoord &&
+        parsed?.coord &&
+        String(parsed.coord) !== String(rallyCoord)
+      ) {
+        parsed = null;
+      }
+
+      // Se existir alvo x|y no formulário, tenta resolver diretamente os dados
+      // do alvo para evitar oscilações quando há várias abas/hovers ativos.
+      if (rallyCoord && (!parsed || String(parsed.coord || "") !== String(rallyCoord))) {
+        const lockedOasis = await this.storage.get(
+          root.Constants.STORES.OASIS,
+          String(rallyCoord),
+        );
+
+        if (lockedOasis && lockedOasis.animals) {
+          parsed = {
+            ...lockedOasis,
+            coord: String(rallyCoord),
+          };
+        }
+      }
+
+      const formulaAdvice = root.BattleAdvisor?.recommend({
+        animals: parsed?.animals || {},
+        troopType: settings.troopType || "hero",
+        hero: true,
+      });
 
       let calibratedWithHero = null;
       let calibratedWithoutHero = null;
@@ -3968,8 +4035,12 @@
         }
       }
 
-      if (
+      const canPersistCurrentScan =
         parsed?.coord &&
+        (!rallyCoord || String(parsed.coord) === String(rallyCoord));
+
+      if (
+        canPersistCurrentScan &&
         (withHeroSuggestion !== "-" || withoutHeroSuggestion !== "-")
       ) {
         this.saveSuggestionCache({
@@ -4044,8 +4115,13 @@
       const displayTime =
         parsed?.time || (sameProfileCache ? cachedSuggestion?.time : null) || "-";
 
+      const lockedTargetDisplay = rallyCoord
+        ? '<div class="card" style="background: #3d5a2a; border-color: #6b9f35;"><span>Alvo travado</span><b>' + rallyCoord + '</b></div>'
+        : '';
+
       node.innerHTML = [
         '<div class="scanner-controls">',
+        lockedTargetDisplay,
         '<div class="stack">',
         "<label>Tipo de tropa (define tempo)</label>",
         '<select id="nytrina-scanner-troop">' + groupedOptions + "</select>",
@@ -4347,13 +4423,14 @@
           const left = new Date(a.date || a.updatedAt || 0).getTime();
           return right - left;
         });
+      const recentReports = sortedReports.slice(0, 50);
       const reportsMeta = this.paginationMeta(
-        sortedReports.length,
+        recentReports.length,
         this.reportsPage,
         this.reportsPerPage,
       );
       this.reportsPage = reportsMeta.page;
-      const reportsPageRows = sortedReports.slice(reportsMeta.start, reportsMeta.end);
+      const reportsPageRows = recentReports.slice(reportsMeta.start, reportsMeta.end);
 
       node.innerHTML = [
         '<div class="actions"><button id="nytrina-import-report-tab">Importar relatorio atual</button><button id="nytrina-clear-reports">Limpar Relatórios</button></div>',
@@ -4379,7 +4456,7 @@
           )
           .join(""),
         "</tbody></table>",
-        this.paginationControls("nytrina-reports-page", reportsMeta, sortedReports.length),
+        this.paginationControls("nytrina-reports-page", reportsMeta, recentReports.length),
       ].join("");
 
       node.querySelector("#nytrina-reports-page-prev")?.addEventListener("click", async () => {
@@ -4841,14 +4918,15 @@
           if (right !== left) return right - left;
           return String(a.troopType).localeCompare(String(b.troopType));
         });
+      const recentKnowledgeRows = sortedKnowledgeRows.slice(0, 50);
 
       const debugMeta = this.paginationMeta(
-        sortedKnowledgeRows.length,
+        recentKnowledgeRows.length,
         this.debugPage,
         this.debugPerPage,
       );
       this.debugPage = debugMeta.page;
-      const debugPageRows = sortedKnowledgeRows.slice(debugMeta.start, debugMeta.end);
+      const debugPageRows = recentKnowledgeRows.slice(debugMeta.start, debugMeta.end);
 
       node.innerHTML = [
         '<div class="actions">',
@@ -4857,11 +4935,11 @@
         "</div>",
 
         '<div class="grid">',
-        '<div class="card"><span>Conhecimentos</span><b>' +
-          knowledgeRows.length +
+        '<div class="card"><span>Conhecimentos (últimos 50)</span><b>' +
+          recentKnowledgeRows.length +
           "</b></div>",
-        '<div class="card"><span>Amostras</span><b>' +
-          knowledgeRows.reduce((s, r) => s + Number(r.samples || 0), 0) +
+        '<div class="card"><span>Amostras (últimos 50)</span><b>' +
+          recentKnowledgeRows.reduce((s, r) => s + Number(r.samples || 0), 0) +
           "</b></div>",
         "</div>",
 
@@ -4930,7 +5008,7 @@
 
         "</tbody></table>",
         "</div>",
-        this.paginationControls("nytrina-debug-page", debugMeta, sortedKnowledgeRows.length),
+        this.paginationControls("nytrina-debug-page", debugMeta, recentKnowledgeRows.length),
       ].join("");
 
       node.querySelector("#nytrina-debug-page-prev")?.addEventListener("click", async () => {

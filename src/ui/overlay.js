@@ -608,12 +608,6 @@
         settings.troopType || "hero",
       );
 
-      const formulaAdvice = root.BattleAdvisor?.recommend({
-        animals: parsed?.animals || {},
-        troopType: settings.troopType || "hero",
-        hero: true,
-      });
-
       let knowledge = null;
       let learnedAdvice = null;
 
@@ -635,6 +629,28 @@
       ) {
         parsed = null;
       }
+
+      // Se existir alvo x|y no formulário, tenta resolver diretamente os dados
+      // do alvo para evitar oscilações quando há várias abas/hovers ativos.
+      if (rallyCoord && (!parsed || String(parsed.coord || "") !== String(rallyCoord))) {
+        const lockedOasis = await this.storage.get(
+          root.Constants.STORES.OASIS,
+          String(rallyCoord),
+        );
+
+        if (lockedOasis && lockedOasis.animals) {
+          parsed = {
+            ...lockedOasis,
+            coord: String(rallyCoord),
+          };
+        }
+      }
+
+      const formulaAdvice = root.BattleAdvisor?.recommend({
+        animals: parsed?.animals || {},
+        troopType: settings.troopType || "hero",
+        hero: true,
+      });
 
       let calibratedWithHero = null;
       let calibratedWithoutHero = null;
