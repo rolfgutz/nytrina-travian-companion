@@ -61,9 +61,11 @@
     const safeScore = clamp(Number(score || 0), 0, 1);
 
     // Margem automática para reduzir risco quando a base ainda é incerta.
-    if (safeScore < 0.5) return 1.15;
-    if (safeScore < 0.8) return 1.08;
-    return 1;
+    // Reduzido vs original: menos penalidade quando tem dados bons
+    if (safeScore >= 0.8) return 1.03;   // Bem reduzido: 3% vs 0% antes
+    if (safeScore >= 0.6) return 1.06;   // Reduzido: 6% vs 8% antes
+    if (safeScore < 0.5) return 1.12;    // Um pouco reduzido: 12% vs 15% antes
+    return 1.08;
   }
 
   function percentile(sortedValues, p) {
@@ -83,9 +85,13 @@
     // Com base ampla, desliga o extra operacional para evitar inflação.
     if (samples >= 20) return 1;
 
+    // Com base razoável, reduz gradualmente
+    if (samples >= 15) return 1.05;
+    if (samples >= 10) return 1.08;
+
     // Modo operacional: extra aplicado por cima da margem base de confiança.
-    if (safeScore < 0.5) return 1.25;
-    if (safeScore < 0.8) return 1.12;
+    if (safeScore < 0.5) return 1.2;
+    if (safeScore < 0.8) return 1.11;
     return 1;
   }
 
@@ -131,11 +137,17 @@
     if (safeCasualtyRate <= targetRate) return 1;
 
     const ratio = safeCasualtyRate / Math.max(targetRate, 0.01);
-    const confidenceDampener = Number(sampleCount || 0) >= 20 && Number(confidenceScore || 0) >= 0.8
-      ? 0.78
-      : Number(sampleCount || 0) >= 10 && Number(confidenceScore || 0) >= 0.5
-        ? 0.86
-        : 0.92;
+    
+    // Teutonic Knights (u16) e Paladins recebem penalidade levemente reduzida
+    const isEliteTroop = troopType === "teutonic_knight" || troopType === "paladin";
+    
+    // Com confiança alta, penalidade é um pouco menor (dados reais já comprovam risco)
+    const confidenceDampener = 
+      Number(sampleCount || 0) >= 20 && Number(confidenceScore || 0) >= 0.8
+        ? isEliteTroop ? 0.76 : 0.78   // Elite: -2pts, Regular: mantém
+        : Number(sampleCount || 0) >= 10 && Number(confidenceScore || 0) >= 0.6
+          ? isEliteTroop ? 0.84 : 0.86  // Elite: -2pts, Regular: mantém
+          : 0.92;
 
     return Math.max(1, Math.pow(ratio, confidenceDampener));
   }
@@ -990,11 +1002,12 @@
     // Limita quanto o fator alto pode puxar acima da média aprendida.
     const cappedHighFactor = Math.min(
       robustHighFactor,
-      Math.max(1.8, averageFactor * 1.65),
+      Math.max(1.8, averageFactor * 1.68),  // Aumenta levemente de 1.65 para 1.68
     );
 
     const boundedMaxInfluence = 1 + (Math.max(cappedHighFactor, 1) - 1) * 0.9;
     const maxWeight = clamp((sampleCount - 3) / 10, 0, 1) * 0.35;
+    
     const blendedFactor =
       averageFactor * (1 - maxWeight) + boundedMaxInfluence * maxWeight;
     const learnedFactor = Math.max(1, blendedFactor);
@@ -1021,9 +1034,9 @@
     const factorTroops = Math.ceil(theoretical * learnedFactor);
     const floorCandidate = Number(learnedFloor || 0);
 
-    // Evita "congelar" recomendações em um valor fixo quando o piso aprendido
-    // fica muito acima do cálculo atual para o oásis.
-    const hardFloorLimit = Math.ceil(factorTroops * 1.35);
+    // Aumenta limite do piso apenas com confiança MUITO alta
+    const hardFloorLimitMultiplier = confidence.score >= 0.8 && sampleCount >= 20 ? 1.42 : 1.35;
+    const hardFloorLimit = Math.ceil(factorTroops * hardFloorLimitMultiplier);
 
     const canUseHardFloor =
       sampleCount >= 6 &&
