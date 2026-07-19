@@ -1064,6 +1064,7 @@
     return {
       server: server.getContext().key,
       coord: coordInfo.coord,
+      coordSource: coordInfo.source,
       distance,
       bonus,
       animals,
@@ -1071,7 +1072,8 @@
       xp,
       xph,
       time: timeInfo.time,
-      scanDate: new Date().toISOString()
+      scanDate: new Date().toISOString(),
+      source: coordInfo.source
     };
   }
 
@@ -3037,6 +3039,9 @@
       });
       if (!parsed) return null;
 
+      const coordSource = String(parsed.coordSource || parsed.source || "none");
+      const persistableSource = coordSource !== "tooltip";
+
       const signature = JSON.stringify({
         coord: parsed.coord,
         distance: parsed.distance,
@@ -3049,6 +3054,10 @@
       }
 
       this.lastSignature = signature;
+
+      if (!persistableSource) {
+        return parsed;
+      }
 
       const oasisId = parsed.coord || 'unknown:' + parsed.server + ':' + Math.round(parsed.distance * 100);
       const existing = await this.storage.get(root.Constants.STORES.OASIS, oasisId);
@@ -3221,6 +3230,8 @@
       this.reportsPerPage = 25;
       this.debugPage = 1;
       this.debugPerPage = 20;
+      this.lastStableCoord = null;
+      this.lastStableSnapshot = null;
     }
 
     /**
@@ -3587,9 +3598,17 @@
         const raw = global.localStorage.getItem(this.suggestionCacheKey());
         if (!raw) return [];
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) return parsed;
-        if (Array.isArray(parsed?.items)) return parsed.items;
-        if (parsed && typeof parsed === "object") return [parsed];
+        const normalizeList = (value) => {
+          const list = Array.isArray(value) ? value : [];
+          return list.filter((item) => {
+            const coord = String(item?.coord || "").trim();
+            return /^[+-]?\d+\|[+-]?\d+$/.test(coord);
+          });
+        };
+
+        if (Array.isArray(parsed)) return normalizeList(parsed);
+        if (Array.isArray(parsed?.items)) return normalizeList(parsed.items);
+        if (parsed && typeof parsed === "object") return normalizeList([parsed]);
         return [];
       } catch (error) {
         console.warn("NytrinA: não foi possível ler cache de sugestão", error);
@@ -3604,9 +3623,14 @@
     saveSuggestionCache(payload) {
       try {
         const currentList = this.loadSuggestionCache();
+        const coord = String(payload?.coord || "").trim();
+        if (!/^[+-]?\d+\|[+-]?\d+$/.test(coord)) {
+          return;
+        }
+
         const next = {
           ...(payload || {}),
-          coord: String(payload?.coord || "-").trim(),
+          coord,
           updatedAt: new Date().toISOString(),
         };
 
@@ -3626,6 +3650,17 @@
         );
       } catch (error) {
         console.warn("NytrinA: não foi possível salvar cache de sugestão", error);
+      }
+    }
+
+    /**
+     * @returns {void}
+     */
+    clearSuggestionCache() {
+      try {
+        global.localStorage.removeItem(this.suggestionCacheKey());
+      } catch (error) {
+        console.warn("NytrinA: não foi possível limpar cache de sugestão", error);
       }
     }
 
@@ -3653,26 +3688,37 @@
      * @param {string} selectedTroopType
      * @returns {any|null}
      */
-    findBestCachedSuggestion(cachedSuggestions, selectedTribe, selectedTroopType) {
+    findBestCachedSuggestion(
+      cachedSuggestions,
+      selectedTribe,
+      selectedTroopType,
+      preferredCoord,
+    ) {
       const list = Array.isArray(cachedSuggestions) ? cachedSuggestions : [];
       if (!list.length) return null;
 
       const sameProfile = list.filter(
         (item) =>
           String(item?.troopType || "") === String(selectedTroopType || "") &&
-          String(item?.troopTribe || "") === String(selectedTribe || ""),
+          String(item?.troopTribe || "") === String(selectedTribe || "") &&
+          /^[+-]?\d+\|[+-]?\d+$/.test(String(item?.coord || "").trim()),
       );
 
       if (!sameProfile.length) return null;
 
-      const rallyCoord = this.readRallyCoordFromForm();
-      if (!rallyCoord) return null;
+      const preferred = String(preferredCoord || "").trim();
+      if (preferred) {
+        const exact = sameProfile.find(
+          (item) => String(item?.coord || "") === preferred,
+        );
+        if (exact) return exact;
+      }
 
-      const exact = sameProfile.find(
-        (item) => String(item?.coord || "") === String(rallyCoord),
+      const nonTooltip = sameProfile.find(
+        (item) => String(item?.coordSource || "") !== "tooltip",
       );
 
-      return exact || null;
+      return nonTooltip || sameProfile[0] || null;
     }
 
     /**
@@ -3801,7 +3847,6 @@
       const settings = this.getSettings();
       const server = root.Server.getContext();
       let parsed = await this.scanner.scanNow();
-      this.currentScan = parsed;
 
       const groupedOptions = this.groupedTroopOptions(
         server.speed,
@@ -3819,6 +3864,52 @@
       const canResetCalibration =
         selectedTroopType !== "hero" && selectedTroopType !== "custom";
       const rallyCoord = this.readRallyCoordFromForm();
+
+      const incomingCoordSource = String(
+        parsed?.coordSource || parsed?.source || "none",
+      );
+
+      if (
+        !rallyCoord &&
+        parsed?.coord &&
+        incomingCoordSource &&
+        incomingCoordSource !== "tooltip"
+      ) {
+        this.lastStableCoord = String(parsed.coord);
+        this.lastStableSnapshot = {
+          ...parsed,
+          coord: this.lastStableCoord,
+          coordSource: incomingCoordSource,
+        };
+      }
+
+      if (
+        !rallyCoord &&
+        parsed?.coord &&
+        incomingCoordSource === "tooltip" &&
+        this.lastStableCoord
+      ) {
+        const stableFromStore = await this.storage.get(
+          root.Constants.STORES.OASIS,
+          String(this.lastStableCoord),
+        );
+
+        if (stableFromStore?.animals) {
+          parsed = {
+            ...stableFromStore,
+            coord: String(this.lastStableCoord),
+            coordSource: String(stableFromStore.coordSource || "stable-lock"),
+          };
+        } else if (this.lastStableSnapshot?.animals) {
+          parsed = {
+            ...this.lastStableSnapshot,
+            coord: String(this.lastStableCoord),
+            coordSource: "stable-lock",
+          };
+        }
+      }
+
+      this.currentScan = parsed;
 
       // Na tela de envio, fixa a leitura no alvo informado (x|y) para evitar
       // que tooltip/hover de outro oásis troque a sugestão exibida.
@@ -3842,6 +3933,7 @@
           parsed = {
             ...lockedOasis,
             coord: String(rallyCoord),
+            coordSource: String(lockedOasis.coordSource || "locked-storage"),
           };
         }
       }
@@ -4048,8 +4140,10 @@
         }
       }
 
+      const parsedCoordSource = String(parsed?.coordSource || parsed?.source || "none");
       const canPersistCurrentScan =
         parsed?.coord &&
+        parsedCoordSource !== "tooltip" &&
         (!rallyCoord || String(parsed.coord) === String(rallyCoord));
 
       if (
@@ -4059,7 +4153,7 @@
         this.saveSuggestionCache({
           troopType: selectedTroopType,
           troopTribe: selectedTribe,
-          coord: parsed?.coord || "-",
+          coord: String(parsed?.coord || "").trim(),
           distance: parsed?.distance || "-",
           xp: parsed?.xp || 0,
           xph: parsed?.xph || 0,
@@ -4073,6 +4167,7 @@
           confidenceSafetyText,
           withHeroSuggestion,
           withoutHeroSuggestion,
+          coordSource: parsedCoordSource,
         });
       }
 
@@ -4080,6 +4175,7 @@
         cachedSuggestions,
         selectedTribe,
         selectedTroopType,
+        rallyCoord || this.lastStableCoord || parsed?.coord || "",
       );
       const sameProfileCache = Boolean(cachedSuggestion);
 
@@ -4149,6 +4245,7 @@
         '<div class="actions scanner-actions">',
         '<button id="nytrina-import-report">Importar relatorio</button>',
         '<button id="nytrina-scan-now">Escanear agora</button>',
+        '<button id="nytrina-clear-suggestion-cache">Limpar cache sugestão</button>',
         '<button id="nytrina-reset-current-calibration"' +
           (canResetCalibration ? "" : ' disabled="disabled"') +
           '>Reset calibração atual</button>',
@@ -4260,6 +4357,24 @@
       node.querySelector("#nytrina-scan-now")?.addEventListener("click", () => {
         this.scanner.scanNow().then(() => this.refresh());
       });
+
+      node
+        .querySelector("#nytrina-clear-suggestion-cache")
+        ?.addEventListener("click", async () => {
+          if (!confirm("Limpar cache local de sugestões salvas?")) return;
+
+          this.clearSuggestionCache();
+          this.lastStableCoord = null;
+          this.lastStableSnapshot = null;
+          this.scanner.lastSignature = "";
+
+          root.Modal.show(
+            "Scanner",
+            "Cache de sugestões limpo com sucesso.",
+          );
+
+          await this.refresh();
+        });
 
       node
         .querySelector("#nytrina-reset-current-calibration")

@@ -45,6 +45,9 @@
       });
       if (!parsed) return null;
 
+      const coordSource = String(parsed.coordSource || parsed.source || "none");
+      const persistableSource = coordSource !== "tooltip";
+
       const signature = JSON.stringify({
         coord: parsed.coord,
         distance: parsed.distance,
@@ -57,6 +60,10 @@
       }
 
       this.lastSignature = signature;
+
+      if (!persistableSource) {
+        return parsed;
+      }
 
       const oasisId = parsed.coord || 'unknown:' + parsed.server + ':' + Math.round(parsed.distance * 100);
       const existing = await this.storage.get(root.Constants.STORES.OASIS, oasisId);

@@ -221,6 +221,7 @@
     return {
       server: server.getContext().key,
       coord: coordInfo.coord,
+      coordSource: coordInfo.source,
       distance,
       bonus,
       animals,
@@ -228,7 +229,8 @@
       xp,
       xph,
       time: timeInfo.time,
-      scanDate: new Date().toISOString()
+      scanDate: new Date().toISOString(),
+      source: coordInfo.source
     };
   }
 
