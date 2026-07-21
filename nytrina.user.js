@@ -3683,6 +3683,226 @@
     }
 
     /**
+     * @param {string} tribe
+     * @param {string} troopType
+     * @returns {string|null}
+     */
+    troopClassByType(tribe, troopType) {
+      const maps = {
+        romans: {
+          legionnaire: "u1",
+          praetorian: "u2",
+          imperian: "u3",
+          equites_legati: "u4",
+          equites_imperatoris: "u5",
+          equites_caesaris: "u6",
+          ram: "u7",
+          fire_catapult: "u8",
+        },
+        teutons: {
+          clubman: "u11",
+          spearman: "u12",
+          axeman: "u13",
+          scout: "u14",
+          paladin: "u15",
+          teutonic_knight: "u16",
+          ram: "u17",
+          fire_catapult: "u18",
+        },
+        gauls: {
+          phalanx: "u21",
+          swordsman: "u22",
+          pathfinder: "u23",
+          theutates_thunder: "u24",
+          druidrider: "u25",
+          haeduan: "u26",
+          ram: "u27",
+          fire_catapult: "u28",
+        },
+      };
+
+      return maps[String(tribe || "romans")]?.[String(troopType || "")] || null;
+    }
+
+    /**
+     * @returns {boolean}
+     */
+    isHeroEnabledInRallyForm() {
+      const checked = global.document.querySelector(
+        'input[type="checkbox"][name*="hero"]:checked, input[type="checkbox"][id*="hero"]:checked',
+      );
+
+      if (checked) return true;
+
+      const select = global.document.querySelector(
+        'select[name*="hero"], select[id*="hero"]',
+      );
+
+      if (!select) return false;
+
+      const value = String(select.value || "").toLowerCase();
+      return value === "1" || value === "true" || value === "on" || value === "yes";
+    }
+
+    /**
+     * @param {string} troopClass
+     * @returns {HTMLInputElement|null}
+     */
+    findTroopInputByClass(troopClass) {
+      const cls = String(troopClass || "").trim();
+      if (!/^u\d+$/.test(cls)) return null;
+
+      const icons = Array.from(
+        global.document.querySelectorAll("img.unit." + cls + ", .unit." + cls),
+      );
+
+      for (const icon of icons) {
+        const root = icon.closest("tr, li, td, div") || icon.parentElement;
+        if (!root) continue;
+
+        const directInput = root.querySelector(
+          'input[type="number"], input[type="text"]',
+        );
+
+        if (
+          directInput &&
+          directInput instanceof HTMLInputElement &&
+          !directInput.disabled &&
+          !directInput.readOnly
+        ) {
+          return directInput;
+        }
+
+        const row = icon.closest("tr");
+        const rowInput = row?.querySelector('input[type="number"], input[type="text"]');
+
+        if (
+          rowInput &&
+          rowInput instanceof HTMLInputElement &&
+          !rowInput.disabled &&
+          !rowInput.readOnly
+        ) {
+          return rowInput;
+        }
+      }
+
+      const numericClass = Number(cls.replace("u", ""));
+      const slot = ((numericClass - 1) % 10) + 1;
+      const fallbackSelectors = [
+        'input[name="t' + slot + '"]',
+        'input[name*="[t' + slot + ']"]',
+        'input[id$="t' + slot + '"]',
+        'input[id*="_t' + slot + '"]',
+      ];
+
+      for (const selector of fallbackSelectors) {
+        const candidate = global.document.querySelector(selector);
+        if (
+          candidate &&
+          candidate instanceof HTMLInputElement &&
+          !candidate.disabled &&
+          !candidate.readOnly
+        ) {
+          return candidate;
+        }
+      }
+
+      return null;
+    }
+
+    /**
+     * @param {HTMLInputElement} input
+     * @returns {void}
+     */
+    ensureManualEditGuard(input) {
+      if (!input || input.dataset.nytrinaGuardBound === "1") return;
+
+      input.addEventListener("input", () => {
+        if (input.dataset.nytrinaApplying === "1") return;
+        input.dataset.nytrinaPrefilled = "0";
+      });
+
+      input.dataset.nytrinaGuardBound = "1";
+    }
+
+    /**
+     * @param {{rallyCoord:string|null,selectedTribe:string,selectedTroopType:string,withHeroSuggestion:string,withoutHeroSuggestion:string}} params
+     * @returns {{applied:boolean,value:number,reason:string}}
+     */
+    autoFillTroopSuggestedValue(params) {
+      const rallyCoord = String(params?.rallyCoord || "").trim();
+      const selectedTribe = String(params?.selectedTribe || "").trim();
+      const selectedTroopType = String(params?.selectedTroopType || "").trim();
+      const withHeroSuggestion = Number(params?.withHeroSuggestion || 0);
+      const withoutHeroSuggestion = Number(params?.withoutHeroSuggestion || 0);
+
+      if (!rallyCoord) {
+        return { applied: false, value: 0, reason: "sem-alvo" };
+      }
+
+      if (!selectedTroopType || selectedTroopType === "hero" || selectedTroopType === "custom") {
+        return { applied: false, value: 0, reason: "perfil-invalido" };
+      }
+
+      const troopClass = this.troopClassByType(selectedTribe, selectedTroopType);
+      if (!troopClass) {
+        return { applied: false, value: 0, reason: "classe-nao-encontrada" };
+      }
+
+      const input = this.findTroopInputByClass(troopClass);
+      if (!input) {
+        return { applied: false, value: 0, reason: "campo-nao-encontrado" };
+      }
+
+      this.ensureManualEditGuard(input);
+
+      const hasHero = this.isHeroEnabledInRallyForm();
+      let suggested = hasHero ? withHeroSuggestion : withoutHeroSuggestion;
+
+      if (!Number.isFinite(suggested) || suggested <= 0) {
+        suggested = Math.max(withHeroSuggestion, withoutHeroSuggestion, 0);
+      }
+
+      suggested = Math.round(Number(suggested || 0));
+      if (!Number.isFinite(suggested) || suggested <= 0) {
+        return { applied: false, value: 0, reason: "sem-valor-sugerido" };
+      }
+
+      const stamp =
+        rallyCoord +
+        "|" +
+        selectedTribe +
+        "|" +
+        selectedTroopType +
+        "|" +
+        String(suggested);
+
+      const currentRaw = String(input.value || "").trim();
+      const current = Number(currentRaw || 0);
+      const wasAutoFilled = input.dataset.nytrinaPrefilled === "1";
+      const previousStamp = String(input.dataset.nytrinaPrefillStamp || "");
+
+      const shouldFill =
+        !currentRaw ||
+        current <= 0 ||
+        (wasAutoFilled && previousStamp !== stamp);
+
+      if (!shouldFill) {
+        return { applied: false, value: suggested, reason: "mantido-manual" };
+      }
+
+      input.dataset.nytrinaApplying = "1";
+      input.value = String(suggested);
+      input.dataset.nytrinaPrefilled = "1";
+      input.dataset.nytrinaPrefillStamp = stamp;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+      input.dataset.nytrinaApplying = "0";
+
+      return { applied: true, value: suggested, reason: "preenchido" };
+    }
+
+    /**
      * @param {Array<any>} cachedSuggestions
      * @param {string} selectedTribe
      * @param {string} selectedTroopType
@@ -3913,11 +4133,7 @@
 
       // Na tela de envio, fixa a leitura no alvo informado (x|y) para evitar
       // que tooltip/hover de outro oásis troque a sugestão exibida.
-      if (
-        rallyCoord &&
-        parsed?.coord &&
-        String(parsed.coord) !== String(rallyCoord)
-      ) {
+      if (rallyCoord && String(parsed?.coord || "") !== String(rallyCoord)) {
         parsed = null;
       }
 
@@ -4223,6 +4439,14 @@
       );
       const displayTime =
         parsed?.time || (sameProfileCache ? cachedSuggestion?.time : null) || "-";
+
+      this.autoFillTroopSuggestedValue({
+        rallyCoord,
+        selectedTribe,
+        selectedTroopType,
+        withHeroSuggestion,
+        withoutHeroSuggestion,
+      });
 
       const lockedTargetDisplay = rallyCoord
         ? '<div class="card" style="background: #3d5a2a; border-color: #6b9f35;"><span>Alvo travado</span><b>' + rallyCoord + '</b></div>'
