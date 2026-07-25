@@ -111,13 +111,45 @@
     );
   }
 
-  function targetCasualtyRateForTroop(unitCost) {
+  function targetCasualtyRateForTroop(unitCost, tribe, troopType) {
     const safeUnitCost = Number(unitCost || 0);
+    const safeTribe = String(tribe || "");
+    const safeTroopType = String(troopType || "");
+
+    // Teutões no farm constante tendem a sofrer quando a taxa sobe demais.
+    // Define alvos mais rígidos para preservar lucro líquido por envio.
+    if (safeTribe === "teutons") {
+      if (safeTroopType === "teutonic_knight") return 0.032;
+      if (safeTroopType === "paladin") return 0.042;
+      if (safeTroopType === "clubman") return 0.052;
+      return 0.05;
+    }
 
     if (safeUnitCost >= 1800) return 0.03;
     if (safeUnitCost >= 1200) return 0.04;
     if (safeUnitCost >= 700) return 0.055;
-    return 0.07;
+    return 0.065;
+  }
+
+  function teutonProfitShieldMultiplier({
+    tribe,
+    casualtyRate,
+    sampleCount,
+    confidenceScore,
+  }) {
+    const safeTribe = String(tribe || "");
+    if (safeTribe !== "teutons") return 1;
+
+    const safeCasualtyRate = clamp(Number(casualtyRate || 0), 0, 1);
+    const samples = Number(sampleCount || 0);
+    const safeConfidence = clamp(Number(confidenceScore || 0), 0, 1);
+
+    if (samples < 4) return 1;
+    if (safeCasualtyRate >= 0.14) return 1.2;
+    if (safeCasualtyRate >= 0.1) return 1.14;
+    if (safeCasualtyRate >= 0.075) return 1.08;
+    if (safeCasualtyRate >= 0.06 && safeConfidence < 0.8) return 1.04;
+    return 1;
   }
 
   function preservationMultiplier({
@@ -132,22 +164,29 @@
     if (safeCasualtyRate <= 0) return 1;
 
     const unitCost = troopUnitTotalCost(tribe, troopType);
-    const targetRate = targetCasualtyRateForTroop(unitCost);
+    const targetRate = targetCasualtyRateForTroop(unitCost, tribe, troopType);
 
     if (safeCasualtyRate <= targetRate) return 1;
 
     const ratio = safeCasualtyRate / Math.max(targetRate, 0.01);
     
-    // Teutonic Knights (u16) e Paladins recebem penalidade levemente reduzida
-    const isEliteTroop = troopType === "teutonic_knight" || troopType === "paladin";
-    
-    // Com confiança alta, penalidade é um pouco menor (dados reais já comprovam risco)
-    const confidenceDampener = 
+    let confidenceDampener =
       Number(sampleCount || 0) >= 20 && Number(confidenceScore || 0) >= 0.8
-        ? isEliteTroop ? 0.76 : 0.78   // Elite: -2pts, Regular: mantém
+        ? 0.78
         : Number(sampleCount || 0) >= 10 && Number(confidenceScore || 0) >= 0.6
-          ? isEliteTroop ? 0.84 : 0.86  // Elite: -2pts, Regular: mantém
+          ? 0.86
           : 0.92;
+
+    // Para Teutões, quando a taxa de perda sobe, pesa mais a preservação.
+    if (String(tribe || "") === "teutons") {
+      confidenceDampener += Number(sampleCount || 0) >= 10 ? 0.03 : 0.02;
+    }
+
+    if (safeCasualtyRate >= 0.12) {
+      confidenceDampener += 0.05;
+    }
+
+    confidenceDampener = clamp(confidenceDampener, 0.7, 1.02);
 
     return Math.max(1, Math.pow(ratio, confidenceDampener));
   }
@@ -1058,8 +1097,14 @@
       confidenceScore: confidence.score,
       sampleCount,
     });
+    const profitShieldMultiplier = teutonProfitShieldMultiplier({
+      tribe,
+      casualtyRate: Number(calibration.avgCasualtyRate || 0),
+      sampleCount,
+      confidenceScore: confidence.score,
+    });
     const preservationSafetyMultiplier = Math.min(
-      rawPreservationSafetyMultiplier,
+      rawPreservationSafetyMultiplier * profitShieldMultiplier,
       preservationMultiplierCap(theoretical),
     );
     const safetyMultiplier =
