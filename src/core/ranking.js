@@ -18,7 +18,7 @@
         bonus: row.bonus,
         scanDate: row.scanDate
       }))
-      .sort((a, b) => (b.xph || 0) - (a.xph || 0));
+      .sort((a, b) => (b.xp || 0) - (a.xp || 0));
   }
 
   root.Ranking = {

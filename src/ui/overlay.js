@@ -1497,11 +1497,11 @@
       const oasis = await this.storage.getAll(root.Constants.STORES.OASIS);
       const ranking = root.Ranking.buildRanking(oasis);
 
-      const rankByXph = (xph) => {
-        const value = Number(xph || 0);
-        if (value >= 60)
+      const rankByXp = (xp) => {
+        const value = Number(xp || 0);
+        if (value >= 300)
           return { text: "★★★★★ 🟢 Vale muito", cls: "rank-good" };
-        if (value >= 30) return { text: "★★★☆☆ 🟡 Medio", cls: "rank-mid" };
+        if (value >= 120) return { text: "★★★☆☆ 🟡 Medio", cls: "rank-mid" };
         return { text: "★☆☆☆☆ 🔴 Fraco", cls: "rank-bad" };
       };
 
@@ -1518,7 +1518,7 @@
         "<table><thead><tr><th>Nota</th><th>Coord</th><th>Dist</th><th>XP</th><th>XP/h</th><th>Tempo</th></tr></thead><tbody>",
         ranking
           .map((row) => {
-            const rank = rankByXph(row.xph);
+            const rank = rankByXp(row.xp);
             return (
               '<tr><td class="' +
               rank.cls +

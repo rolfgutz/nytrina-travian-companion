@@ -155,11 +155,37 @@
   function preservationMultiplierCap(theoreticalTroops) {
     const troops = Number(theoreticalTroops || 0);
 
-    if (troops <= 40) return 1.35;
-    if (troops <= 70) return 1.6;
-    if (troops <= 110) return 1.95;
-    if (troops <= 170) return 2.35;
-    return 2.8;
+    if (troops <= 40) return 1.2;
+    if (troops <= 70) return 1.35;
+    if (troops <= 110) return 1.55;
+    if (troops <= 170) return 1.8;
+    return 2.05;
+  }
+
+  function totalSafetyCapByTroop({
+    tribe,
+    troopType,
+    confidenceScore,
+    sampleCount,
+  }) {
+    const unitCost = troopUnitTotalCost(tribe, troopType);
+    const score = clamp(Number(confidenceScore || 0), 0, 1);
+    const samples = Number(sampleCount || 0);
+
+    // Tropa barata (ex.: salteador) recebe teto menor para reduzir oversend
+    // e melhorar retorno líquido em farm de oásis.
+    let cap = 1.45;
+    if (unitCost >= 1800) cap = 2.2;
+    else if (unitCost >= 1200) cap = 1.95;
+    else if (unitCost >= 700) cap = 1.75;
+
+    if (samples >= 20 && score >= 0.8) {
+      cap += 0.1;
+    } else if (samples >= 10 && score >= 0.6) {
+      cap += 0.05;
+    }
+
+    return cap;
   }
 
   function nonClearSafetyMultiplier(killRate, casualtyRate) {
@@ -1062,10 +1088,20 @@
       rawPreservationSafetyMultiplier,
       preservationMultiplierCap(theoretical),
     );
-    const safetyMultiplier =
+    const rawSafetyMultiplier =
       baseSafetyMultiplier *
       operationalExtraMultiplier *
       preservationSafetyMultiplier;
+    const maxTotalSafetyMultiplier = totalSafetyCapByTroop({
+      tribe,
+      troopType,
+      confidenceScore: confidence.score,
+      sampleCount,
+    });
+    const safetyMultiplier = Math.min(
+      rawSafetyMultiplier,
+      maxTotalSafetyMultiplier,
+    );
     const troopsWithSafety = Math.ceil(baseTroops * safetyMultiplier);
 
     let source = "Cálculo ajustado pelo aprendizado";
