@@ -103,6 +103,57 @@
   margin-top: 2px;
 }
 
+#nytrina-overlay .scanner-essential-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+#nytrina-overlay .scanner-card-highlight {
+  border-color: #c9892a;
+  background: linear-gradient(180deg, #322010, #28190d);
+}
+
+#nytrina-overlay .scanner-context-line {
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 7px;
+  border: 1px solid #6e4518;
+  background: #1e130a;
+  color: #e6cda3;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+#nytrina-overlay .scanner-advanced {
+  margin-top: 8px;
+  border: 1px solid #6e4518;
+  border-radius: 7px;
+  background: #1a1109;
+}
+
+#nytrina-overlay .scanner-advanced summary {
+  cursor: pointer;
+  padding: 8px;
+  color: #ffd79b;
+  font-weight: bold;
+  list-style: none;
+}
+
+#nytrina-overlay .scanner-advanced summary::-webkit-details-marker {
+  display: none;
+}
+
+#nytrina-overlay .scanner-advanced[open] summary {
+  border-bottom: 1px solid #6e4518;
+}
+
+#nytrina-overlay .scanner-advanced .scanner-summary {
+  padding: 8px;
+  margin-top: 0;
+}
+
 #nytrina-overlay .card {
   background: #28190d;
   border: 1px solid #6e4518;
@@ -365,4 +416,10 @@
 
 #nytrina-toggle-minimize {
   min-width: 92px;
+}
+
+@media (max-width: 700px) {
+  #nytrina-overlay .scanner-essential-grid {
+    grid-template-columns: 1fr;
+  }
 }

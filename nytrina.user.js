@@ -1,7 +1,7 @@
 (function attachStylesNamespace(global) {
   'use strict';
   const root = (global.NytrinA = global.NytrinA || {});
-  root.UI_STYLES = "#nytrina-overlay {\r\n  position: fixed;\r\n  top: 70px;\r\n  right: 16px;\r\n  width: 520px;\r\n  max-width: calc(100vw - 24px);\r\n  max-height: 88vh;\r\n  overflow: auto;\r\n  z-index: 999999;\r\n  background: linear-gradient(180deg, #1a130e, #100c08);\r\n  color: #f7ebd7;\r\n  border: 2px solid #b97822;\r\n  border-radius: 12px;\r\n  box-shadow: 0 0 24px rgba(0, 0, 0, 0.8);\r\n  font-family: Verdana, sans-serif;\r\n  font-size: 13px;\r\n}\r\n\r\n#nytrina-overlay * {\r\n  box-sizing: border-box;\r\n}\r\n\r\n#nytrina-overlay .head {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  align-items: center;\r\n  padding: 10px 12px;\r\n  background: #25170d;\r\n  border-bottom: 1px solid #6e4518;\r\n  cursor: grab;\r\n  user-select: none;\r\n}\r\n\r\n#nytrina-overlay.dragging .head {\r\n  cursor: grabbing;\r\n}\r\n\r\n#nytrina-overlay .tabs {\r\n  display: grid;\r\n  grid-template-columns: repeat(7, minmax(0, 1fr));\r\n  gap: 4px;\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .tab {\r\n  background: #23170d;\r\n  color: #d8bc91;\r\n  border: 1px solid #7a4c1a;\r\n  border-radius: 6px;\r\n  padding: 6px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay .tab.active {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border-color: #c9892a;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .panel {\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .hidden {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay .grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .scanner-controls {\r\n  background: #342114;\r\n  border: 1px solid #8b5a22;\r\n  border-radius: 10px;\r\n  padding: 10px;\r\n  margin-bottom: 10px;\r\n  box-shadow: inset 0 0 0 1px rgba(255, 223, 168, 0.06);\r\n}\r\n\r\n#nytrina-overlay .scanner-actions {\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .scanner-actions button {\r\n  flex: 1 1 150px;\r\n}\r\n\r\n#nytrina-overlay .scanner-actions .hint {\r\n  flex: 1 1 100%;\r\n  color: #f2d7aa;\r\n  font-size: 12px;\r\n  padding-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-summary {\r\n  margin-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .card {\r\n  background: #28190d;\r\n  border: 1px solid #6e4518;\r\n  border-radius: 7px;\r\n  padding: 8px;\r\n}\r\n\r\n#nytrina-overlay .card span {\r\n  display: block;\r\n  font-size: 11px;\r\n  color: #d0ad7b;\r\n  margin-bottom: 3px;\r\n}\r\n\r\n#nytrina-overlay .card b {\r\n  color: #fff;\r\n}\r\n\r\n#nytrina-overlay table {\r\n  width: 100%;\r\n  border-collapse: collapse;\r\n  margin-top: 8px;\r\n  background: #120b06;\r\n}\r\n\r\n#nytrina-overlay th,\r\n#nytrina-overlay td {\r\n  border: 1px solid #6f461c;\r\n  padding: 6px;\r\n  text-align: left;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay th {\r\n  background: #3a230f;\r\n  color: #ffe0ad;\r\n}\r\n\r\n#nytrina-overlay td {\r\n  background: #1d1209;\r\n}\r\n\r\n#nytrina-overlay .actions {\r\n  display: flex;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay button {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border: 1px solid #c9892a;\r\n  border-radius: 7px;\r\n  padding: 6px 10px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay label {\r\n  display: block;\r\n  margin-top: 8px;\r\n  color: #ffd79b;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay input,\r\n#nytrina-overlay select {\r\n  width: 100%;\r\n  height: 34px;\r\n  margin-top: 4px;\r\n  padding: 6px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8b5a22;\r\n  background: #23170d;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop,\r\n#nytrina-overlay #nytrina-setting-troop {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n  border-color: #c9a16a;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop option,\r\n#nytrina-overlay #nytrina-setting-troop option,\r\n#nytrina-overlay #nytrina-scanner-troop optgroup,\r\n#nytrina-overlay #nytrina-setting-troop optgroup {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n}\r\n\r\n#nytrina-overlay,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll,\r\n#nytrina-overlay .debug-json {\r\n  scrollbar-width: thin;\r\n  scrollbar-color: #b97822 #1a120a;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar {\r\n  width: 10px;\r\n  height: 10px;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-track,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-track,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-track {\r\n  background: #1a120a;\r\n  border-radius: 10px;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-thumb,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-thumb,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-thumb {\r\n  background: linear-gradient(180deg, #c9892a, #8a5318);\r\n  border-radius: 10px;\r\n  border: 2px solid #1a120a;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-thumb:hover,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-thumb:hover,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-thumb:hover {\r\n  background: linear-gradient(180deg, #e3a63e, #a86620);\r\n}\r\n\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll {\r\n  overflow: auto;\r\n  max-height: 52vh;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  margin-top: 8px;\r\n}\r\n\r\n#nytrina-overlay .debug-table {\r\n  table-layout: fixed;\r\n  min-width: 1080px;\r\n  margin-top: 0;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay .debug-table th,\r\n#nytrina-overlay .debug-table td {\r\n  white-space: nowrap;\r\n  overflow: hidden;\r\n  text-overflow: ellipsis;\r\n  padding: 5px 6px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-troop {\r\n  max-width: 150px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-result {\r\n  max-width: 140px;\r\n}\r\n\r\n#nytrina-overlay .debug-table th:first-child,\r\n#nytrina-overlay .debug-table td:first-child {\r\n  white-space: normal;\r\n  min-width: 128px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-datetime {\r\n  display: inline-block;\r\n  line-height: 1.2;\r\n  word-break: break-word;\r\n}\r\n\r\n#nytrina-overlay input[type='checkbox'] {\r\n  width: 16px;\r\n  height: 16px;\r\n  margin-top: 0;\r\n  margin-right: 6px;\r\n  vertical-align: middle;\r\n}\r\n\r\n#nytrina-overlay .check-row {\r\n  display: flex;\r\n  align-items: center;\r\n  color: #ffd79b;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .form-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .stack {\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .server-badge {\r\n  margin-bottom: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8a5a24;\r\n  background: #1b120a;\r\n  color: #ffd79b;\r\n}\r\n\r\n#nytrina-overlay .server-warning {\r\n  display: none;\r\n  margin-top: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #c9892a;\r\n  background: #3a230f;\r\n  color: #ffd26a;\r\n}\r\n\r\n#nytrina-overlay .server-warning.show {\r\n  display: block;\r\n}\r\n\r\n#nytrina-overlay .rank-good {\r\n  color: #72ff72;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-mid {\r\n  color: #ffd26a;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-bad {\r\n  color: #ff7d7d;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .debug-json {\r\n  white-space: pre-wrap;\r\n  background: #120b06;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  padding: 8px;\r\n  font-family: Consolas, monospace;\r\n  max-height: 360px;\r\n  overflow: auto;\r\n}\r\n\r\n#nytrina-overlay input[type=\"checkbox\"] {\r\n    appearance: checkbox !important;\r\n    -webkit-appearance: checkbox !important;\r\n    accent-color: #c9892a;\r\n    width: 16px !important;\r\n    height: 16px !important;\r\n    cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay.minimized .tabs {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay.minimized .panel {\r\n  display: none;\r\n}\r\n\r\n#nytrina-toggle-minimize {\r\n  min-width: 92px;\r\n}";
+  root.UI_STYLES = "#nytrina-overlay {\r\n  position: fixed;\r\n  top: 70px;\r\n  right: 16px;\r\n  width: 520px;\r\n  max-width: calc(100vw - 24px);\r\n  max-height: 88vh;\r\n  overflow: auto;\r\n  z-index: 999999;\r\n  background: linear-gradient(180deg, #1a130e, #100c08);\r\n  color: #f7ebd7;\r\n  border: 2px solid #b97822;\r\n  border-radius: 12px;\r\n  box-shadow: 0 0 24px rgba(0, 0, 0, 0.8);\r\n  font-family: Verdana, sans-serif;\r\n  font-size: 13px;\r\n}\r\n\r\n#nytrina-overlay * {\r\n  box-sizing: border-box;\r\n}\r\n\r\n#nytrina-overlay .head {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  align-items: center;\r\n  padding: 10px 12px;\r\n  background: #25170d;\r\n  border-bottom: 1px solid #6e4518;\r\n  cursor: grab;\r\n  user-select: none;\r\n}\r\n\r\n#nytrina-overlay.dragging .head {\r\n  cursor: grabbing;\r\n}\r\n\r\n#nytrina-overlay .tabs {\r\n  display: grid;\r\n  grid-template-columns: repeat(7, minmax(0, 1fr));\r\n  gap: 4px;\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .tab {\r\n  background: #23170d;\r\n  color: #d8bc91;\r\n  border: 1px solid #7a4c1a;\r\n  border-radius: 6px;\r\n  padding: 6px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay .tab.active {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border-color: #c9892a;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .panel {\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .hidden {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay .grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .scanner-controls {\r\n  background: #342114;\r\n  border: 1px solid #8b5a22;\r\n  border-radius: 10px;\r\n  padding: 10px;\r\n  margin-bottom: 10px;\r\n  box-shadow: inset 0 0 0 1px rgba(255, 223, 168, 0.06);\r\n}\r\n\r\n#nytrina-overlay .scanner-actions {\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .scanner-actions button {\r\n  flex: 1 1 150px;\r\n}\r\n\r\n#nytrina-overlay .scanner-actions .hint {\r\n  flex: 1 1 100%;\r\n  color: #f2d7aa;\r\n  font-size: 12px;\r\n  padding-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-summary {\r\n  margin-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-essential-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n  margin-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-card-highlight {\r\n  border-color: #c9892a;\r\n  background: linear-gradient(180deg, #322010, #28190d);\r\n}\r\n\r\n#nytrina-overlay .scanner-context-line {\r\n  margin-top: 8px;\r\n  padding: 8px;\r\n  border-radius: 7px;\r\n  border: 1px solid #6e4518;\r\n  background: #1e130a;\r\n  color: #e6cda3;\r\n  font-size: 12px;\r\n  line-height: 1.4;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced {\r\n  margin-top: 8px;\r\n  border: 1px solid #6e4518;\r\n  border-radius: 7px;\r\n  background: #1a1109;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced summary {\r\n  cursor: pointer;\r\n  padding: 8px;\r\n  color: #ffd79b;\r\n  font-weight: bold;\r\n  list-style: none;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced summary::-webkit-details-marker {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced[open] summary {\r\n  border-bottom: 1px solid #6e4518;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced .scanner-summary {\r\n  padding: 8px;\r\n  margin-top: 0;\r\n}\r\n\r\n#nytrina-overlay .card {\r\n  background: #28190d;\r\n  border: 1px solid #6e4518;\r\n  border-radius: 7px;\r\n  padding: 8px;\r\n}\r\n\r\n#nytrina-overlay .card span {\r\n  display: block;\r\n  font-size: 11px;\r\n  color: #d0ad7b;\r\n  margin-bottom: 3px;\r\n}\r\n\r\n#nytrina-overlay .card b {\r\n  color: #fff;\r\n}\r\n\r\n#nytrina-overlay table {\r\n  width: 100%;\r\n  border-collapse: collapse;\r\n  margin-top: 8px;\r\n  background: #120b06;\r\n}\r\n\r\n#nytrina-overlay th,\r\n#nytrina-overlay td {\r\n  border: 1px solid #6f461c;\r\n  padding: 6px;\r\n  text-align: left;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay th {\r\n  background: #3a230f;\r\n  color: #ffe0ad;\r\n}\r\n\r\n#nytrina-overlay td {\r\n  background: #1d1209;\r\n}\r\n\r\n#nytrina-overlay .actions {\r\n  display: flex;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay button {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border: 1px solid #c9892a;\r\n  border-radius: 7px;\r\n  padding: 6px 10px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay label {\r\n  display: block;\r\n  margin-top: 8px;\r\n  color: #ffd79b;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay input,\r\n#nytrina-overlay select {\r\n  width: 100%;\r\n  height: 34px;\r\n  margin-top: 4px;\r\n  padding: 6px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8b5a22;\r\n  background: #23170d;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop,\r\n#nytrina-overlay #nytrina-setting-troop {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n  border-color: #c9a16a;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop option,\r\n#nytrina-overlay #nytrina-setting-troop option,\r\n#nytrina-overlay #nytrina-scanner-troop optgroup,\r\n#nytrina-overlay #nytrina-setting-troop optgroup {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n}\r\n\r\n#nytrina-overlay,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll,\r\n#nytrina-overlay .debug-json {\r\n  scrollbar-width: thin;\r\n  scrollbar-color: #b97822 #1a120a;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar {\r\n  width: 10px;\r\n  height: 10px;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-track,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-track,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-track {\r\n  background: #1a120a;\r\n  border-radius: 10px;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-thumb,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-thumb,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-thumb {\r\n  background: linear-gradient(180deg, #c9892a, #8a5318);\r\n  border-radius: 10px;\r\n  border: 2px solid #1a120a;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-thumb:hover,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-thumb:hover,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-thumb:hover {\r\n  background: linear-gradient(180deg, #e3a63e, #a86620);\r\n}\r\n\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll {\r\n  overflow: auto;\r\n  max-height: 52vh;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  margin-top: 8px;\r\n}\r\n\r\n#nytrina-overlay .debug-table {\r\n  table-layout: fixed;\r\n  min-width: 1080px;\r\n  margin-top: 0;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay .debug-table th,\r\n#nytrina-overlay .debug-table td {\r\n  white-space: nowrap;\r\n  overflow: hidden;\r\n  text-overflow: ellipsis;\r\n  padding: 5px 6px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-troop {\r\n  max-width: 150px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-result {\r\n  max-width: 140px;\r\n}\r\n\r\n#nytrina-overlay .debug-table th:first-child,\r\n#nytrina-overlay .debug-table td:first-child {\r\n  white-space: normal;\r\n  min-width: 128px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-datetime {\r\n  display: inline-block;\r\n  line-height: 1.2;\r\n  word-break: break-word;\r\n}\r\n\r\n#nytrina-overlay input[type='checkbox'] {\r\n  width: 16px;\r\n  height: 16px;\r\n  margin-top: 0;\r\n  margin-right: 6px;\r\n  vertical-align: middle;\r\n}\r\n\r\n#nytrina-overlay .check-row {\r\n  display: flex;\r\n  align-items: center;\r\n  color: #ffd79b;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .form-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .stack {\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .server-badge {\r\n  margin-bottom: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8a5a24;\r\n  background: #1b120a;\r\n  color: #ffd79b;\r\n}\r\n\r\n#nytrina-overlay .server-warning {\r\n  display: none;\r\n  margin-top: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #c9892a;\r\n  background: #3a230f;\r\n  color: #ffd26a;\r\n}\r\n\r\n#nytrina-overlay .server-warning.show {\r\n  display: block;\r\n}\r\n\r\n#nytrina-overlay .rank-good {\r\n  color: #72ff72;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-mid {\r\n  color: #ffd26a;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-bad {\r\n  color: #ff7d7d;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .debug-json {\r\n  white-space: pre-wrap;\r\n  background: #120b06;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  padding: 8px;\r\n  font-family: Consolas, monospace;\r\n  max-height: 360px;\r\n  overflow: auto;\r\n}\r\n\r\n#nytrina-overlay input[type=\"checkbox\"] {\r\n    appearance: checkbox !important;\r\n    -webkit-appearance: checkbox !important;\r\n    accent-color: #c9892a;\r\n    width: 16px !important;\r\n    height: 16px !important;\r\n    cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay.minimized .tabs {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay.minimized .panel {\r\n  display: none;\r\n}\r\n\r\n#nytrina-toggle-minimize {\r\n  min-width: 92px;\r\n}\r\n\r\n@media (max-width: 700px) {\r\n  #nytrina-overlay .scanner-essential-grid {\r\n    grid-template-columns: 1fr;\r\n  }\r\n}";
 })(window);
 
 
@@ -2006,13 +2006,45 @@
     );
   }
 
-  function targetCasualtyRateForTroop(unitCost) {
+  function targetCasualtyRateForTroop(unitCost, tribe, troopType) {
     const safeUnitCost = Number(unitCost || 0);
+    const safeTribe = String(tribe || "");
+    const safeTroopType = String(troopType || "");
+
+    // Teutões no farm constante tendem a sofrer quando a taxa sobe demais.
+    // Define alvos mais rígidos para preservar lucro líquido por envio.
+    if (safeTribe === "teutons") {
+      if (safeTroopType === "teutonic_knight") return 0.032;
+      if (safeTroopType === "paladin") return 0.042;
+      if (safeTroopType === "clubman") return 0.052;
+      return 0.05;
+    }
 
     if (safeUnitCost >= 1800) return 0.03;
     if (safeUnitCost >= 1200) return 0.04;
     if (safeUnitCost >= 700) return 0.055;
-    return 0.07;
+    return 0.065;
+  }
+
+  function teutonProfitShieldMultiplier({
+    tribe,
+    casualtyRate,
+    sampleCount,
+    confidenceScore,
+  }) {
+    const safeTribe = String(tribe || "");
+    if (safeTribe !== "teutons") return 1;
+
+    const safeCasualtyRate = clamp(Number(casualtyRate || 0), 0, 1);
+    const samples = Number(sampleCount || 0);
+    const safeConfidence = clamp(Number(confidenceScore || 0), 0, 1);
+
+    if (samples < 4) return 1;
+    if (safeCasualtyRate >= 0.14) return 1.2;
+    if (safeCasualtyRate >= 0.1) return 1.14;
+    if (safeCasualtyRate >= 0.075) return 1.08;
+    if (safeCasualtyRate >= 0.06 && safeConfidence < 0.8) return 1.04;
+    return 1;
   }
 
   function preservationMultiplier({
@@ -2027,22 +2059,29 @@
     if (safeCasualtyRate <= 0) return 1;
 
     const unitCost = troopUnitTotalCost(tribe, troopType);
-    const targetRate = targetCasualtyRateForTroop(unitCost);
+    const targetRate = targetCasualtyRateForTroop(unitCost, tribe, troopType);
 
     if (safeCasualtyRate <= targetRate) return 1;
 
     const ratio = safeCasualtyRate / Math.max(targetRate, 0.01);
     
-    // Teutonic Knights (u16) e Paladins recebem penalidade levemente reduzida
-    const isEliteTroop = troopType === "teutonic_knight" || troopType === "paladin";
-    
-    // Com confiança alta, penalidade é um pouco menor (dados reais já comprovam risco)
-    const confidenceDampener = 
+    let confidenceDampener =
       Number(sampleCount || 0) >= 20 && Number(confidenceScore || 0) >= 0.8
-        ? isEliteTroop ? 0.76 : 0.78   // Elite: -2pts, Regular: mantém
+        ? 0.78
         : Number(sampleCount || 0) >= 10 && Number(confidenceScore || 0) >= 0.6
-          ? isEliteTroop ? 0.84 : 0.86  // Elite: -2pts, Regular: mantém
+          ? 0.86
           : 0.92;
+
+    // Para Teutões, quando a taxa de perda sobe, pesa mais a preservação.
+    if (String(tribe || "") === "teutons") {
+      confidenceDampener += Number(sampleCount || 0) >= 10 ? 0.03 : 0.02;
+    }
+
+    if (safeCasualtyRate >= 0.12) {
+      confidenceDampener += 0.05;
+    }
+
+    confidenceDampener = clamp(confidenceDampener, 0.7, 1.02);
 
     return Math.max(1, Math.pow(ratio, confidenceDampener));
   }
@@ -2081,6 +2120,24 @@
     }
 
     return cap;
+  }
+
+  function economicSafetyMultiplier(calibration, troopType) {
+    const losses = Number(calibration?.sumLosses || 0);
+    const profit = Number(calibration?.sumProfit || 0);
+    const samples = Number(calibration?.samples || 0);
+
+    if (samples < 5 || losses <= 0) return 1;
+
+    const roi = profit / losses;
+    const cheapTroop = ["clubman", "legionnaire", "phalanx"].includes(
+      String(troopType || ""),
+    );
+
+    if (roi < 0) return cheapTroop ? 0.8 : 0.86;
+    if (roi < 0.25) return cheapTroop ? 0.88 : 0.92;
+    if (roi < 0.5) return cheapTroop ? 0.94 : 0.97;
+    return 1;
   }
 
   function nonClearSafetyMultiplier(killRate, casualtyRate) {
@@ -2546,6 +2603,9 @@
       troopsWoundedCount: Number(report.troopsWoundedCount || 0),
       troopsCasualtiesCount,
       totalAnimalsRemaining: remaining,
+      totalResources: Number(report.totalResources || 0),
+      lossCost: Number(report.lossCost || 0),
+      profit: Number(report.profit || 0),
     });
 
     console.log("CALIBRAÇÃO ATUALIZADA", calibration);
@@ -2675,6 +2735,10 @@
 
       sumKillRate: 0,
       sumCasualtyRate: 0,
+      sumResources: 0,
+      sumLosses: 0,
+      sumProfit: 0,
+      negativeProfitSamples: 0,
 
       minClearTroops: 0,
       minPerfectTroops: 0,
@@ -2698,6 +2762,12 @@
     );
     calibration.sumKillRate = Number(calibration.sumKillRate || 0);
     calibration.sumCasualtyRate = Number(calibration.sumCasualtyRate || 0);
+    calibration.sumResources = Number(calibration.sumResources || 0);
+    calibration.sumLosses = Number(calibration.sumLosses || 0);
+    calibration.sumProfit = Number(calibration.sumProfit || 0);
+    calibration.negativeProfitSamples = Number(
+      calibration.negativeProfitSamples || 0,
+    );
     calibration.minClearTroops = Number(calibration.minClearTroops || 0);
     calibration.minPerfectTroops = Number(calibration.minPerfectTroops || 0);
     calibration.maxFailedTroops = Number(calibration.maxFailedTroops || 0);
@@ -2761,6 +2831,9 @@
     troopsWoundedCount,
     troopsCasualtiesCount,
     totalAnimalsRemaining,
+    totalResources,
+    lossCost,
+    profit,
   }) {
     if (!storage || !troopType || sent <= 0 || killRate <= 0) {
       return null;
@@ -2806,6 +2879,13 @@
     calibration.samples += 1;
     calibration.sumKillRate += clamp(killRate, 0, 1);
     calibration.sumCasualtyRate += clamp(casualtyRate, 0, 1);
+    calibration.sumResources += Number(totalResources || 0);
+    calibration.sumLosses += Number(lossCost || 0);
+    calibration.sumProfit += Number(profit || 0);
+
+    if (Number(profit || 0) < 0) {
+      calibration.negativeProfitSamples += 1;
+    }
 
     if (cleared) {
       calibration.successSamples += 1;
@@ -2851,6 +2931,9 @@
       remaining,
       cleared,
       outcome,
+      totalResources: Number(totalResources || 0),
+      lossCost: Number(lossCost || 0),
+      profit: Number(profit || 0),
       requiredSafe: Math.ceil(requiredSafe),
       date: new Date().toISOString(),
     };
@@ -2979,14 +3062,21 @@
       confidenceScore: confidence.score,
       sampleCount,
     });
+    const profitShieldMultiplier = teutonProfitShieldMultiplier({
+      tribe,
+      casualtyRate: Number(calibration.avgCasualtyRate || 0),
+      sampleCount,
+      confidenceScore: confidence.score,
+    });
     const preservationSafetyMultiplier = Math.min(
-      rawPreservationSafetyMultiplier,
+      rawPreservationSafetyMultiplier * profitShieldMultiplier,
       preservationMultiplierCap(theoretical),
     );
     const rawSafetyMultiplier =
       baseSafetyMultiplier *
       operationalExtraMultiplier *
       preservationSafetyMultiplier;
+    const economicMultiplier = economicSafetyMultiplier(calibration, troopType);
     const maxTotalSafetyMultiplier = totalSafetyCapByTroop({
       tribe,
       troopType,
@@ -2994,7 +3084,7 @@
       sampleCount,
     });
     const safetyMultiplier = Math.min(
-      rawSafetyMultiplier,
+      Math.max(1, rawSafetyMultiplier * economicMultiplier),
       maxTotalSafetyMultiplier,
     );
     const troopsWithSafety = Math.ceil(baseTroops * safetyMultiplier);
@@ -3017,6 +3107,12 @@
       learnedFloorApplied: Boolean(canUseHardFloor && learnedFloor > 0),
       confidenceSafetyMultiplier: safetyMultiplier,
       preservationSafetyMultiplier,
+      economicSafetyMultiplier: economicMultiplier,
+      economicRoi:
+        Number(calibration.sumLosses || 0) > 0
+          ? Number(calibration.sumProfit || 0) /
+            Number(calibration.sumLosses || 1)
+          : 0,
     };
   }
 
@@ -4488,6 +4584,12 @@
         ? '<div class="card" style="background: #3d5a2a; border-color: #6b9f35;"><span>Alvo travado</span><b>' + rallyCoord + '</b></div>'
         : '';
 
+      const compactSuggestion =
+        "Sem herói: " +
+        withoutHeroSuggestion +
+        " | Com herói: " +
+        withHeroSuggestion;
+
       node.innerHTML = [
         '<div class="scanner-controls">',
         lockedTargetDisplay,
@@ -4516,32 +4618,48 @@
           "</span>",
         "</div>",
         "</div>",
-        '<div class="grid scanner-summary">',
-        '<div class="card"><span>Coord</span><b>' +
+        '<div class="scanner-essential-grid">',
+        '<div class="card scanner-card-highlight"><span>Alvo</span><b>' +
           displayCoord +
           "</b></div>",
-        '<div class="card"><span>Distancia</span><b>' +
-          displayDistance +
+        '<div class="card scanner-card-highlight"><span>Sugestão rápida</span><b>' +
+          compactSuggestion +
           "</b></div>",
         '<div class="card"><span>XP</span><b>' +
           displayXp +
           "</b></div>",
-        '<div class="card"><span>XP/h</span><b>' +
+        '<div class="card"><span>Avaliação IA</span><b>' +
+          suggestionStars +
+          "</b></div>",
+        '<div class="card"><span>Confiança</span><b>' +
+          suggestionConfidence +
+          "</b></div>",
+        '<div class="card"><span>Fonte</span><b>' +
+          suggestionSource +
+          "</b></div>",
+        '<div class="card"><span>Baseado em</span><b>' +
+          suggestionBasedOn +
+          " batalha(s) semelhantes</b></div>",
+        "</div>",
+        '<div class="scanner-context-line">' +
+          "Dist: " +
+          displayDistance +
+          " | XP/h: " +
           formatScannerXph(displayXph) +
-          "</b></div>",
-        '<div class="card"><span>Tempo ida</span><b>' +
+          " | Tempo ida: " +
           displayTime +
-          "</b></div>",
-        '<div class="card"><span>Velocidade</span><b>' +
+          " | Velocidade: " +
           Number(settings.effectiveSpeed || 14) +
-          " campos/h</b></div>",
-        '<div class="card"><span>Servidor</span><b>' +
+          " campos/h" +
+          " | Servidor: " +
           server.host +
-          "</b></div>",
-        '<div class="card"><span>Multiplicador</span><b>x' +
+          " (x" +
           server.speed +
-          "</b></div>",
-        '<div class="card"><span>Sugestão</span><b>' +
+          ")" +
+          "</div>",
+        '<details class="scanner-advanced"><summary>Ver diagnóstico detalhado</summary>',
+        '<div class="grid scanner-summary">',
+        '<div class="card"><span>Sugestão completa</span><b>' +
           suggestionText +
           "</b></div>",
         '<div class="card"><span>Com herói</span><b>' +
@@ -4550,25 +4668,13 @@
         '<div class="card"><span>Sem herói</span><b>' +
           withoutHeroSuggestion +
           "</b></div>",
-        '<div class="card"><span>Fonte</span><b>' +
-          suggestionSource +
-          "</b></div>",
-        '<div class="card"><span>Avaliação</span><b>' +
-          suggestionStars +
-          "</b></div>",
-        '<div class="card"><span>Confiança</span><b>' +
-          suggestionConfidence +
-          "</b></div>",
         '<div class="card"><span>Fator aprendido</span><b>' +
           learnedFactorText +
           "</b></div>",
         '<div class="card"><span>Margem confiança</span><b>' +
           confidenceSafetyText +
           "</b></div>",
-        '<div class="card"><span>Baseado em</span><b>' +
-          suggestionBasedOn +
-          " batalha(s) semelhantes</b></div>",
-        "</div>",
+        '</div></details>',
       ].join("");
 
       const scannerTroop = node.querySelector("#nytrina-scanner-troop");

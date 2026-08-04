@@ -227,6 +227,24 @@
     return cap;
   }
 
+  function economicSafetyMultiplier(calibration, troopType) {
+    const losses = Number(calibration?.sumLosses || 0);
+    const profit = Number(calibration?.sumProfit || 0);
+    const samples = Number(calibration?.samples || 0);
+
+    if (samples < 5 || losses <= 0) return 1;
+
+    const roi = profit / losses;
+    const cheapTroop = ["clubman", "legionnaire", "phalanx"].includes(
+      String(troopType || ""),
+    );
+
+    if (roi < 0) return cheapTroop ? 0.8 : 0.86;
+    if (roi < 0.25) return cheapTroop ? 0.88 : 0.92;
+    if (roi < 0.5) return cheapTroop ? 0.94 : 0.97;
+    return 1;
+  }
+
   function nonClearSafetyMultiplier(killRate, casualtyRate) {
     const safeKillRate = clamp(Number(killRate || 0), 0, 1);
     const safeCasualtyRate = clamp(Number(casualtyRate || 0), 0, 1);
@@ -690,6 +708,9 @@
       troopsWoundedCount: Number(report.troopsWoundedCount || 0),
       troopsCasualtiesCount,
       totalAnimalsRemaining: remaining,
+      totalResources: Number(report.totalResources || 0),
+      lossCost: Number(report.lossCost || 0),
+      profit: Number(report.profit || 0),
     });
 
     console.log("CALIBRAÇÃO ATUALIZADA", calibration);
@@ -819,6 +840,10 @@
 
       sumKillRate: 0,
       sumCasualtyRate: 0,
+      sumResources: 0,
+      sumLosses: 0,
+      sumProfit: 0,
+      negativeProfitSamples: 0,
 
       minClearTroops: 0,
       minPerfectTroops: 0,
@@ -842,6 +867,12 @@
     );
     calibration.sumKillRate = Number(calibration.sumKillRate || 0);
     calibration.sumCasualtyRate = Number(calibration.sumCasualtyRate || 0);
+    calibration.sumResources = Number(calibration.sumResources || 0);
+    calibration.sumLosses = Number(calibration.sumLosses || 0);
+    calibration.sumProfit = Number(calibration.sumProfit || 0);
+    calibration.negativeProfitSamples = Number(
+      calibration.negativeProfitSamples || 0,
+    );
     calibration.minClearTroops = Number(calibration.minClearTroops || 0);
     calibration.minPerfectTroops = Number(calibration.minPerfectTroops || 0);
     calibration.maxFailedTroops = Number(calibration.maxFailedTroops || 0);
@@ -905,6 +936,9 @@
     troopsWoundedCount,
     troopsCasualtiesCount,
     totalAnimalsRemaining,
+    totalResources,
+    lossCost,
+    profit,
   }) {
     if (!storage || !troopType || sent <= 0 || killRate <= 0) {
       return null;
@@ -950,6 +984,13 @@
     calibration.samples += 1;
     calibration.sumKillRate += clamp(killRate, 0, 1);
     calibration.sumCasualtyRate += clamp(casualtyRate, 0, 1);
+    calibration.sumResources += Number(totalResources || 0);
+    calibration.sumLosses += Number(lossCost || 0);
+    calibration.sumProfit += Number(profit || 0);
+
+    if (Number(profit || 0) < 0) {
+      calibration.negativeProfitSamples += 1;
+    }
 
     if (cleared) {
       calibration.successSamples += 1;
@@ -995,6 +1036,9 @@
       remaining,
       cleared,
       outcome,
+      totalResources: Number(totalResources || 0),
+      lossCost: Number(lossCost || 0),
+      profit: Number(profit || 0),
       requiredSafe: Math.ceil(requiredSafe),
       date: new Date().toISOString(),
     };
@@ -1137,6 +1181,7 @@
       baseSafetyMultiplier *
       operationalExtraMultiplier *
       preservationSafetyMultiplier;
+    const economicMultiplier = economicSafetyMultiplier(calibration, troopType);
     const maxTotalSafetyMultiplier = totalSafetyCapByTroop({
       tribe,
       troopType,
@@ -1144,7 +1189,7 @@
       sampleCount,
     });
     const safetyMultiplier = Math.min(
-      rawSafetyMultiplier,
+      Math.max(1, rawSafetyMultiplier * economicMultiplier),
       maxTotalSafetyMultiplier,
     );
     const troopsWithSafety = Math.ceil(baseTroops * safetyMultiplier);
@@ -1167,6 +1212,12 @@
       learnedFloorApplied: Boolean(canUseHardFloor && learnedFloor > 0),
       confidenceSafetyMultiplier: safetyMultiplier,
       preservationSafetyMultiplier,
+      economicSafetyMultiplier: economicMultiplier,
+      economicRoi:
+        Number(calibration.sumLosses || 0) > 0
+          ? Number(calibration.sumProfit || 0) /
+            Number(calibration.sumLosses || 1)
+          : 0,
     };
   }
 

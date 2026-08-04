@@ -1243,6 +1243,12 @@
         ? '<div class="card" style="background: #3d5a2a; border-color: #6b9f35;"><span>Alvo travado</span><b>' + rallyCoord + '</b></div>'
         : '';
 
+      const compactSuggestion =
+        "Sem herói: " +
+        withoutHeroSuggestion +
+        " | Com herói: " +
+        withHeroSuggestion;
+
       node.innerHTML = [
         '<div class="scanner-controls">',
         lockedTargetDisplay,
@@ -1271,32 +1277,48 @@
           "</span>",
         "</div>",
         "</div>",
-        '<div class="grid scanner-summary">',
-        '<div class="card"><span>Coord</span><b>' +
+        '<div class="scanner-essential-grid">',
+        '<div class="card scanner-card-highlight"><span>Alvo</span><b>' +
           displayCoord +
           "</b></div>",
-        '<div class="card"><span>Distancia</span><b>' +
-          displayDistance +
+        '<div class="card scanner-card-highlight"><span>Sugestão rápida</span><b>' +
+          compactSuggestion +
           "</b></div>",
         '<div class="card"><span>XP</span><b>' +
           displayXp +
           "</b></div>",
-        '<div class="card"><span>XP/h</span><b>' +
+        '<div class="card"><span>Avaliação IA</span><b>' +
+          suggestionStars +
+          "</b></div>",
+        '<div class="card"><span>Confiança</span><b>' +
+          suggestionConfidence +
+          "</b></div>",
+        '<div class="card"><span>Fonte</span><b>' +
+          suggestionSource +
+          "</b></div>",
+        '<div class="card"><span>Baseado em</span><b>' +
+          suggestionBasedOn +
+          " batalha(s) semelhantes</b></div>",
+        "</div>",
+        '<div class="scanner-context-line">' +
+          "Dist: " +
+          displayDistance +
+          " | XP/h: " +
           formatScannerXph(displayXph) +
-          "</b></div>",
-        '<div class="card"><span>Tempo ida</span><b>' +
+          " | Tempo ida: " +
           displayTime +
-          "</b></div>",
-        '<div class="card"><span>Velocidade</span><b>' +
+          " | Velocidade: " +
           Number(settings.effectiveSpeed || 14) +
-          " campos/h</b></div>",
-        '<div class="card"><span>Servidor</span><b>' +
+          " campos/h" +
+          " | Servidor: " +
           server.host +
-          "</b></div>",
-        '<div class="card"><span>Multiplicador</span><b>x' +
+          " (x" +
           server.speed +
-          "</b></div>",
-        '<div class="card"><span>Sugestão</span><b>' +
+          ")" +
+          "</div>",
+        '<details class="scanner-advanced"><summary>Ver diagnóstico detalhado</summary>',
+        '<div class="grid scanner-summary">',
+        '<div class="card"><span>Sugestão completa</span><b>' +
           suggestionText +
           "</b></div>",
         '<div class="card"><span>Com herói</span><b>' +
@@ -1305,25 +1327,13 @@
         '<div class="card"><span>Sem herói</span><b>' +
           withoutHeroSuggestion +
           "</b></div>",
-        '<div class="card"><span>Fonte</span><b>' +
-          suggestionSource +
-          "</b></div>",
-        '<div class="card"><span>Avaliação</span><b>' +
-          suggestionStars +
-          "</b></div>",
-        '<div class="card"><span>Confiança</span><b>' +
-          suggestionConfidence +
-          "</b></div>",
         '<div class="card"><span>Fator aprendido</span><b>' +
           learnedFactorText +
           "</b></div>",
         '<div class="card"><span>Margem confiança</span><b>' +
           confidenceSafetyText +
           "</b></div>",
-        '<div class="card"><span>Baseado em</span><b>' +
-          suggestionBasedOn +
-          " batalha(s) semelhantes</b></div>",
-        "</div>",
+        '</div></details>',
       ].join("");
 
       const scannerTroop = node.querySelector("#nytrina-scanner-troop");
