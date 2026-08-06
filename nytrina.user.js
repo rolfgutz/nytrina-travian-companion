@@ -2134,9 +2134,11 @@
       String(troopType || ""),
     );
 
-    if (roi < 0) return cheapTroop ? 0.8 : 0.86;
-    if (roi < 0.25) return cheapTroop ? 0.88 : 0.92;
-    if (roi < 0.5) return cheapTroop ? 0.94 : 0.97;
+    // ROI ruim deve aumentar proteção (menos mortes), não derrubar envio.
+    // O ajuste anterior podia reduzir demais e provocar ciclo de baixas.
+    if (roi < 0) return cheapTroop ? 1.08 : 1.12;
+    if (roi < 0.25) return cheapTroop ? 1.05 : 1.08;
+    if (roi < 0.5) return cheapTroop ? 1.02 : 1.04;
     return 1;
   }
 
