@@ -1,7 +1,7 @@
 (function attachStylesNamespace(global) {
   'use strict';
   const root = (global.NytrinA = global.NytrinA || {});
-  root.UI_STYLES = "#nytrina-overlay {\r\n  position: fixed;\r\n  top: 70px;\r\n  right: 16px;\r\n  width: 520px;\r\n  max-width: calc(100vw - 24px);\r\n  max-height: 88vh;\r\n  overflow: auto;\r\n  z-index: 999999;\r\n  background: linear-gradient(180deg, #1a130e, #100c08);\r\n  color: #f7ebd7;\r\n  border: 2px solid #b97822;\r\n  border-radius: 12px;\r\n  box-shadow: 0 0 24px rgba(0, 0, 0, 0.8);\r\n  font-family: Verdana, sans-serif;\r\n  font-size: 13px;\r\n}\r\n\r\n#nytrina-overlay * {\r\n  box-sizing: border-box;\r\n}\r\n\r\n#nytrina-overlay .head {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  align-items: center;\r\n  padding: 10px 12px;\r\n  background: #25170d;\r\n  border-bottom: 1px solid #6e4518;\r\n  cursor: grab;\r\n  user-select: none;\r\n}\r\n\r\n#nytrina-overlay.dragging .head {\r\n  cursor: grabbing;\r\n}\r\n\r\n#nytrina-overlay .tabs {\r\n  display: grid;\r\n  grid-template-columns: repeat(7, minmax(0, 1fr));\r\n  gap: 4px;\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .tab {\r\n  background: #23170d;\r\n  color: #d8bc91;\r\n  border: 1px solid #7a4c1a;\r\n  border-radius: 6px;\r\n  padding: 6px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay .tab.active {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border-color: #c9892a;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .panel {\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .hidden {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay .grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .scanner-controls {\r\n  background: #342114;\r\n  border: 1px solid #8b5a22;\r\n  border-radius: 10px;\r\n  padding: 10px;\r\n  margin-bottom: 10px;\r\n  box-shadow: inset 0 0 0 1px rgba(255, 223, 168, 0.06);\r\n}\r\n\r\n#nytrina-overlay .scanner-actions {\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .scanner-actions button {\r\n  flex: 1 1 150px;\r\n}\r\n\r\n#nytrina-overlay .scanner-actions .hint {\r\n  flex: 1 1 100%;\r\n  color: #f2d7aa;\r\n  font-size: 12px;\r\n  padding-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-summary {\r\n  margin-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-essential-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n  margin-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-card-highlight {\r\n  border-color: #c9892a;\r\n  background: linear-gradient(180deg, #322010, #28190d);\r\n}\r\n\r\n#nytrina-overlay .scanner-context-line {\r\n  margin-top: 8px;\r\n  padding: 8px;\r\n  border-radius: 7px;\r\n  border: 1px solid #6e4518;\r\n  background: #1e130a;\r\n  color: #e6cda3;\r\n  font-size: 12px;\r\n  line-height: 1.4;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced {\r\n  margin-top: 8px;\r\n  border: 1px solid #6e4518;\r\n  border-radius: 7px;\r\n  background: #1a1109;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced summary {\r\n  cursor: pointer;\r\n  padding: 8px;\r\n  color: #ffd79b;\r\n  font-weight: bold;\r\n  list-style: none;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced summary::-webkit-details-marker {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced[open] summary {\r\n  border-bottom: 1px solid #6e4518;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced .scanner-summary {\r\n  padding: 8px;\r\n  margin-top: 0;\r\n}\r\n\r\n#nytrina-overlay .card {\r\n  background: #28190d;\r\n  border: 1px solid #6e4518;\r\n  border-radius: 7px;\r\n  padding: 8px;\r\n}\r\n\r\n#nytrina-overlay .card span {\r\n  display: block;\r\n  font-size: 11px;\r\n  color: #d0ad7b;\r\n  margin-bottom: 3px;\r\n}\r\n\r\n#nytrina-overlay .card b {\r\n  color: #fff;\r\n}\r\n\r\n#nytrina-overlay table {\r\n  width: 100%;\r\n  border-collapse: collapse;\r\n  margin-top: 8px;\r\n  background: #120b06;\r\n}\r\n\r\n#nytrina-overlay th,\r\n#nytrina-overlay td {\r\n  border: 1px solid #6f461c;\r\n  padding: 6px;\r\n  text-align: left;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay th {\r\n  background: #3a230f;\r\n  color: #ffe0ad;\r\n}\r\n\r\n#nytrina-overlay td {\r\n  background: #1d1209;\r\n}\r\n\r\n#nytrina-overlay .actions {\r\n  display: flex;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay button {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border: 1px solid #c9892a;\r\n  border-radius: 7px;\r\n  padding: 6px 10px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay label {\r\n  display: block;\r\n  margin-top: 8px;\r\n  color: #ffd79b;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay input,\r\n#nytrina-overlay select {\r\n  width: 100%;\r\n  height: 34px;\r\n  margin-top: 4px;\r\n  padding: 6px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8b5a22;\r\n  background: #23170d;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop,\r\n#nytrina-overlay #nytrina-setting-troop {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n  border-color: #c9a16a;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop option,\r\n#nytrina-overlay #nytrina-setting-troop option,\r\n#nytrina-overlay #nytrina-scanner-troop optgroup,\r\n#nytrina-overlay #nytrina-setting-troop optgroup {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n}\r\n\r\n#nytrina-overlay,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll,\r\n#nytrina-overlay .debug-json {\r\n  scrollbar-width: thin;\r\n  scrollbar-color: #b97822 #1a120a;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar {\r\n  width: 10px;\r\n  height: 10px;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-track,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-track,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-track {\r\n  background: #1a120a;\r\n  border-radius: 10px;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-thumb,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-thumb,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-thumb {\r\n  background: linear-gradient(180deg, #c9892a, #8a5318);\r\n  border-radius: 10px;\r\n  border: 2px solid #1a120a;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-thumb:hover,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-thumb:hover,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-thumb:hover {\r\n  background: linear-gradient(180deg, #e3a63e, #a86620);\r\n}\r\n\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll {\r\n  overflow: auto;\r\n  max-height: 52vh;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  margin-top: 8px;\r\n}\r\n\r\n#nytrina-overlay .debug-table {\r\n  table-layout: fixed;\r\n  min-width: 1080px;\r\n  margin-top: 0;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay .debug-table th,\r\n#nytrina-overlay .debug-table td {\r\n  white-space: nowrap;\r\n  overflow: hidden;\r\n  text-overflow: ellipsis;\r\n  padding: 5px 6px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-troop {\r\n  max-width: 150px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-result {\r\n  max-width: 140px;\r\n}\r\n\r\n#nytrina-overlay .debug-table th:first-child,\r\n#nytrina-overlay .debug-table td:first-child {\r\n  white-space: normal;\r\n  min-width: 128px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-datetime {\r\n  display: inline-block;\r\n  line-height: 1.2;\r\n  word-break: break-word;\r\n}\r\n\r\n#nytrina-overlay input[type='checkbox'] {\r\n  width: 16px;\r\n  height: 16px;\r\n  margin-top: 0;\r\n  margin-right: 6px;\r\n  vertical-align: middle;\r\n}\r\n\r\n#nytrina-overlay .check-row {\r\n  display: flex;\r\n  align-items: center;\r\n  color: #ffd79b;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .form-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .stack {\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .server-badge {\r\n  margin-bottom: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8a5a24;\r\n  background: #1b120a;\r\n  color: #ffd79b;\r\n}\r\n\r\n#nytrina-overlay .server-warning {\r\n  display: none;\r\n  margin-top: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #c9892a;\r\n  background: #3a230f;\r\n  color: #ffd26a;\r\n}\r\n\r\n#nytrina-overlay .server-warning.show {\r\n  display: block;\r\n}\r\n\r\n#nytrina-overlay .rank-good {\r\n  color: #72ff72;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-mid {\r\n  color: #ffd26a;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-bad {\r\n  color: #ff7d7d;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .debug-json {\r\n  white-space: pre-wrap;\r\n  background: #120b06;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  padding: 8px;\r\n  font-family: Consolas, monospace;\r\n  max-height: 360px;\r\n  overflow: auto;\r\n}\r\n\r\n#nytrina-overlay input[type=\"checkbox\"] {\r\n    appearance: checkbox !important;\r\n    -webkit-appearance: checkbox !important;\r\n    accent-color: #c9892a;\r\n    width: 16px !important;\r\n    height: 16px !important;\r\n    cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay.minimized .tabs {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay.minimized .panel {\r\n  display: none;\r\n}\r\n\r\n#nytrina-toggle-minimize {\r\n  min-width: 92px;\r\n}\r\n\r\n@media (max-width: 700px) {\r\n  #nytrina-overlay .scanner-essential-grid {\r\n    grid-template-columns: 1fr;\r\n  }\r\n}";
+  root.UI_STYLES = "#nytrina-overlay {\r\n  position: fixed;\r\n  top: 70px;\r\n  right: 16px;\r\n  width: 520px;\r\n  max-width: calc(100vw - 24px);\r\n  max-height: 88vh;\r\n  overflow: auto;\r\n  z-index: 999999;\r\n  background: linear-gradient(180deg, #1a130e, #100c08);\r\n  color: #f7ebd7;\r\n  border: 2px solid #b97822;\r\n  border-radius: 12px;\r\n  box-shadow: 0 0 24px rgba(0, 0, 0, 0.8);\r\n  font-family: Verdana, sans-serif;\r\n  font-size: 13px;\r\n}\r\n\r\n#nytrina-overlay * {\r\n  box-sizing: border-box;\r\n}\r\n\r\n#nytrina-overlay .head {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  align-items: center;\r\n  padding: 10px 12px;\r\n  background: #25170d;\r\n  border-bottom: 1px solid #6e4518;\r\n  cursor: grab;\r\n  user-select: none;\r\n}\r\n\r\n#nytrina-overlay.dragging .head {\r\n  cursor: grabbing;\r\n}\r\n\r\n#nytrina-overlay .tabs {\r\n  display: grid;\r\n  grid-template-columns: repeat(8, minmax(0, 1fr));\r\n  gap: 4px;\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .planner-steps-scroll {\r\n  max-height: 420px;\r\n  overflow: auto;\r\n}\r\n\r\n#nytrina-overlay .tab {\r\n  background: #23170d;\r\n  color: #d8bc91;\r\n  border: 1px solid #7a4c1a;\r\n  border-radius: 6px;\r\n  padding: 6px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay .tab.active {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border-color: #c9892a;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .panel {\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .hidden {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay .grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .scanner-controls {\r\n  background: #342114;\r\n  border: 1px solid #8b5a22;\r\n  border-radius: 10px;\r\n  padding: 10px;\r\n  margin-bottom: 10px;\r\n  box-shadow: inset 0 0 0 1px rgba(255, 223, 168, 0.06);\r\n}\r\n\r\n#nytrina-overlay .scanner-actions {\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .scanner-actions button {\r\n  flex: 1 1 150px;\r\n}\r\n\r\n#nytrina-overlay .scanner-actions .hint {\r\n  flex: 1 1 100%;\r\n  color: #f2d7aa;\r\n  font-size: 12px;\r\n  padding-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-summary {\r\n  margin-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-essential-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n  margin-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-card-highlight {\r\n  border-color: #c9892a;\r\n  background: linear-gradient(180deg, #322010, #28190d);\r\n}\r\n\r\n#nytrina-overlay .scanner-context-line {\r\n  margin-top: 8px;\r\n  padding: 8px;\r\n  border-radius: 7px;\r\n  border: 1px solid #6e4518;\r\n  background: #1e130a;\r\n  color: #e6cda3;\r\n  font-size: 12px;\r\n  line-height: 1.4;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced {\r\n  margin-top: 8px;\r\n  border: 1px solid #6e4518;\r\n  border-radius: 7px;\r\n  background: #1a1109;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced summary {\r\n  cursor: pointer;\r\n  padding: 8px;\r\n  color: #ffd79b;\r\n  font-weight: bold;\r\n  list-style: none;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced summary::-webkit-details-marker {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced[open] summary {\r\n  border-bottom: 1px solid #6e4518;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced .scanner-summary {\r\n  padding: 8px;\r\n  margin-top: 0;\r\n}\r\n\r\n#nytrina-overlay .card {\r\n  background: #28190d;\r\n  border: 1px solid #6e4518;\r\n  border-radius: 7px;\r\n  padding: 8px;\r\n}\r\n\r\n#nytrina-overlay .card span {\r\n  display: block;\r\n  font-size: 11px;\r\n  color: #d0ad7b;\r\n  margin-bottom: 3px;\r\n}\r\n\r\n#nytrina-overlay .card b {\r\n  color: #fff;\r\n}\r\n\r\n#nytrina-overlay table {\r\n  width: 100%;\r\n  border-collapse: collapse;\r\n  margin-top: 8px;\r\n  background: #120b06;\r\n}\r\n\r\n#nytrina-overlay th,\r\n#nytrina-overlay td {\r\n  border: 1px solid #6f461c;\r\n  padding: 6px;\r\n  text-align: left;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay th {\r\n  background: #3a230f;\r\n  color: #ffe0ad;\r\n}\r\n\r\n#nytrina-overlay td {\r\n  background: #1d1209;\r\n}\r\n\r\n#nytrina-overlay .actions {\r\n  display: flex;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay button {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border: 1px solid #c9892a;\r\n  border-radius: 7px;\r\n  padding: 6px 10px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay label {\r\n  display: block;\r\n  margin-top: 8px;\r\n  color: #ffd79b;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay input,\r\n#nytrina-overlay select {\r\n  width: 100%;\r\n  height: 34px;\r\n  margin-top: 4px;\r\n  padding: 6px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8b5a22;\r\n  background: #23170d;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop,\r\n#nytrina-overlay #nytrina-setting-troop {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n  border-color: #c9a16a;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop option,\r\n#nytrina-overlay #nytrina-setting-troop option,\r\n#nytrina-overlay #nytrina-scanner-troop optgroup,\r\n#nytrina-overlay #nytrina-setting-troop optgroup {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n}\r\n\r\n#nytrina-overlay,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll,\r\n#nytrina-overlay .debug-json {\r\n  scrollbar-width: thin;\r\n  scrollbar-color: #b97822 #1a120a;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar {\r\n  width: 10px;\r\n  height: 10px;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-track,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-track,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-track {\r\n  background: #1a120a;\r\n  border-radius: 10px;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-thumb,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-thumb,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-thumb {\r\n  background: linear-gradient(180deg, #c9892a, #8a5318);\r\n  border-radius: 10px;\r\n  border: 2px solid #1a120a;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-thumb:hover,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-thumb:hover,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-thumb:hover {\r\n  background: linear-gradient(180deg, #e3a63e, #a86620);\r\n}\r\n\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll {\r\n  overflow: auto;\r\n  max-height: 52vh;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  margin-top: 8px;\r\n}\r\n\r\n#nytrina-overlay .debug-table {\r\n  table-layout: fixed;\r\n  min-width: 1080px;\r\n  margin-top: 0;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay .debug-table th,\r\n#nytrina-overlay .debug-table td {\r\n  white-space: nowrap;\r\n  overflow: hidden;\r\n  text-overflow: ellipsis;\r\n  padding: 5px 6px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-troop {\r\n  max-width: 150px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-result {\r\n  max-width: 140px;\r\n}\r\n\r\n#nytrina-overlay .debug-table th:first-child,\r\n#nytrina-overlay .debug-table td:first-child {\r\n  white-space: normal;\r\n  min-width: 128px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-datetime {\r\n  display: inline-block;\r\n  line-height: 1.2;\r\n  word-break: break-word;\r\n}\r\n\r\n#nytrina-overlay input[type='checkbox'] {\r\n  width: 16px;\r\n  height: 16px;\r\n  margin-top: 0;\r\n  margin-right: 6px;\r\n  vertical-align: middle;\r\n}\r\n\r\n#nytrina-overlay .check-row {\r\n  display: flex;\r\n  align-items: center;\r\n  color: #ffd79b;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .form-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .stack {\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .server-badge {\r\n  margin-bottom: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8a5a24;\r\n  background: #1b120a;\r\n  color: #ffd79b;\r\n}\r\n\r\n#nytrina-overlay .server-warning {\r\n  display: none;\r\n  margin-top: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #c9892a;\r\n  background: #3a230f;\r\n  color: #ffd26a;\r\n}\r\n\r\n#nytrina-overlay .server-warning.show {\r\n  display: block;\r\n}\r\n\r\n#nytrina-overlay .rank-good {\r\n  color: #72ff72;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-mid {\r\n  color: #ffd26a;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-bad {\r\n  color: #ff7d7d;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .debug-json {\r\n  white-space: pre-wrap;\r\n  background: #120b06;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  padding: 8px;\r\n  font-family: Consolas, monospace;\r\n  max-height: 360px;\r\n  overflow: auto;\r\n}\r\n\r\n#nytrina-overlay input[type=\"checkbox\"] {\r\n    appearance: checkbox !important;\r\n    -webkit-appearance: checkbox !important;\r\n    accent-color: #c9892a;\r\n    width: 16px !important;\r\n    height: 16px !important;\r\n    cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay.minimized .tabs {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay.minimized .panel {\r\n  display: none;\r\n}\r\n\r\n#nytrina-toggle-minimize {\r\n  min-width: 92px;\r\n}\r\n\r\n@media (max-width: 700px) {\r\n  #nytrina-overlay .scanner-essential-grid {\r\n    grid-template-columns: 1fr;\r\n  }\r\n}";
 })(window);
 
 
@@ -194,6 +194,8 @@
       teutonic_knight: 9
     },
     gauls: {
+      phalanx: 14,
+      swordsman: 12,
       theutates_thunder: 19,
       druidrider: 16,
       haeduan: 13
@@ -3418,6 +3420,7 @@
         '<button class="tab' + (activeTab === "ranking" ? " active" : "") + '" data-tab="ranking">Ranking</button>',
         '<button class="tab' + (activeTab === "reports" ? " active" : "") + '" data-tab="reports">Relatorios</button>',
         '<button class="tab' + (activeTab === "economy" ? " active" : "") + '" data-tab="economy">Economia</button>',
+        '<button class="tab' + (activeTab === "planner" ? " active" : "") + '" data-tab="planner">Planner</button>',
         '<button class="tab' + (activeTab === "settings" ? " active" : "") + '" data-tab="settings">Configuracoes</button>',
         "</div>",
         '<div class="panel' + (activeTab === "scanner" ? "" : " hidden") + '" data-panel="scanner"></div>',
@@ -3426,8 +3429,152 @@
         '<div class="panel' + (activeTab === "ranking" ? "" : " hidden") + '" data-panel="ranking"></div>',
         '<div class="panel' + (activeTab === "reports" ? "" : " hidden") + '" data-panel="reports"></div>',
         '<div class="panel' + (activeTab === "economy" ? "" : " hidden") + '" data-panel="economy"></div>',
+        '<div class="panel' + (activeTab === "planner" ? "" : " hidden") + '" data-panel="planner"></div>',
         '<div class="panel' + (activeTab === "settings" ? "" : " hidden") + '" data-panel="settings"></div>',
       ].join("");
+    }
+
+    /**
+     * @returns {Array<{id:number,day:string,action:string,type:string}>}
+     */
+    plannerGuideSteps() {
+      return [
+        { id: 1, day: "Dia 1", action: "Enviar heroi para aventura mais proxima", type: "Heroi", note: "Pegar cavalo/XP inicial. Marcar opcao de nao mostrar ajuda." },
+        { id: 2, day: "Dia 1", action: "Um recurso de cada para nivel 2", type: "Recursos", note: "Base inicial de producao." },
+        { id: 3, day: "Dia 1", action: "Armazem nivel 1", type: "Construcao", note: "Evita travar por limite de recursos." },
+        { id: 4, day: "Dia 1", action: "Celeiro nivel 1", type: "Construcao", note: "Evita travar por cereal." },
+        { id: 5, day: "Dia 1", action: "Embaixada nivel 1", type: "Construcao", note: "Necessaria no rush e pontos de cultura." },
+        { id: 6, day: "Dia 1", action: "Esconderijo nivel 3", type: "Defesa", note: "Protecao inicial." },
+        { id: 7, day: "Dia 1", action: "Edificio Principal nivel 3", type: "Construcao", note: "Acelera construcao." },
+        { id: 8, day: "Dia 1", action: "Muralha nivel 3", type: "Defesa", note: "Pode ajudar com missao/XP heroi." },
+        { id: 9, day: "Dia 1", action: "Mercado nivel 3", type: "Economia", note: "Ajuda gestao de recursos." },
+        { id: 10, day: "Dia 1", action: "Todos os campos de cereal nivel 2", type: "Recursos", note: "Producao base." },
+        { id: 11, day: "Dia 1", action: "Todos os campos de barro nivel 2", type: "Recursos", note: "Producao base." },
+        { id: 12, day: "Dia 1", action: "Todos os campos de madeira nivel 2", type: "Recursos", note: "Producao base." },
+        { id: 13, day: "Dia 1", action: "Todos os campos de ferro nivel 2", type: "Recursos", note: "Producao base." },
+        { id: 14, day: "Dia 1", action: "1 campo de cereal nivel 4", type: "Recursos", note: "Puxar producao e missoes." },
+        { id: 15, day: "Dia 1", action: "1 campo de barro nivel 4", type: "Recursos", note: "Puxar producao." },
+        { id: 16, day: "Dia 1", action: "1 campo de madeira nivel 4", type: "Recursos", note: "Puxar producao." },
+        { id: 17, day: "Dia 1", action: "1 campo de ferro nivel 4", type: "Recursos", note: "Puxar producao." },
+        { id: 18, day: "Dia 1", action: "Quartel nivel 1", type: "Militar", note: "Libera tropas." },
+        { id: 19, day: "Dia 1", action: "Edificio Principal nivel 7", type: "Construcao", note: "Preparacao para acelerar rush." },
+        { id: 20, day: "Dia 1", action: "Armazem nivel 3", type: "Construcao", note: "Capacidade." },
+        { id: 21, day: "Dia 1", action: "Celeiro nivel 3", type: "Construcao", note: "Capacidade." },
+        { id: 22, day: "Dia 1", action: "Todos os campos de barro nivel 3", type: "Recursos", note: "Producao." },
+        { id: 23, day: "Dia 1", action: "Todos os campos de madeira nivel 3", type: "Recursos", note: "Producao." },
+        { id: 24, day: "Dia 1", action: "Todos os campos de ferro nivel 3", type: "Recursos", note: "Producao." },
+        { id: 25, day: "Dia 1", action: "1 campo de cereal nivel 3", type: "Recursos", note: "Garantir cereal para seguir." },
+        { id: 26, day: "Dia 1", action: "Quartel nivel 3", type: "Militar", note: "Importante se for produzir infantaria/farm." },
+        { id: 27, day: "Dia 1", action: "Academia nivel 1", type: "Militar", note: "Pre-requisito." },
+        { id: 28, day: "Dia 1", action: "Todos os campos de cereal nivel 3", type: "Recursos", note: "Producao." },
+        { id: 29, day: "Dia 1", action: "Esconderijo nivel 10", type: "Defesa", note: "Protecao." },
+        { id: 30, day: "Dia 1", action: "Mercado nivel 7", type: "Economia", note: "Gestao forte de recursos." },
+        { id: 31, day: "Dia 1", action: "8 esconderijos nivel 3", type: "Defesa", note: "Seguir apenas se necessario." },
+        { id: 32, day: "Dia 1", action: "Ferraria nivel 1", type: "Militar", note: "Pre-requisito." },
+        { id: 33, day: "Dia 1", action: "Edificio Principal nivel 8", type: "Construcao", note: "Preparacao." },
+        { id: 34, day: "Dia 1", action: "Academia nivel 2", type: "Militar", note: "Preparacao." },
+        { id: 35, day: "Dia 1", action: "Residencia nivel 1", type: "Colonizacao", note: "Comeco do caminho para colonos." },
+        { id: 36, day: "Dia 1", action: "Todos os recursos nivel 4", type: "Recursos", note: "Barro, madeira, ferro e cereal." },
+        { id: 37, day: "Dia 1", action: "Edificio Principal nivel 10", type: "Construcao", note: "Acelera muito o restante." },
+        { id: 38, day: "Dia 1", action: "Embaixada nivel 3", type: "Cultura", note: "PC e pre-requisitos." },
+        { id: 39, day: "Dia 1", action: "Academia nivel 3", type: "Militar", note: "Preparacao." },
+        { id: 40, day: "Dia 1", action: "Edificio Principal nivel 12", type: "Construcao", note: "Aceleracao." },
+        { id: 41, day: "Dia 1", action: "Academia nivel 10", type: "Colonizacao", note: "Pre-requisito chave." },
+        { id: 42, day: "Dia 1", action: "Oficina nivel 1", type: "Construcao", note: "Pre-requisito da Casa do Povo." },
+        { id: 43, day: "Dia 1", action: "Casa do Povo nivel 1", type: "Cultura", note: "Libera celebracoes." },
+        { id: 44, day: "Dia 1", action: "1 campo de cereal nivel 5", type: "Recursos", note: "Ajuda producao." },
+        { id: 45, day: "Dia 1", action: "8 esconderijos nivel 7", type: "Defesa", note: "Opcional/defensivo." },
+        { id: 46, day: "Dia 1", action: "Embaixada nivel 5", type: "Cultura", note: "PC." },
+        { id: 47, day: "Dia 1", action: "1 campo de cereal nivel 5", type: "Recursos", note: "Reforco de cereal." },
+        { id: 48, day: "Dia 1", action: "Todos os campos de barro nivel 5", type: "Recursos", note: "Producao forte." },
+        { id: 49, day: "Dia 1", action: "Resto dos campos de cereal nivel 5", type: "Recursos", note: "Producao." },
+        { id: 50, day: "Dia 1", action: "Todos os campos de madeira nivel 5", type: "Recursos", note: "Producao." },
+        { id: 51, day: "Dia 1", action: "Todos os campos de ferro nivel 5", type: "Recursos", note: "Producao." },
+        { id: 52, day: "Dia 1", action: "Armazem nivel 8", type: "Construcao", note: "Capacidade para custos altos." },
+        { id: 53, day: "Dia 1", action: "1a festa", type: "Cultura", note: "Pode ser antes/depois conforme recursos." },
+        { id: 54, day: "Dia 1", action: "Mercado nivel 12", type: "Economia", note: "Gestao de recursos." },
+        { id: 55, day: "Dia 1", action: "Celeiro nivel 7", type: "Construcao", note: "Capacidade." },
+        { id: 56, day: "Dia 2", action: "Embaixada nivel 9", type: "Cultura", note: "PC." },
+        { id: 57, day: "Dia 2", action: "Residencia nivel 7", type: "Colonizacao", note: "Desbloqueia meta de habitantes." },
+        { id: 58, day: "Dia 2", action: "Muralha nivel 7", type: "Defesa", note: "Opcional, so se precisar de XP/objetivo." },
+        { id: 59, day: "Dia 2", action: "Residencia nivel 8", type: "Colonizacao", note: "Rumo ao nivel 10." },
+        { id: 60, day: "Dia 2", action: "2a festa ou 1a festa se for estrategia de 3", type: "Cultura", note: "Por volta de 41h-43h." },
+        { id: 61, day: "Dia 3", action: "Residencia nivel 10", type: "Colonizacao", note: "Libera colonizadores." },
+        { id: 62, day: "Dia 3", action: "Treinar 1o colono", type: "Colonizacao", note: "Nao parar fila dos colonos." },
+        { id: 63, day: "Dia 3", action: "3a festa ou 2a festa se for estrategia de 3", type: "Cultura", note: "Ajustar conforme PC." },
+        { id: 64, day: "Dia 4", action: "Treinar 2 colonos restantes", type: "Colonizacao", note: "Completar 3 colonos." },
+        { id: 65, day: "Dia 4", action: "4a festa ou 3a festa", type: "Cultura", note: "Fechar PC se faltar." },
+        { id: 66, day: "Dia 4", action: "Fundar 2a aldeia", type: "Colonizacao", note: "Meta: 90h a 110h." },
+      ];
+    }
+
+    /**
+     * @param {string} value
+     * @returns {string}
+     */
+    escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    /**
+     * @param {any} state
+     * @param {string} serverHost
+     * @returns {{activeVillageId:string,villages:Array<{id:string,name:string,completedSteps:Record<string, boolean>}>}}
+     */
+    normalizePlannerState(state, serverHost) {
+      const villages = Array.isArray(state?.villages)
+        ? state.villages
+            .map((v) => ({
+              id: String(v?.id || ""),
+              name: String(v?.name || "").trim() || "Aldeia",
+              completedSteps:
+                v && typeof v.completedSteps === "object" && v.completedSteps
+                  ? v.completedSteps
+                  : {},
+            }))
+            .filter((v) => v.id)
+        : [];
+
+      if (!villages.length) {
+        villages.push({
+          id: "aldeia-1",
+          name: "Aldeia 1 (" + String(serverHost || "servidor") + ")",
+          completedSteps: {},
+        });
+      }
+
+      const activeVillageId = String(state?.activeVillageId || villages[0].id || "aldeia-1");
+      const hasActive = villages.some((v) => v.id === activeVillageId);
+
+      return {
+        activeVillageId: hasActive ? activeVillageId : villages[0].id,
+        villages,
+      };
+    }
+
+    /**
+     * @param {{activeVillageId:string,villages:Array<{id:string,name:string,completedSteps:Record<string, boolean>}>}} planner
+     * @returns {{id:string,name:string,completedSteps:Record<string, boolean>}}
+     */
+    activePlannerVillage(planner) {
+      const list = Array.isArray(planner?.villages) ? planner.villages : [];
+      return list.find((v) => v.id === planner.activeVillageId) || list[0];
+    }
+
+    /**
+     * @param {{completedSteps:Record<string, boolean>}} village
+     * @returns {number}
+     */
+    plannerProgress(village) {
+      const total = this.plannerGuideSteps().length;
+      if (!total) return 0;
+      const done = this.plannerGuideSteps().filter((step) => Boolean(village?.completedSteps?.[String(step.id)])).length;
+      return Math.round((done / total) * 100);
     }
 
     /**
@@ -3691,6 +3838,8 @@
         clubman: "Salteador",
         paladin: "Paladino",
         teutonic_knight: "Cavaleiro Teutao",
+        phalanx: "Falange",
+        swordsman: "Espadachim",
         theutates_thunder: "Trovao de Theutates",
         druidrider: "Druida",
         haeduan: "Haeduano",
@@ -4114,7 +4263,7 @@
         },
         {
           label: "Gauleses",
-          items: ["theutates_thunder", "druidrider", "haeduan"]
+          items: ["phalanx", "swordsman", "theutates_thunder", "druidrider", "haeduan"]
             .filter((key) => speedMap.gauls[key])
             .map((key) => ({ key, base: Number(speedMap.gauls[key]) })),
         },
@@ -4160,6 +4309,7 @@
       await this.refreshRanking();
       await this.refreshReports();
       await this.refreshEconomy();
+      await this.refreshPlanner();
       await this.refreshSettings();
       await this.refreshDebug();
     }
@@ -5073,6 +5223,205 @@
           "</b></div>",
         "</div>",
       ].join("");
+    }
+
+    /**
+     * @returns {Promise<void>}
+     */
+    async refreshPlanner() {
+      const node = this.panel("planner");
+      if (!node) return;
+
+      const server = root.Server.getContext();
+      const settings = this.getSettings();
+      const planner = this.normalizePlannerState(settings?.planner, server.host);
+      const activeVillage = this.activePlannerVillage(planner);
+      const steps = this.plannerGuideSteps();
+      const progress = this.plannerProgress(activeVillage);
+
+      if (!settings?.planner || !Array.isArray(settings?.planner?.villages)) {
+        await this.saveSettings({ planner });
+      }
+
+      const villageOptions = planner.villages
+        .map((v) => {
+          const selected = v.id === planner.activeVillageId ? " selected" : "";
+          return '<option value="' + this.escapeHtml(v.id) + '"' + selected + ">" + this.escapeHtml(v.name) + "</option>";
+        })
+        .join("");
+
+      const rows = steps
+        .map((step) => {
+          const checked = Boolean(activeVillage?.completedSteps?.[String(step.id)]);
+          const note = String(step.note || "");
+          return (
+            '<tr class="nytrina-planner-step-row" data-step-id="' +
+            String(step.id) +
+            '">' +
+            '<td><input class="nytrina-planner-step-check" data-step-id="' +
+            String(step.id) +
+            '" type="checkbox"' +
+            (checked ? ' checked="checked"' : "") +
+            "></td>" +
+            "<td>#" +
+            String(step.id) +
+            "</td>" +
+            "<td>" +
+            this.escapeHtml(step.day) +
+            "</td>" +
+            "<td>" +
+            this.escapeHtml(step.action) +
+            "</td>" +
+            "<td>" +
+            this.escapeHtml(step.type) +
+            "</td>" +
+            "<td>" +
+            this.escapeHtml(note) +
+            "</td>" +
+            "</tr>"
+          );
+        })
+        .join("");
+
+      node.innerHTML = [
+        '<div class="card">',
+        '<span>Planner de construcao</span>',
+        '<div class="hint" style="margin-top:4px;">Host atual: ' +
+          String(server.host || "-") +
+          "</div>",
+        '<div class="hint" style="margin-top:4px;">Cadastro de vilas para seguir ordem de construcao ate a 2a aldeia.</div>',
+        '<div class="grid" style="margin-top:10px;">',
+        '<div class="card"><span>Vila ativa</span><select id="nytrina-planner-village">' +
+          villageOptions +
+          "</select></div>",
+        '<div class="card"><span>Progresso</span><b>' + String(progress) + '%</b><div class="hint">' +
+          String(steps.length) +
+          " etapas totais</div></div>",
+        "</div>",
+        '<label>Nome da vila ativa<input id="nytrina-planner-village-name" value="' +
+          this.escapeHtml(activeVillage?.name || "") +
+          '" placeholder="Ex: M - Osgiliath"></label>',
+        '<div class="actions" style="margin-top:10px;">',
+        '<button id="nytrina-planner-add-village">Nova vila</button>',
+        '<button id="nytrina-planner-remove-village"' +
+          (planner.villages.length <= 1 ? ' disabled="disabled"' : "") +
+          '>Remover vila ativa</button>',
+        '<button id="nytrina-planner-clear">Limpar checklist</button>',
+        "</div>",
+        "</div>",
+        '<div class="card"><span>Etapas de construcao</span><div class="planner-steps-scroll"><table><thead><tr><th>Ok</th><th>#</th><th>Dia</th><th>Etapa</th><th>Tipo</th><th>Observacao</th></tr></thead><tbody>' +
+          rows +
+          "</tbody></table></div></div>",
+      ].join("");
+
+      node
+        .querySelector("#nytrina-planner-village")
+        ?.addEventListener("change", async (event) => {
+          const selected = String(event?.target?.value || "");
+          const next = this.normalizePlannerState(settings?.planner, server.host);
+          if (next.villages.some((v) => v.id === selected)) {
+            next.activeVillageId = selected;
+            await this.saveSettings({ planner: next });
+            await this.refreshPlanner();
+          }
+        });
+
+      node
+        .querySelector("#nytrina-planner-village-name")
+        ?.addEventListener("change", async (event) => {
+          const value = String(event?.target?.value || "").trim();
+          const next = this.normalizePlannerState(settings?.planner, server.host);
+          const target = this.activePlannerVillage(next);
+          if (!target) return;
+          target.name = value || target.name;
+          await this.saveSettings({ planner: next });
+          await this.refreshPlanner();
+        });
+
+      node
+        .querySelector("#nytrina-planner-add-village")
+        ?.addEventListener("click", async () => {
+          const next = this.normalizePlannerState(settings?.planner, server.host);
+          const typed = String(global.prompt("Nome da nova vila:", "") || "").trim();
+          const id = "aldeia-" + String(Date.now());
+          next.villages.push({
+            id,
+            name: typed || "Aldeia " + String(next.villages.length + 1),
+            completedSteps: {},
+          });
+          next.activeVillageId = id;
+          await this.saveSettings({ planner: next });
+          await this.refreshPlanner();
+        });
+
+      node
+        .querySelector("#nytrina-planner-remove-village")
+        ?.addEventListener("click", async () => {
+          const next = this.normalizePlannerState(settings?.planner, server.host);
+          if (next.villages.length <= 1) return;
+          const target = this.activePlannerVillage(next);
+          if (!target) return;
+          const proceed = global.confirm('Remover a vila ativa "' + target.name + '"?');
+          if (!proceed) return;
+          next.villages = next.villages.filter((v) => v.id !== target.id);
+          next.activeVillageId = next.villages[0]?.id || "aldeia-1";
+          await this.saveSettings({ planner: next });
+          await this.refreshPlanner();
+        });
+
+      node
+        .querySelector("#nytrina-planner-clear")
+        ?.addEventListener("click", async () => {
+          const next = this.normalizePlannerState(settings?.planner, server.host);
+          const target = this.activePlannerVillage(next);
+          if (!target) return;
+          target.completedSteps = {};
+          await this.saveSettings({ planner: next });
+          await this.refreshPlanner();
+        });
+
+      const updatePlannerStep = async (stepId, checked) => {
+        const scrollBox = node.querySelector(".planner-steps-scroll");
+        const currentScrollTop = scrollBox ? Number(scrollBox.scrollTop || 0) : 0;
+        const currentSettings = this.getSettings();
+        const next = this.normalizePlannerState(currentSettings?.planner, server.host);
+        const target = this.activePlannerVillage(next);
+        if (!target) return;
+        target.completedSteps[stepId] = checked === true;
+        await this.saveSettings({ planner: next });
+        await this.refreshPlanner();
+
+        const refreshedNode = this.panel("planner");
+        const refreshedScroll = refreshedNode?.querySelector(".planner-steps-scroll");
+        if (refreshedScroll) {
+          refreshedScroll.scrollTop = currentScrollTop;
+        }
+      };
+
+      node.querySelectorAll(".nytrina-planner-step-row").forEach((row) => {
+        row.addEventListener("click", async () => {
+          const stepId = String(row.getAttribute("data-step-id") || "");
+          if (!stepId) return;
+          const checkbox = row.querySelector(".nytrina-planner-step-check");
+          if (!(checkbox instanceof HTMLInputElement)) return;
+          const nextValue = checkbox.checked !== true;
+          checkbox.checked = nextValue;
+          await updatePlannerStep(stepId, nextValue);
+        });
+      });
+
+      node.querySelectorAll(".nytrina-planner-step-check").forEach((checkbox) => {
+        checkbox.addEventListener("click", (event) => {
+          event.stopPropagation();
+        });
+
+        checkbox.addEventListener("change", async (event) => {
+          event.stopPropagation();
+          const stepId = String(event?.target?.dataset?.stepId || "");
+          if (!stepId) return;
+          await updatePlannerStep(stepId, event.target.checked === true);
+        });
+      });
     }
 
     /**

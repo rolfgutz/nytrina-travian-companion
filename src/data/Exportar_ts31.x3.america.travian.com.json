@@ -1,6 +1,6 @@
 {
   "version": "4.0.4",
-  "createdAt": "2026-08-06T22:15:47.702Z",
+  "createdAt": "2026-08-07T04:02:53.224Z",
   "host": "ts31.x3.america.travian.com",
   "stores": {
     "OASIS": [
@@ -521,28 +521,55 @@
         "server": "ts31.x3.america.travian.com",
         "coord": "35|-44",
         "coordSource": "map-fields",
-        "distance": 5.39,
+        "distance": 5.66,
         "bonus": "-",
         "animals": {
-          "rato": 9,
-          "aranha": 6,
-          "cobra": 0,
-          "morcego": 5,
+          "rato": 2,
+          "aranha": 0,
+          "cobra": 2,
+          "morcego": 0,
           "javali": 0,
           "lobo": 0,
           "urso": 0,
+          "crocodilo": 2,
+          "tigre": 0,
+          "elefante": 0
+        },
+        "totalAnimals": 6,
+        "xp": 18,
+        "xph": 90.63604240282685,
+        "time": "0:05:57",
+        "scanDate": "2026-08-07T02:07:59.366Z",
+        "source": "map-fields",
+        "id": "35|-44",
+        "updatedAt": "2026-08-07T02:07:59.378Z"
+      },
+      {
+        "server": "ts31.x3.america.travian.com",
+        "coord": "35|-45",
+        "coordSource": "map-fields",
+        "distance": 8.06,
+        "bonus": "madeira 25%",
+        "animals": {
+          "rato": 0,
+          "aranha": 0,
+          "cobra": 0,
+          "morcego": 0,
+          "javali": 12,
+          "lobo": 12,
+          "urso": 6,
           "crocodilo": 0,
           "tigre": 0,
           "elefante": 0
         },
-        "totalAnimals": 20,
-        "xp": 20,
-        "xph": 77.92207792207793,
-        "time": "0:07:42",
-        "scanDate": "2026-08-06T18:13:13.732Z",
+        "totalAnimals": 30,
+        "xp": 114,
+        "xph": 403.10173697270466,
+        "time": "0:08:29",
+        "scanDate": "2026-08-07T03:31:18.528Z",
         "source": "map-fields",
-        "id": "35|-44",
-        "updatedAt": "2026-08-06T18:13:13.735Z"
+        "id": "35|-45",
+        "updatedAt": "2026-08-07T03:31:18.530Z"
       },
       {
         "server": "ts31.x3.america.travian.com",
@@ -573,6 +600,33 @@
       },
       {
         "server": "ts31.x3.america.travian.com",
+        "coord": "37|-41",
+        "coordSource": "map-fields",
+        "distance": 5.66,
+        "bonus": "cereal 50%",
+        "animals": {
+          "rato": 2,
+          "aranha": 0,
+          "cobra": 2,
+          "morcego": 0,
+          "javali": 0,
+          "lobo": 0,
+          "urso": 0,
+          "crocodilo": 2,
+          "tigre": 0,
+          "elefante": 0
+        },
+        "totalAnimals": 6,
+        "xp": 18,
+        "xph": 90.63604240282685,
+        "time": "0:05:57",
+        "scanDate": "2026-08-07T03:31:45.522Z",
+        "source": "map-fields",
+        "id": "37|-41",
+        "updatedAt": "2026-08-07T03:31:45.527Z"
+      },
+      {
+        "server": "ts31.x3.america.travian.com",
         "coord": "37|-43",
         "coordSource": "map-fields",
         "distance": 5.66,
@@ -591,12 +645,12 @@
         },
         "totalAnimals": 6,
         "xp": 18,
-        "xph": 66.78445229681978,
-        "time": "0:08:05",
-        "scanDate": "2026-08-06T21:05:43.633Z",
+        "xph": 90.63604240282685,
+        "time": "0:05:57",
+        "scanDate": "2026-08-07T03:31:47.024Z",
         "source": "map-fields",
         "id": "37|-43",
-        "updatedAt": "2026-08-06T21:05:43.633Z"
+        "updatedAt": "2026-08-07T03:31:47.026Z"
       }
     ],
     "REPORTS": [
@@ -721,13 +775,46 @@
     "SETTINGS": [
       {
         "server": "https://ts31.x3.america.travian.com/dorf1.php",
-        "troopType": "hero",
+        "troopType": "theutates_thunder",
         "troopTribe": "gauls",
         "customSpeed": 14,
         "smallMap": false,
         "language": "pt-BR",
         "id": "main",
-        "overlayMinimized": false
+        "overlayMinimized": false,
+        "planner": {
+          "activeVillageId": "aldeia-1",
+          "villages": [
+            {
+              "id": "aldeia-1",
+              "name": "M - Osgiliath",
+              "completedSteps": {
+                "1": true,
+                "2": true,
+                "3": true,
+                "4": true,
+                "5": true,
+                "6": true,
+                "7": true,
+                "8": true,
+                "9": true,
+                "10": true,
+                "11": true,
+                "12": true,
+                "13": true,
+                "14": true,
+                "15": false,
+                "18": true,
+                "20": true,
+                "21": true,
+                "27": true,
+                "32": true,
+                "34": true,
+                "39": true
+              }
+            }
+          ]
+        }
       }
     ],
     "STATISTICS": [
@@ -795,7 +882,7 @@
     ]
   },
   "counts": {
-    "OASIS": 22,
+    "OASIS": 24,
     "REPORTS": 1,
     "SETTINGS": 1,
     "STATISTICS": 1,
@@ -804,13 +891,46 @@
   "settings": [
     {
       "server": "https://ts31.x3.america.travian.com/dorf1.php",
-      "troopType": "hero",
+      "troopType": "theutates_thunder",
       "troopTribe": "gauls",
       "customSpeed": 14,
       "smallMap": false,
       "language": "pt-BR",
       "id": "main",
-      "overlayMinimized": false
+      "overlayMinimized": false,
+      "planner": {
+        "activeVillageId": "aldeia-1",
+        "villages": [
+          {
+            "id": "aldeia-1",
+            "name": "M - Osgiliath",
+            "completedSteps": {
+              "1": true,
+              "2": true,
+              "3": true,
+              "4": true,
+              "5": true,
+              "6": true,
+              "7": true,
+              "8": true,
+              "9": true,
+              "10": true,
+              "11": true,
+              "12": true,
+              "13": true,
+              "14": true,
+              "15": false,
+              "18": true,
+              "20": true,
+              "21": true,
+              "27": true,
+              "32": true,
+              "34": true,
+              "39": true
+            }
+          }
+        ]
+      }
     }
   ],
   "reports": [
@@ -1565,28 +1685,55 @@
       "server": "ts31.x3.america.travian.com",
       "coord": "35|-44",
       "coordSource": "map-fields",
-      "distance": 5.39,
+      "distance": 5.66,
       "bonus": "-",
       "animals": {
-        "rato": 9,
-        "aranha": 6,
-        "cobra": 0,
-        "morcego": 5,
+        "rato": 2,
+        "aranha": 0,
+        "cobra": 2,
+        "morcego": 0,
         "javali": 0,
         "lobo": 0,
         "urso": 0,
+        "crocodilo": 2,
+        "tigre": 0,
+        "elefante": 0
+      },
+      "totalAnimals": 6,
+      "xp": 18,
+      "xph": 90.63604240282685,
+      "time": "0:05:57",
+      "scanDate": "2026-08-07T02:07:59.366Z",
+      "source": "map-fields",
+      "id": "35|-44",
+      "updatedAt": "2026-08-07T02:07:59.378Z"
+    },
+    {
+      "server": "ts31.x3.america.travian.com",
+      "coord": "35|-45",
+      "coordSource": "map-fields",
+      "distance": 8.06,
+      "bonus": "madeira 25%",
+      "animals": {
+        "rato": 0,
+        "aranha": 0,
+        "cobra": 0,
+        "morcego": 0,
+        "javali": 12,
+        "lobo": 12,
+        "urso": 6,
         "crocodilo": 0,
         "tigre": 0,
         "elefante": 0
       },
-      "totalAnimals": 20,
-      "xp": 20,
-      "xph": 77.92207792207793,
-      "time": "0:07:42",
-      "scanDate": "2026-08-06T18:13:13.732Z",
+      "totalAnimals": 30,
+      "xp": 114,
+      "xph": 403.10173697270466,
+      "time": "0:08:29",
+      "scanDate": "2026-08-07T03:31:18.528Z",
       "source": "map-fields",
-      "id": "35|-44",
-      "updatedAt": "2026-08-06T18:13:13.735Z"
+      "id": "35|-45",
+      "updatedAt": "2026-08-07T03:31:18.530Z"
     },
     {
       "server": "ts31.x3.america.travian.com",
@@ -1617,6 +1764,33 @@
     },
     {
       "server": "ts31.x3.america.travian.com",
+      "coord": "37|-41",
+      "coordSource": "map-fields",
+      "distance": 5.66,
+      "bonus": "cereal 50%",
+      "animals": {
+        "rato": 2,
+        "aranha": 0,
+        "cobra": 2,
+        "morcego": 0,
+        "javali": 0,
+        "lobo": 0,
+        "urso": 0,
+        "crocodilo": 2,
+        "tigre": 0,
+        "elefante": 0
+      },
+      "totalAnimals": 6,
+      "xp": 18,
+      "xph": 90.63604240282685,
+      "time": "0:05:57",
+      "scanDate": "2026-08-07T03:31:45.522Z",
+      "source": "map-fields",
+      "id": "37|-41",
+      "updatedAt": "2026-08-07T03:31:45.527Z"
+    },
+    {
+      "server": "ts31.x3.america.travian.com",
       "coord": "37|-43",
       "coordSource": "map-fields",
       "distance": 5.66,
@@ -1635,12 +1809,12 @@
       },
       "totalAnimals": 6,
       "xp": 18,
-      "xph": 66.78445229681978,
-      "time": "0:08:05",
-      "scanDate": "2026-08-06T21:05:43.633Z",
+      "xph": 90.63604240282685,
+      "time": "0:05:57",
+      "scanDate": "2026-08-07T03:31:47.024Z",
       "source": "map-fields",
       "id": "37|-43",
-      "updatedAt": "2026-08-06T21:05:43.633Z"
+      "updatedAt": "2026-08-07T03:31:47.026Z"
     }
   ],
   "oasis": [
@@ -2161,28 +2335,55 @@
       "server": "ts31.x3.america.travian.com",
       "coord": "35|-44",
       "coordSource": "map-fields",
-      "distance": 5.39,
+      "distance": 5.66,
       "bonus": "-",
       "animals": {
-        "rato": 9,
-        "aranha": 6,
-        "cobra": 0,
-        "morcego": 5,
+        "rato": 2,
+        "aranha": 0,
+        "cobra": 2,
+        "morcego": 0,
         "javali": 0,
         "lobo": 0,
         "urso": 0,
+        "crocodilo": 2,
+        "tigre": 0,
+        "elefante": 0
+      },
+      "totalAnimals": 6,
+      "xp": 18,
+      "xph": 90.63604240282685,
+      "time": "0:05:57",
+      "scanDate": "2026-08-07T02:07:59.366Z",
+      "source": "map-fields",
+      "id": "35|-44",
+      "updatedAt": "2026-08-07T02:07:59.378Z"
+    },
+    {
+      "server": "ts31.x3.america.travian.com",
+      "coord": "35|-45",
+      "coordSource": "map-fields",
+      "distance": 8.06,
+      "bonus": "madeira 25%",
+      "animals": {
+        "rato": 0,
+        "aranha": 0,
+        "cobra": 0,
+        "morcego": 0,
+        "javali": 12,
+        "lobo": 12,
+        "urso": 6,
         "crocodilo": 0,
         "tigre": 0,
         "elefante": 0
       },
-      "totalAnimals": 20,
-      "xp": 20,
-      "xph": 77.92207792207793,
-      "time": "0:07:42",
-      "scanDate": "2026-08-06T18:13:13.732Z",
+      "totalAnimals": 30,
+      "xp": 114,
+      "xph": 403.10173697270466,
+      "time": "0:08:29",
+      "scanDate": "2026-08-07T03:31:18.528Z",
       "source": "map-fields",
-      "id": "35|-44",
-      "updatedAt": "2026-08-06T18:13:13.735Z"
+      "id": "35|-45",
+      "updatedAt": "2026-08-07T03:31:18.530Z"
     },
     {
       "server": "ts31.x3.america.travian.com",
@@ -2213,6 +2414,33 @@
     },
     {
       "server": "ts31.x3.america.travian.com",
+      "coord": "37|-41",
+      "coordSource": "map-fields",
+      "distance": 5.66,
+      "bonus": "cereal 50%",
+      "animals": {
+        "rato": 2,
+        "aranha": 0,
+        "cobra": 2,
+        "morcego": 0,
+        "javali": 0,
+        "lobo": 0,
+        "urso": 0,
+        "crocodilo": 2,
+        "tigre": 0,
+        "elefante": 0
+      },
+      "totalAnimals": 6,
+      "xp": 18,
+      "xph": 90.63604240282685,
+      "time": "0:05:57",
+      "scanDate": "2026-08-07T03:31:45.522Z",
+      "source": "map-fields",
+      "id": "37|-41",
+      "updatedAt": "2026-08-07T03:31:45.527Z"
+    },
+    {
+      "server": "ts31.x3.america.travian.com",
       "coord": "37|-43",
       "coordSource": "map-fields",
       "distance": 5.66,
@@ -2231,12 +2459,12 @@
       },
       "totalAnimals": 6,
       "xp": 18,
-      "xph": 66.78445229681978,
-      "time": "0:08:05",
-      "scanDate": "2026-08-06T21:05:43.633Z",
+      "xph": 90.63604240282685,
+      "time": "0:05:57",
+      "scanDate": "2026-08-07T03:31:47.024Z",
       "source": "map-fields",
       "id": "37|-43",
-      "updatedAt": "2026-08-06T21:05:43.633Z"
+      "updatedAt": "2026-08-07T03:31:47.026Z"
     }
   ]
 }

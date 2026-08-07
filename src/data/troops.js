@@ -68,6 +68,8 @@
       teutonic_knight: 9
     },
     gauls: {
+      phalanx: 14,
+      swordsman: 12,
       theutates_thunder: 19,
       druidrider: 16,
       haeduan: 13

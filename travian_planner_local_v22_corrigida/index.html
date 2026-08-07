@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Travian Planner Local</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <h1>Travian Planner Local</h1>
+      <p>Checklist, diárias, herói, perdas e fundação em abas.</p>
+    </div>
+    <div class="actions">
+      <button onclick="addVillage()">+ Nova aldeia</button>
+      <button onclick="exportJson()">Exportar save</button>
+      <label class="button">Importar save <input type="file" accept=".json" onchange="importJson(event)" hidden></label>
+      <button class="danger" onclick="hardReset()">Resetar</button>
+    </div>
+  </header>
+
+  <nav class="top-menu">
+    <button class="menu-item active" onclick="showTab('dashboard', this)">🏠 Dashboard</button>
+    <button class="menu-item" onclick="showTab('aldeias', this)">🏘️ Aldeias</button>
+    <button class="menu-item" onclick="showTab('diarias', this)">📅 Diárias</button>
+    <button class="menu-item" onclick="showTab('heroi', this)">⚔️ Herói</button>
+    <button class="menu-item" onclick="showTab('fundacao', this)">🎉 Fundação</button>
+    <button class="menu-item" onclick="showTab('config', this)">⚙️ Config</button>
+  </nav>
+
+  <main>
+    <section id="tab-dashboard" class="tab-page active">
+      <section class="card">
+        <div id="villageTabs" class="tabs"></div>
+        <div class="rename-village-box">
+          <label>Nome da aldeia ativa
+            <input id="renameVillageDashboard" placeholder="Ex: M - Osgiliath" oninput="renameActiveVillage(this.value)">
+          </label>
+        </div>
+      </section>
+
+      <section class="dashboard-grid">
+        <div class="card">
+          <h2>Resumo da aldeia</h2>
+          <div class="summary-cards">
+            <div class="summary-card">
+              <span>Aldeia ativa</span>
+              <strong id="dashVillageName">-</strong>
+              <small id="dashVillageMeta">-</small>
+            </div>
+            <div class="summary-card">
+              <span>Progresso guia</span>
+              <strong id="progressText">0%</strong>
+              <div class="progress"><div id="progressBar"></div></div>
+            </div>
+            <div class="summary-card">
+              <span>Pontos diários</span>
+              <strong><span id="dailyPoints">0</span>/100</strong>
+              <small id="dailyGoal"></small>
+            </div>
+            <div class="summary-card">
+              <span>Herói</span>
+              <strong><span id="dashHeroLevel">-</span></strong>
+              <small id="dashHeroMode">-</small>
+            </div>
+            <div class="summary-card">
+              <span>PC</span>
+              <strong><span id="dashPc">-</span></strong>
+              <small>atual / necessário</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Pendências por ordem</h2>
+          <div id="nextStepBox" class="next-step-box">Carregando...</div>
+        </div>
+      </section>
+    </section>
+
+    <section id="tab-aldeias" class="tab-page">
+      <section class="card">
+        <div id="villageTabsAldeias" class="tabs mirror-tabs"></div>
+        <div class="rename-village-box">
+          <label>Nome da aldeia ativa
+            <input id="renameVillageAldeias" placeholder="Ex: M - Osgiliath" oninput="renameActiveVillage(this.value)">
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <h2>Ordem de construção até 2ª aldeia</h2>
+          <select id="stepFilter" onchange="renderSteps()">
+            <option>Todos</option><option>Dia 1</option><option>Dia 2</option><option>Dia 3</option><option>Dia 4</option>
+          </select>
+        </div>
+        <div class="scroll-panel steps-scroll">
+          <table>
+            <thead><tr><th>Ok</th><th>#</th><th>Dia</th><th>Etapa</th><th>Tipo</th></tr></thead>
+            <tbody id="stepsBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <section id="tab-diarias" class="tab-page">
+      <section class="card daily-full">
+        <div class="section-head">
+          <h2>Tarefas diárias</h2>
+          <button onclick="resetDaily()">Resetar tarefas diárias</button>
+        </div>
+        <div class="daily-score-box">
+          <span>Pontos de hoje</span>
+          <strong id="diariasScore">0 / 100 Pontos</strong>
+          <small id="dailyGoalSide"></small>
+          <div class="progress daily-progress"><div id="diariasBar"></div></div>
+        </div>
+        <div class="scroll-panel daily-scroll">
+          <table>
+            <thead><tr><th>Missão</th><th>Pts</th><th>Feito</th></tr></thead>
+            <tbody id="dailyBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Rotação de recompensas</h2>
+        <table>
+          <thead><tr><th>Data</th><th>25 pontos</th><th>50 pontos</th><th>75 pontos</th><th>100 pontos</th></tr></thead>
+          <tbody id="rewardsBody"></tbody>
+        </table>
+        <p class="hint">Dica: guarde recompensas grandes para Residência 10, colonizadores, festas ou gargalos de recurso.</p>
+      </section>
+    </section>
+
+    <section id="tab-heroi" class="tab-page">
+      <section class="card">
+        <h2>Calculadora do Herói — Atacar vs Produzir</h2>
+        <p class="hint">Use para decidir se vale mandar o herói em um oásis ou deixar ele produzindo na aldeia.</p>
+
+        <div class="calc-grid">
+          <label>Pontos do herói em recursos
+            <input id="calcPontosRecursos" type="number" value="45" oninput="calcularHeroiUI()">
+          </label>
+
+          <label>Tempo de ida copiado do Travian
+            <input id="calcTempoIdaTexto" type="text" value="2:30:04" placeholder="Ex: 2:30:04" oninput="calcularHeroiUI()">
+          </label>
+
+          <label>Volta automática
+            <input id="calcTempoVoltaTexto" type="text" value="calculada pela ida" disabled>
+          </label>
+
+          <label>Tempo total
+            <input id="calcTempoTotalTexto" type="text" value="calculado automaticamente" disabled>
+          </label>
+
+          <label class="check-label">
+            <input id="calcUsaMapaPequeno" type="checkbox" onchange="calcularHeroiUI()">
+            Usar item: Mapa Pequeno (+30% velocidade de retorno)
+          </label>
+
+          <label>Madeira no oásis
+            <input id="calcMadeira" type="number" value="520" oninput="calcularHeroiUI()">
+          </label>
+
+          <label>Barro no oásis
+            <input id="calcBarro" type="number" value="520" oninput="calcularHeroiUI()">
+          </label>
+
+          <label>Ferro no oásis
+            <input id="calcFerro" type="number" value="520" oninput="calcularHeroiUI()">
+          </label>
+
+          <label>Cereal no oásis
+            <input id="calcCereal" type="number" value="520" oninput="calcularHeroiUI()">
+          </label>
+
+          <label>Modo do herói
+            <select id="calcModoProducao" onchange="calcularHeroiUI()">
+              <option value="unico">Produção em 1 recurso</option>
+              <option value="todos">Produção em todos recursos</option>
+            </select>
+          </label>
+
+          <label>Bônus +25% produção?
+            <select id="calcBonus" onchange="calcularHeroiUI()">
+              <option value="1">Não</option>
+              <option value="1.25">Sim</option>
+            </select>
+          </label>
+
+          <label>Vida antes da simulação
+            <input id="calcVidaAntes" type="number" value="94" oninput="calcularHeroiUI()">
+          </label>
+
+          <label>Vida depois da simulação
+            <input id="calcVidaDepois" type="number" value="78" oninput="calcularHeroiUI()">
+          </label>
+
+          <label>XP estimada por animais
+            <input id="calcXpHeroi" type="text" value="cole o relatório para calcular" disabled>
+          </label>
+        </div>
+
+        <h3>Colar exército / perdas do Travian</h3>
+        <p class="hint">Cole uma linha ou relatório bruto do Travian com as 11 colunas romanas.</p>
+
+        <textarea id="armyPasteText" class="paste-box" placeholder="Cole aqui o texto do Travian. Ex: 700 583 1455 68 209 86 35 40 0 0 1"></textarea>
+
+        <label class="check-label paste-option">
+          <input id="considerarEnfermaria" type="checkbox" checked>
+          Considerar tropas da enfermaria como perda no cálculo
+        </label>
+
+        <div class="paste-actions">
+          <button type="button" onclick="interpretarExercitoColado('exercito')">Interpretar como exército atual</button>
+          <button type="button" onclick="interpretarExercitoColado('perdas')">Interpretar como perdas e preencher abaixo</button>
+          <button type="button" onclick="limparExercitoColado()">Limpar</button>
+        </div>
+
+        <div id="armyPasteResult" class="army-result"></div>
+
+        <h3>Perdas de tropas romanas</h3>
+        <p class="hint">Preencha apenas as tropas que morreram no simulador. O Planner desconta o custo delas do lucro do oásis.</p>
+
+        <div class="calc-grid troop-loss-grid">
+          <label>Legionários mortos
+            <input id="lossLegionario" type="number" value="0" oninput="calcularHeroiUI()">
+          </label>
+
+          <label>Pretorianos mortos
+            <input id="lossPretoriano" type="number" value="0" oninput="calcularHeroiUI()">
+          </label>
+
+          <label>Imperianos mortos
+            <input id="lossImperiano" type="number" value="0" oninput="calcularHeroiUI()">
+          </label>
+
+          <label>Equites Legati mortos
+            <input id="lossEL" type="number" value="0" oninput="calcularHeroiUI()">
+          </label>
+
+          <label>Equites Imperatoris mortos
+            <input id="lossEI" type="number" value="0" oninput="calcularHeroiUI()">
+          </label>
+
+          <label>Equites Caesaris mortos
+            <input id="lossEC" type="number" value="0" oninput="calcularHeroiUI()">
+          </label>
+        </div>
+
+        <div id="calcResultado" class="calc-result"></div>
+      </section>
+
+
+      <section class="card">
+        <h2>🎖️ Planejador de Evolução do Herói</h2>
+        <p class="hint">Use para responder: “se eu atacar esse oásis, meu herói upa ou quanto vai faltar?”. Ele usa a XP dos animais detectados no relatório colado acima.</p>
+
+        <div class="calc-grid">
+          <label>XP atual do herói
+            <input id="heroXpAtual" type="number" value="0" oninput="calcularHeroProgressao()">
+          </label>
+
+          <label>XP do próximo nível
+            <input id="heroXpProximo" type="number" value="0" oninput="calcularHeroProgressao()">
+          </label>
+
+          <label>XP do oásis atual
+            <input id="heroXpOasis" type="text" value="cole o relatório para calcular" disabled>
+          </label>
+        </div>
+
+        <div id="heroProgressResultado" class="calc-result"></div>
+      </section>
+
+
+
+      <section class="card">
+        <h2>Simulador de Ferreiro — Bônus de Ataque</h2>
+        <p class="hint">Cole seu exército romano ou preencha manualmente. O cálculo usa ataque base × quantidade × bônus do ferreiro.</p>
+
+        <div class="calc-grid">
+          <label>Nível do ferreiro
+            <input id="ferreiroNivel" type="number" min="0" max="20" value="0" oninput="calcularFerreiroUI()">
+          </label>
+
+          <label>% por nível
+            <input id="ferreiroPctNivel" type="number" step="0.1" value="1.2" oninput="calcularFerreiroUI()">
+          </label>
+
+          <label>Bônus total
+            <input id="ferreiroBonusTotal" type="text" disabled value="0%">
+          </label>
+
+          <label>Mostrar ganho equivalente em
+            <select id="ferreiroEquivalenteTropa" onchange="calcularFerreiroUI()">
+              <option value="imperiano">Imperianos</option>
+              <option value="equitesImperatoris">Equites Imperatoris</option>
+              <option value="equitesCaesaris">Equites Caesaris</option>
+              <option value="legionario">Legionários</option>
+            </select>
+          </label>
+        </div>
+
+        <h3>Exército romano</h3>
+        <div class="calc-grid troop-loss-grid">
+          <label>Legionários
+            <input id="armyLegionario" type="number" value="0" oninput="calcularFerreiroUI()">
+          </label>
+          <label>Pretorianos
+            <input id="armyPretoriano" type="number" value="0" oninput="calcularFerreiroUI()">
+          </label>
+          <label>Imperianos
+            <input id="armyImperiano" type="number" value="0" oninput="calcularFerreiroUI()">
+          </label>
+          <label>Equites Legati
+            <input id="armyEL" type="number" value="0" oninput="calcularFerreiroUI()">
+          </label>
+          <label>Equites Imperatoris
+            <input id="armyEI" type="number" value="0" oninput="calcularFerreiroUI()">
+          </label>
+          <label>Equites Caesaris
+            <input id="armyEC" type="number" value="0" oninput="calcularFerreiroUI()">
+          </label>
+          <label>Aríetes
+            <input id="armyAriete" type="number" value="0" oninput="calcularFerreiroUI()">
+          </label>
+          <label>Catapultas
+            <input id="armyCatapulta" type="number" value="0" oninput="calcularFerreiroUI()">
+          </label>
+        </div>
+
+        <textarea id="ferreiroPasteText" class="paste-box" placeholder="Cole aqui a linha do seu exército. Ex: 700 583 1455 68 209 86 35 40 0 0 1"></textarea>
+        <div class="paste-actions">
+          <button type="button" onclick="interpretarExercitoFerreiro()">Preencher exército pelo texto</button>
+          <button type="button" onclick="limparFerreiro()">Limpar simulador</button>
+        </div>
+
+        <div id="ferreiroResultado" class="calc-result"></div>
+      </section>
+
+    </section>
+
+    <section id="tab-fundacao" class="tab-page">
+      <section class="card">
+        <h2>Fundação da próxima aldeia</h2>
+        <p class="hint">Área preparada para controlar PC, festas e colonizadores. Por enquanto usa os dados da aldeia ativa.</p>
+
+        <div class="summary-cards">
+          <div class="summary-card">
+            <span>PC atual</span>
+            <strong id="fundPcAtual">0</strong>
+          </div>
+          <div class="summary-card">
+            <span>PC necessário</span>
+            <strong id="fundPcNecessario">2000</strong>
+          </div>
+          <div class="summary-card">
+            <span>PC faltando</span>
+            <strong id="fundPcFaltando">2000</strong>
+          </div>
+        </div>
+
+        <p class="hint">Próxima melhoria natural: calcular impacto de festas + recompensa diária de 400 PC.</p>
+      </section>
+    </section>
+
+    <section id="tab-config" class="tab-page">
+      <section class="card">
+        <h2>Dados da aldeia ativa</h2>
+        <div class="form-grid">
+          <label>Nome <input id="villageName" onchange="updateVillageField()"></label>
+          <label>Tribo
+            <select id="tribe" onchange="updateVillageField()">
+              <option>Romanos</option><option>Teutões</option><option>Gauleses</option><option>Hunos</option><option>Egípcios</option><option>Espartanos</option>
+            </select>
+          </label>
+          <label>Servidor <input id="speed" onchange="updateVillageField()" placeholder="3x"></label>
+          <label>Herói nível <input id="heroLevel" type="number" onchange="updateVillageField()"></label>
+          <label>Vida herói % <input id="heroHealth" type="number" onchange="updateVillageField()"></label>
+          <label>Modo herói
+            <select id="heroMode" onchange="updateVillageField()">
+              <option>Combate</option><option>Recursos</option><option>Misto</option>
+            </select>
+          </label>
+          <label>Pontos OFF herói <input id="offPoints" type="number" onchange="updateVillageField()"></label>
+          <label>PC atual <input id="pcCurrent" type="number" onchange="updateVillageField()"></label>
+          <label>PC necessário <input id="pcNeeded" type="number" onchange="updateVillageField()"></label>
+        </div>
+        <label>Notas <textarea id="notes" onchange="updateVillageField()" placeholder="Ex: pegar 15c, guardar recompensa de 4000 recursos para residência 10..."></textarea></label>
+      </section>
+
+      <section class="card">
+        <h2>Sobre esta versão</h2>
+        <p class="hint">v16: XP estimada por valores fixos dos animais, importação JSON com validação e melhorias de usabilidade do checklist.</p>
+      </section>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

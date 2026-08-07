@@ -75,6 +75,7 @@
         '<button class="tab' + (activeTab === "ranking" ? " active" : "") + '" data-tab="ranking">Ranking</button>',
         '<button class="tab' + (activeTab === "reports" ? " active" : "") + '" data-tab="reports">Relatorios</button>',
         '<button class="tab' + (activeTab === "economy" ? " active" : "") + '" data-tab="economy">Economia</button>',
+        '<button class="tab' + (activeTab === "planner" ? " active" : "") + '" data-tab="planner">Planner</button>',
         '<button class="tab' + (activeTab === "settings" ? " active" : "") + '" data-tab="settings">Configuracoes</button>',
         "</div>",
         '<div class="panel' + (activeTab === "scanner" ? "" : " hidden") + '" data-panel="scanner"></div>',
@@ -83,8 +84,152 @@
         '<div class="panel' + (activeTab === "ranking" ? "" : " hidden") + '" data-panel="ranking"></div>',
         '<div class="panel' + (activeTab === "reports" ? "" : " hidden") + '" data-panel="reports"></div>',
         '<div class="panel' + (activeTab === "economy" ? "" : " hidden") + '" data-panel="economy"></div>',
+        '<div class="panel' + (activeTab === "planner" ? "" : " hidden") + '" data-panel="planner"></div>',
         '<div class="panel' + (activeTab === "settings" ? "" : " hidden") + '" data-panel="settings"></div>',
       ].join("");
+    }
+
+    /**
+     * @returns {Array<{id:number,day:string,action:string,type:string}>}
+     */
+    plannerGuideSteps() {
+      return [
+        { id: 1, day: "Dia 1", action: "Enviar heroi para aventura mais proxima", type: "Heroi", note: "Pegar cavalo/XP inicial. Marcar opcao de nao mostrar ajuda." },
+        { id: 2, day: "Dia 1", action: "Um recurso de cada para nivel 2", type: "Recursos", note: "Base inicial de producao." },
+        { id: 3, day: "Dia 1", action: "Armazem nivel 1", type: "Construcao", note: "Evita travar por limite de recursos." },
+        { id: 4, day: "Dia 1", action: "Celeiro nivel 1", type: "Construcao", note: "Evita travar por cereal." },
+        { id: 5, day: "Dia 1", action: "Embaixada nivel 1", type: "Construcao", note: "Necessaria no rush e pontos de cultura." },
+        { id: 6, day: "Dia 1", action: "Esconderijo nivel 3", type: "Defesa", note: "Protecao inicial." },
+        { id: 7, day: "Dia 1", action: "Edificio Principal nivel 3", type: "Construcao", note: "Acelera construcao." },
+        { id: 8, day: "Dia 1", action: "Muralha nivel 3", type: "Defesa", note: "Pode ajudar com missao/XP heroi." },
+        { id: 9, day: "Dia 1", action: "Mercado nivel 3", type: "Economia", note: "Ajuda gestao de recursos." },
+        { id: 10, day: "Dia 1", action: "Todos os campos de cereal nivel 2", type: "Recursos", note: "Producao base." },
+        { id: 11, day: "Dia 1", action: "Todos os campos de barro nivel 2", type: "Recursos", note: "Producao base." },
+        { id: 12, day: "Dia 1", action: "Todos os campos de madeira nivel 2", type: "Recursos", note: "Producao base." },
+        { id: 13, day: "Dia 1", action: "Todos os campos de ferro nivel 2", type: "Recursos", note: "Producao base." },
+        { id: 14, day: "Dia 1", action: "1 campo de cereal nivel 4", type: "Recursos", note: "Puxar producao e missoes." },
+        { id: 15, day: "Dia 1", action: "1 campo de barro nivel 4", type: "Recursos", note: "Puxar producao." },
+        { id: 16, day: "Dia 1", action: "1 campo de madeira nivel 4", type: "Recursos", note: "Puxar producao." },
+        { id: 17, day: "Dia 1", action: "1 campo de ferro nivel 4", type: "Recursos", note: "Puxar producao." },
+        { id: 18, day: "Dia 1", action: "Quartel nivel 1", type: "Militar", note: "Libera tropas." },
+        { id: 19, day: "Dia 1", action: "Edificio Principal nivel 7", type: "Construcao", note: "Preparacao para acelerar rush." },
+        { id: 20, day: "Dia 1", action: "Armazem nivel 3", type: "Construcao", note: "Capacidade." },
+        { id: 21, day: "Dia 1", action: "Celeiro nivel 3", type: "Construcao", note: "Capacidade." },
+        { id: 22, day: "Dia 1", action: "Todos os campos de barro nivel 3", type: "Recursos", note: "Producao." },
+        { id: 23, day: "Dia 1", action: "Todos os campos de madeira nivel 3", type: "Recursos", note: "Producao." },
+        { id: 24, day: "Dia 1", action: "Todos os campos de ferro nivel 3", type: "Recursos", note: "Producao." },
+        { id: 25, day: "Dia 1", action: "1 campo de cereal nivel 3", type: "Recursos", note: "Garantir cereal para seguir." },
+        { id: 26, day: "Dia 1", action: "Quartel nivel 3", type: "Militar", note: "Importante se for produzir infantaria/farm." },
+        { id: 27, day: "Dia 1", action: "Academia nivel 1", type: "Militar", note: "Pre-requisito." },
+        { id: 28, day: "Dia 1", action: "Todos os campos de cereal nivel 3", type: "Recursos", note: "Producao." },
+        { id: 29, day: "Dia 1", action: "Esconderijo nivel 10", type: "Defesa", note: "Protecao." },
+        { id: 30, day: "Dia 1", action: "Mercado nivel 7", type: "Economia", note: "Gestao forte de recursos." },
+        { id: 31, day: "Dia 1", action: "8 esconderijos nivel 3", type: "Defesa", note: "Seguir apenas se necessario." },
+        { id: 32, day: "Dia 1", action: "Ferraria nivel 1", type: "Militar", note: "Pre-requisito." },
+        { id: 33, day: "Dia 1", action: "Edificio Principal nivel 8", type: "Construcao", note: "Preparacao." },
+        { id: 34, day: "Dia 1", action: "Academia nivel 2", type: "Militar", note: "Preparacao." },
+        { id: 35, day: "Dia 1", action: "Residencia nivel 1", type: "Colonizacao", note: "Comeco do caminho para colonos." },
+        { id: 36, day: "Dia 1", action: "Todos os recursos nivel 4", type: "Recursos", note: "Barro, madeira, ferro e cereal." },
+        { id: 37, day: "Dia 1", action: "Edificio Principal nivel 10", type: "Construcao", note: "Acelera muito o restante." },
+        { id: 38, day: "Dia 1", action: "Embaixada nivel 3", type: "Cultura", note: "PC e pre-requisitos." },
+        { id: 39, day: "Dia 1", action: "Academia nivel 3", type: "Militar", note: "Preparacao." },
+        { id: 40, day: "Dia 1", action: "Edificio Principal nivel 12", type: "Construcao", note: "Aceleracao." },
+        { id: 41, day: "Dia 1", action: "Academia nivel 10", type: "Colonizacao", note: "Pre-requisito chave." },
+        { id: 42, day: "Dia 1", action: "Oficina nivel 1", type: "Construcao", note: "Pre-requisito da Casa do Povo." },
+        { id: 43, day: "Dia 1", action: "Casa do Povo nivel 1", type: "Cultura", note: "Libera celebracoes." },
+        { id: 44, day: "Dia 1", action: "1 campo de cereal nivel 5", type: "Recursos", note: "Ajuda producao." },
+        { id: 45, day: "Dia 1", action: "8 esconderijos nivel 7", type: "Defesa", note: "Opcional/defensivo." },
+        { id: 46, day: "Dia 1", action: "Embaixada nivel 5", type: "Cultura", note: "PC." },
+        { id: 47, day: "Dia 1", action: "1 campo de cereal nivel 5", type: "Recursos", note: "Reforco de cereal." },
+        { id: 48, day: "Dia 1", action: "Todos os campos de barro nivel 5", type: "Recursos", note: "Producao forte." },
+        { id: 49, day: "Dia 1", action: "Resto dos campos de cereal nivel 5", type: "Recursos", note: "Producao." },
+        { id: 50, day: "Dia 1", action: "Todos os campos de madeira nivel 5", type: "Recursos", note: "Producao." },
+        { id: 51, day: "Dia 1", action: "Todos os campos de ferro nivel 5", type: "Recursos", note: "Producao." },
+        { id: 52, day: "Dia 1", action: "Armazem nivel 8", type: "Construcao", note: "Capacidade para custos altos." },
+        { id: 53, day: "Dia 1", action: "1a festa", type: "Cultura", note: "Pode ser antes/depois conforme recursos." },
+        { id: 54, day: "Dia 1", action: "Mercado nivel 12", type: "Economia", note: "Gestao de recursos." },
+        { id: 55, day: "Dia 1", action: "Celeiro nivel 7", type: "Construcao", note: "Capacidade." },
+        { id: 56, day: "Dia 2", action: "Embaixada nivel 9", type: "Cultura", note: "PC." },
+        { id: 57, day: "Dia 2", action: "Residencia nivel 7", type: "Colonizacao", note: "Desbloqueia meta de habitantes." },
+        { id: 58, day: "Dia 2", action: "Muralha nivel 7", type: "Defesa", note: "Opcional, so se precisar de XP/objetivo." },
+        { id: 59, day: "Dia 2", action: "Residencia nivel 8", type: "Colonizacao", note: "Rumo ao nivel 10." },
+        { id: 60, day: "Dia 2", action: "2a festa ou 1a festa se for estrategia de 3", type: "Cultura", note: "Por volta de 41h-43h." },
+        { id: 61, day: "Dia 3", action: "Residencia nivel 10", type: "Colonizacao", note: "Libera colonizadores." },
+        { id: 62, day: "Dia 3", action: "Treinar 1o colono", type: "Colonizacao", note: "Nao parar fila dos colonos." },
+        { id: 63, day: "Dia 3", action: "3a festa ou 2a festa se for estrategia de 3", type: "Cultura", note: "Ajustar conforme PC." },
+        { id: 64, day: "Dia 4", action: "Treinar 2 colonos restantes", type: "Colonizacao", note: "Completar 3 colonos." },
+        { id: 65, day: "Dia 4", action: "4a festa ou 3a festa", type: "Cultura", note: "Fechar PC se faltar." },
+        { id: 66, day: "Dia 4", action: "Fundar 2a aldeia", type: "Colonizacao", note: "Meta: 90h a 110h." },
+      ];
+    }
+
+    /**
+     * @param {string} value
+     * @returns {string}
+     */
+    escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    /**
+     * @param {any} state
+     * @param {string} serverHost
+     * @returns {{activeVillageId:string,villages:Array<{id:string,name:string,completedSteps:Record<string, boolean>}>}}
+     */
+    normalizePlannerState(state, serverHost) {
+      const villages = Array.isArray(state?.villages)
+        ? state.villages
+            .map((v) => ({
+              id: String(v?.id || ""),
+              name: String(v?.name || "").trim() || "Aldeia",
+              completedSteps:
+                v && typeof v.completedSteps === "object" && v.completedSteps
+                  ? v.completedSteps
+                  : {},
+            }))
+            .filter((v) => v.id)
+        : [];
+
+      if (!villages.length) {
+        villages.push({
+          id: "aldeia-1",
+          name: "Aldeia 1 (" + String(serverHost || "servidor") + ")",
+          completedSteps: {},
+        });
+      }
+
+      const activeVillageId = String(state?.activeVillageId || villages[0].id || "aldeia-1");
+      const hasActive = villages.some((v) => v.id === activeVillageId);
+
+      return {
+        activeVillageId: hasActive ? activeVillageId : villages[0].id,
+        villages,
+      };
+    }
+
+    /**
+     * @param {{activeVillageId:string,villages:Array<{id:string,name:string,completedSteps:Record<string, boolean>}>}} planner
+     * @returns {{id:string,name:string,completedSteps:Record<string, boolean>}}
+     */
+    activePlannerVillage(planner) {
+      const list = Array.isArray(planner?.villages) ? planner.villages : [];
+      return list.find((v) => v.id === planner.activeVillageId) || list[0];
+    }
+
+    /**
+     * @param {{completedSteps:Record<string, boolean>}} village
+     * @returns {number}
+     */
+    plannerProgress(village) {
+      const total = this.plannerGuideSteps().length;
+      if (!total) return 0;
+      const done = this.plannerGuideSteps().filter((step) => Boolean(village?.completedSteps?.[String(step.id)])).length;
+      return Math.round((done / total) * 100);
     }
 
     /**
@@ -348,6 +493,8 @@
         clubman: "Salteador",
         paladin: "Paladino",
         teutonic_knight: "Cavaleiro Teutao",
+        phalanx: "Falange",
+        swordsman: "Espadachim",
         theutates_thunder: "Trovao de Theutates",
         druidrider: "Druida",
         haeduan: "Haeduano",
@@ -771,7 +918,7 @@
         },
         {
           label: "Gauleses",
-          items: ["theutates_thunder", "druidrider", "haeduan"]
+          items: ["phalanx", "swordsman", "theutates_thunder", "druidrider", "haeduan"]
             .filter((key) => speedMap.gauls[key])
             .map((key) => ({ key, base: Number(speedMap.gauls[key]) })),
         },
@@ -817,6 +964,7 @@
       await this.refreshRanking();
       await this.refreshReports();
       await this.refreshEconomy();
+      await this.refreshPlanner();
       await this.refreshSettings();
       await this.refreshDebug();
     }
@@ -1730,6 +1878,205 @@
           "</b></div>",
         "</div>",
       ].join("");
+    }
+
+    /**
+     * @returns {Promise<void>}
+     */
+    async refreshPlanner() {
+      const node = this.panel("planner");
+      if (!node) return;
+
+      const server = root.Server.getContext();
+      const settings = this.getSettings();
+      const planner = this.normalizePlannerState(settings?.planner, server.host);
+      const activeVillage = this.activePlannerVillage(planner);
+      const steps = this.plannerGuideSteps();
+      const progress = this.plannerProgress(activeVillage);
+
+      if (!settings?.planner || !Array.isArray(settings?.planner?.villages)) {
+        await this.saveSettings({ planner });
+      }
+
+      const villageOptions = planner.villages
+        .map((v) => {
+          const selected = v.id === planner.activeVillageId ? " selected" : "";
+          return '<option value="' + this.escapeHtml(v.id) + '"' + selected + ">" + this.escapeHtml(v.name) + "</option>";
+        })
+        .join("");
+
+      const rows = steps
+        .map((step) => {
+          const checked = Boolean(activeVillage?.completedSteps?.[String(step.id)]);
+          const note = String(step.note || "");
+          return (
+            '<tr class="nytrina-planner-step-row" data-step-id="' +
+            String(step.id) +
+            '">' +
+            '<td><input class="nytrina-planner-step-check" data-step-id="' +
+            String(step.id) +
+            '" type="checkbox"' +
+            (checked ? ' checked="checked"' : "") +
+            "></td>" +
+            "<td>#" +
+            String(step.id) +
+            "</td>" +
+            "<td>" +
+            this.escapeHtml(step.day) +
+            "</td>" +
+            "<td>" +
+            this.escapeHtml(step.action) +
+            "</td>" +
+            "<td>" +
+            this.escapeHtml(step.type) +
+            "</td>" +
+            "<td>" +
+            this.escapeHtml(note) +
+            "</td>" +
+            "</tr>"
+          );
+        })
+        .join("");
+
+      node.innerHTML = [
+        '<div class="card">',
+        '<span>Planner de construcao</span>',
+        '<div class="hint" style="margin-top:4px;">Host atual: ' +
+          String(server.host || "-") +
+          "</div>",
+        '<div class="hint" style="margin-top:4px;">Cadastro de vilas para seguir ordem de construcao ate a 2a aldeia.</div>',
+        '<div class="grid" style="margin-top:10px;">',
+        '<div class="card"><span>Vila ativa</span><select id="nytrina-planner-village">' +
+          villageOptions +
+          "</select></div>",
+        '<div class="card"><span>Progresso</span><b>' + String(progress) + '%</b><div class="hint">' +
+          String(steps.length) +
+          " etapas totais</div></div>",
+        "</div>",
+        '<label>Nome da vila ativa<input id="nytrina-planner-village-name" value="' +
+          this.escapeHtml(activeVillage?.name || "") +
+          '" placeholder="Ex: M - Osgiliath"></label>',
+        '<div class="actions" style="margin-top:10px;">',
+        '<button id="nytrina-planner-add-village">Nova vila</button>',
+        '<button id="nytrina-planner-remove-village"' +
+          (planner.villages.length <= 1 ? ' disabled="disabled"' : "") +
+          '>Remover vila ativa</button>',
+        '<button id="nytrina-planner-clear">Limpar checklist</button>',
+        "</div>",
+        "</div>",
+        '<div class="card"><span>Etapas de construcao</span><div class="planner-steps-scroll"><table><thead><tr><th>Ok</th><th>#</th><th>Dia</th><th>Etapa</th><th>Tipo</th><th>Observacao</th></tr></thead><tbody>' +
+          rows +
+          "</tbody></table></div></div>",
+      ].join("");
+
+      node
+        .querySelector("#nytrina-planner-village")
+        ?.addEventListener("change", async (event) => {
+          const selected = String(event?.target?.value || "");
+          const next = this.normalizePlannerState(settings?.planner, server.host);
+          if (next.villages.some((v) => v.id === selected)) {
+            next.activeVillageId = selected;
+            await this.saveSettings({ planner: next });
+            await this.refreshPlanner();
+          }
+        });
+
+      node
+        .querySelector("#nytrina-planner-village-name")
+        ?.addEventListener("change", async (event) => {
+          const value = String(event?.target?.value || "").trim();
+          const next = this.normalizePlannerState(settings?.planner, server.host);
+          const target = this.activePlannerVillage(next);
+          if (!target) return;
+          target.name = value || target.name;
+          await this.saveSettings({ planner: next });
+          await this.refreshPlanner();
+        });
+
+      node
+        .querySelector("#nytrina-planner-add-village")
+        ?.addEventListener("click", async () => {
+          const next = this.normalizePlannerState(settings?.planner, server.host);
+          const typed = String(global.prompt("Nome da nova vila:", "") || "").trim();
+          const id = "aldeia-" + String(Date.now());
+          next.villages.push({
+            id,
+            name: typed || "Aldeia " + String(next.villages.length + 1),
+            completedSteps: {},
+          });
+          next.activeVillageId = id;
+          await this.saveSettings({ planner: next });
+          await this.refreshPlanner();
+        });
+
+      node
+        .querySelector("#nytrina-planner-remove-village")
+        ?.addEventListener("click", async () => {
+          const next = this.normalizePlannerState(settings?.planner, server.host);
+          if (next.villages.length <= 1) return;
+          const target = this.activePlannerVillage(next);
+          if (!target) return;
+          const proceed = global.confirm('Remover a vila ativa "' + target.name + '"?');
+          if (!proceed) return;
+          next.villages = next.villages.filter((v) => v.id !== target.id);
+          next.activeVillageId = next.villages[0]?.id || "aldeia-1";
+          await this.saveSettings({ planner: next });
+          await this.refreshPlanner();
+        });
+
+      node
+        .querySelector("#nytrina-planner-clear")
+        ?.addEventListener("click", async () => {
+          const next = this.normalizePlannerState(settings?.planner, server.host);
+          const target = this.activePlannerVillage(next);
+          if (!target) return;
+          target.completedSteps = {};
+          await this.saveSettings({ planner: next });
+          await this.refreshPlanner();
+        });
+
+      const updatePlannerStep = async (stepId, checked) => {
+        const scrollBox = node.querySelector(".planner-steps-scroll");
+        const currentScrollTop = scrollBox ? Number(scrollBox.scrollTop || 0) : 0;
+        const currentSettings = this.getSettings();
+        const next = this.normalizePlannerState(currentSettings?.planner, server.host);
+        const target = this.activePlannerVillage(next);
+        if (!target) return;
+        target.completedSteps[stepId] = checked === true;
+        await this.saveSettings({ planner: next });
+        await this.refreshPlanner();
+
+        const refreshedNode = this.panel("planner");
+        const refreshedScroll = refreshedNode?.querySelector(".planner-steps-scroll");
+        if (refreshedScroll) {
+          refreshedScroll.scrollTop = currentScrollTop;
+        }
+      };
+
+      node.querySelectorAll(".nytrina-planner-step-row").forEach((row) => {
+        row.addEventListener("click", async () => {
+          const stepId = String(row.getAttribute("data-step-id") || "");
+          if (!stepId) return;
+          const checkbox = row.querySelector(".nytrina-planner-step-check");
+          if (!(checkbox instanceof HTMLInputElement)) return;
+          const nextValue = checkbox.checked !== true;
+          checkbox.checked = nextValue;
+          await updatePlannerStep(stepId, nextValue);
+        });
+      });
+
+      node.querySelectorAll(".nytrina-planner-step-check").forEach((checkbox) => {
+        checkbox.addEventListener("click", (event) => {
+          event.stopPropagation();
+        });
+
+        checkbox.addEventListener("change", async (event) => {
+          event.stopPropagation();
+          const stepId = String(event?.target?.dataset?.stepId || "");
+          if (!stepId) return;
+          await updatePlannerStep(stepId, event.target.checked === true);
+        });
+      });
     }
 
     /**

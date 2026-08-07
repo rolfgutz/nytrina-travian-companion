@@ -37,9 +37,14 @@
 
 #nytrina-overlay .tabs {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(8, minmax(0, 1fr));
   gap: 4px;
   padding: 10px;
+}
+
+#nytrina-overlay .planner-steps-scroll {
+  max-height: 420px;
+  overflow: auto;
 }
 
 #nytrina-overlay .tab {
