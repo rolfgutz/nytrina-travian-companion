@@ -29,6 +29,11 @@
      * @returns {void}
      */
     mount() {
+      const savedTab = this.loadSavedTab();
+      if (savedTab) {
+        this.currentTab = savedTab;
+      }
+
       this.injectStyles();
       this.overlay = global.document.createElement("div");
       this.overlay.id = "nytrina-overlay";
@@ -45,6 +50,60 @@
         minimizeButton.textContent = minimized ? "Expandir" : "Minimizar";
       }
       this.refresh().catch(() => undefined);
+    }
+
+    /**
+     * @returns {string}
+     */
+    tabStorageKey() {
+      const host = String(root.Server?.getContext?.().host || "default");
+      return "nytrina:activeTab:" + host;
+    }
+
+    /**
+     * @param {string} tabId
+     * @returns {boolean}
+     */
+    isValidTabId(tabId) {
+      const allowed = new Set([
+        "scanner",
+        "debug",
+        "dashboard",
+        "ranking",
+        "reports",
+        "economy",
+        "planner",
+        "settings",
+      ]);
+
+      return allowed.has(String(tabId || "").trim());
+    }
+
+    /**
+     * @returns {string}
+     */
+    loadSavedTab() {
+      try {
+        const value = String(
+          global.localStorage.getItem(this.tabStorageKey()) || "",
+        ).trim();
+        return this.isValidTabId(value) ? value : "scanner";
+      } catch (_error) {
+        return "scanner";
+      }
+    }
+
+    /**
+     * @param {string} tabId
+     * @returns {void}
+     */
+    saveCurrentTab(tabId) {
+      const safeTab = this.isValidTabId(tabId) ? String(tabId) : "scanner";
+      try {
+        global.localStorage.setItem(this.tabStorageKey(), safeTab);
+      } catch (_error) {
+        return;
+      }
     }
 
     /**
@@ -233,6 +292,40 @@
     }
 
     /**
+     * @param {HTMLElement|null} node
+     * @returns {void}
+     */
+    scrollPlannerToFirstPending(node) {
+      if (!(node instanceof HTMLElement)) return;
+
+      const scrollBox = node.querySelector(".planner-steps-scroll");
+      if (!(scrollBox instanceof HTMLElement)) return;
+
+      const rows = Array.from(
+        scrollBox.querySelectorAll(".nytrina-planner-step-row"),
+      );
+
+      const firstPending = rows.find((row) => {
+        const checkbox = row.querySelector(".nytrina-planner-step-check");
+        return checkbox instanceof HTMLInputElement && checkbox.checked !== true;
+      });
+
+      if (!firstPending) return;
+
+      const applyScroll = () => {
+        const nextTop = Math.max(0, Number(firstPending.offsetTop || 0) - 8);
+        scrollBox.scrollTop = nextTop;
+      };
+
+      if (scrollBox.clientHeight > 0) {
+        applyScroll();
+      } else {
+        global.requestAnimationFrame(() => applyScroll());
+        global.setTimeout(() => applyScroll(), 50);
+      }
+    }
+
+    /**
      * @returns {void}
      */
     bindEvents() {
@@ -241,7 +334,12 @@
         button.addEventListener("click", () => {
           const tab = button.getAttribute("data-tab") || "scanner";
           this.currentTab = tab;
+          this.saveCurrentTab(tab);
           root.Tabs.activateTab(this.overlay, tab);
+
+          if (tab === "planner") {
+            this.refreshPlanner().catch(() => undefined);
+          }
         });
       });
 
@@ -1905,12 +2003,22 @@
         })
         .join("");
 
+      const firstPendingStep = steps.find(
+        (step) => !Boolean(activeVillage?.completedSteps?.[String(step.id)]),
+      );
+      const firstPendingStepId = String(firstPendingStep?.id || "");
+
       const rows = steps
         .map((step) => {
           const checked = Boolean(activeVillage?.completedSteps?.[String(step.id)]);
           const note = String(step.note || "");
+          const isFirstPending =
+            !checked && String(step.id) === firstPendingStepId;
+          const rowClass = isFirstPending
+            ? "nytrina-planner-step-row nytrina-planner-first-pending"
+            : "nytrina-planner-step-row";
           return (
-            '<tr class="nytrina-planner-step-row" data-step-id="' +
+            '<tr class="' + rowClass + '" data-step-id="' +
             String(step.id) +
             '">' +
             '<td><input class="nytrina-planner-step-check" data-step-id="' +
@@ -1968,6 +2076,8 @@
           rows +
           "</tbody></table></div></div>",
       ].join("");
+
+      this.scrollPlannerToFirstPending(node);
 
       node
         .querySelector("#nytrina-planner-village")
@@ -2036,8 +2146,6 @@
         });
 
       const updatePlannerStep = async (stepId, checked) => {
-        const scrollBox = node.querySelector(".planner-steps-scroll");
-        const currentScrollTop = scrollBox ? Number(scrollBox.scrollTop || 0) : 0;
         const currentSettings = this.getSettings();
         const next = this.normalizePlannerState(currentSettings?.planner, server.host);
         const target = this.activePlannerVillage(next);
@@ -2045,12 +2153,6 @@
         target.completedSteps[stepId] = checked === true;
         await this.saveSettings({ planner: next });
         await this.refreshPlanner();
-
-        const refreshedNode = this.panel("planner");
-        const refreshedScroll = refreshedNode?.querySelector(".planner-steps-scroll");
-        if (refreshedScroll) {
-          refreshedScroll.scrollTop = currentScrollTop;
-        }
       };
 
       node.querySelectorAll(".nytrina-planner-step-row").forEach((row) => {

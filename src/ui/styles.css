@@ -47,6 +47,16 @@
   overflow: auto;
 }
 
+#nytrina-overlay .nytrina-planner-first-pending td {
+  background: linear-gradient(180deg, #4a2e10, #32200d);
+  border-top-color: #f4bf63;
+  border-bottom-color: #f4bf63;
+}
+
+#nytrina-overlay .nytrina-planner-first-pending td:first-child {
+  box-shadow: inset 3px 0 0 #ffcf75;
+}
+
 #nytrina-overlay .tab {
   background: #23170d;
   color: #d8bc91;
