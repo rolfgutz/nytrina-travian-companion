@@ -4361,7 +4361,7 @@
         },
         {
           label: "Gauleses",
-          items: ["phalanx", "swordsman", "theutates_thunder", "druidrider", "haeduan"]
+          items: ["phalanx", "swordsman", "theutates_thunder", "haeduan", "druidrider"]
             .filter((key) => speedMap.gauls[key])
             .map((key) => ({ key, base: Number(speedMap.gauls[key]) })),
         },

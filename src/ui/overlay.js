@@ -862,6 +862,31 @@
     }
 
     /**
+     * @param {HTMLInputElement|null} exceptInput
+     * @returns {void}
+     */
+    clearSuggestedTroopInputs(exceptInput) {
+      const inputs = Array.from(
+        global.document.querySelectorAll('input[type="number"], input[type="text"]'),
+      );
+
+      for (const input of inputs) {
+        if (!(input instanceof HTMLInputElement)) continue;
+        if (exceptInput && input === exceptInput) continue;
+        if (input.dataset.nytrinaPrefilled !== "1") continue;
+
+        this.ensureManualEditGuard(input);
+        input.dataset.nytrinaApplying = "1";
+        input.value = "0";
+        input.dataset.nytrinaPrefilled = "1";
+        input.dataset.nytrinaPrefillStamp = "scanner:clear";
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        input.dataset.nytrinaApplying = "0";
+      }
+    }
+
+    /**
      * @param {{rallyCoord:string|null,selectedTribe:string,selectedTroopType:string,withHeroSuggestion:string,withoutHeroSuggestion:string}} params
      * @returns {{applied:boolean,value:number,reason:string}}
      */
@@ -926,6 +951,8 @@
       if (!shouldFill) {
         return { applied: false, value: suggested, reason: "mantido-manual" };
       }
+
+      this.clearSuggestedTroopInputs(input);
 
       input.dataset.nytrinaApplying = "1";
       input.value = String(suggested);
@@ -1016,7 +1043,7 @@
         },
         {
           label: "Gauleses",
-          items: ["phalanx", "swordsman", "theutates_thunder", "druidrider", "haeduan"]
+          items: ["phalanx", "swordsman", "theutates_thunder", "haeduan", "druidrider"]
             .filter((key) => speedMap.gauls[key])
             .map((key) => ({ key, base: Number(speedMap.gauls[key]) })),
         },
