@@ -1043,7 +1043,7 @@
         },
         {
           label: "Gauleses",
-          items: ["phalanx", "swordsman", "theutates_thunder", "haeduan", "druidrider"]
+          items: ["phalanx", "swordsman", "pathfinder", "theutates_thunder", "haeduan", "druidrider"]
             .filter((key) => speedMap.gauls[key])
             .map((key) => ({ key, base: Number(speedMap.gauls[key]) })),
         },
@@ -1528,10 +1528,6 @@
         '<div class="stack">',
         "<label>Tipo de tropa (define tempo)</label>",
         '<select id="nytrina-scanner-troop">' + groupedOptions + "</select>",
-        "<label>Velocidade personalizada</label>",
-        '<input id="nytrina-scanner-custom-speed" type="number" step="0.1" value="' +
-          Number(settings.customSpeed || 14) +
-          '">',
         '<label class="check-row"><input id="nytrina-scanner-small-map" type="checkbox"' +
           (settings.smallMap ? ' checked="checked"' : "") +
           ">Mapa pequeno na volta</label>",
@@ -1610,20 +1606,11 @@
       ].join("");
 
       const scannerTroop = node.querySelector("#nytrina-scanner-troop");
-      const scannerCustomSpeed = node.querySelector(
-        "#nytrina-scanner-custom-speed",
-      );
       const scannerSmallMap = node.querySelector("#nytrina-scanner-small-map");
 
       if (scannerSmallMap) {
         scannerSmallMap.checked = Boolean(settings.smallMap);
       }
-
-      const updateCustomState = () => {
-        if (!scannerCustomSpeed || !scannerTroop) return;
-        scannerCustomSpeed.disabled = scannerTroop.value !== "custom";
-      };
-      updateCustomState();
 
       scannerTroop?.addEventListener("change", async () => {
         const troopType = String(scannerTroop.value || "hero");
@@ -1631,14 +1618,6 @@
         await this.saveSettings({
           troopType,
           troopTribe: inferredTribe || settings.troopTribe || "romans",
-        });
-        updateCustomState();
-        await this.refresh();
-      });
-
-      scannerCustomSpeed?.addEventListener("change", async () => {
-        await this.saveSettings({
-          customSpeed: Number(scannerCustomSpeed.value || 14),
         });
         await this.refresh();
       });
@@ -2264,9 +2243,6 @@
         '<div class="card"><span>Tipo de tropa</span><select id="nytrina-setting-troop">' +
           groupedOptions +
           "</select></div>",
-        '<div class="card"><span>Velocidade personalizada</span><input id="nytrina-setting-speed" type="number" step="0.1" value="' +
-          Number(settings.customSpeed) +
-          '"></div>',
         '<div class="card"><span>Mapa pequeno</span><label class="check-row"><input id="nytrina-setting-small-map" type="checkbox" ' +
           (settings.smallMap ? ' checked="checked"' : "") +
           ">Ativar volta reduzida</label></div>",
@@ -2282,7 +2258,6 @@
       const serverInput = node.querySelector("#nytrina-setting-server");
       const tribeSelect = node.querySelector("#nytrina-setting-tribe");
       const troopSelect = node.querySelector("#nytrina-setting-troop");
-      const speedInput = node.querySelector("#nytrina-setting-speed");
       const warning = node.querySelector("#nytrina-setting-server-warning");
       const smallMapInput = node.querySelector("#nytrina-setting-small-map");
       const exportBackupButton = node.querySelector("#nytrina-export-backup");
@@ -2319,12 +2294,6 @@
         syncServerField();
       });
 
-      const syncCustomSpeedInput = () => {
-        if (!troopSelect || !speedInput) return;
-        speedInput.disabled = troopSelect.value !== "custom";
-      };
-      syncCustomSpeedInput();
-
       tribeSelect?.addEventListener("change", async () => {
         const nextTribe = String(tribeSelect.value || "romans");
         const currentTroop = String(troopSelect?.value || "hero");
@@ -2347,7 +2316,6 @@
         } else {
           await this.saveSettings({ troopType });
         }
-        syncCustomSpeedInput();
       });
 
       node

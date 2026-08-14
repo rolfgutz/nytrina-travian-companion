@@ -70,9 +70,10 @@
     gauls: {
       phalanx: 14,
       swordsman: 12,
-      theutates_thunder: 19,
-      druidrider: 16,
-      haeduan: 13
+      pathfinder: 34,
+      theutates_thunder: 38,
+      druidrider: 32,
+      haeduan: 26
     }
   };
 

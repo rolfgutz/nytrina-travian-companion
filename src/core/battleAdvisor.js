@@ -18,13 +18,20 @@
 
   const TROOP_ATTACK = {
     legionnaire: 40,
+    praetorian: 30,
     imperian: 70,
     equites_imperatoris: 120,
     equites_caesaris: 180,
     clubman: 40,
+    spearman: 20,
+    axeman: 60,
     paladin: 55,
     teutonic_knight: 150,
+    phalanx: 15,
+    swordsman: 65,
+    pathfinder: 0,
     theutates_thunder: 90,
+    druidrider: 45,
     haeduan: 140,
   };
 
