@@ -13,6 +13,7 @@ const orderedFiles = [
   "core/utils.js",
   "core/server.js",
   "core/storage.js",
+  "core/githubSync.js",
   "parser/mapParser.js",
   "parser/oasisParser.js",
   "parser/reportParser.js",

@@ -95,7 +95,17 @@
      * @returns {Promise<void>}
      */
     async saveReport(report) {
-      if (!report) return;
+      if (!report?.reportId) return false;
+
+      const existing = await this.storage.get(
+        root.Constants.STORES.REPORTS,
+        report.reportId,
+      );
+      if (existing) {
+        console.log('[NytrinA] Relatorio ja importado:', report.reportId);
+        return false;
+      }
+
       await this.storage.put(root.Constants.STORES.REPORTS, report);
 
       const reports = await this.storage.getAll(root.Constants.STORES.REPORTS);
@@ -149,6 +159,7 @@
       }
 
       if (typeof this.onUpdate === 'function') this.onUpdate('report', report);
+      return true;
     }
   }
 

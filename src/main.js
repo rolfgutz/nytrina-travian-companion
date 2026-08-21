@@ -88,6 +88,23 @@
     }
 
     let overlay = null;
+    const sync = new root.GitHubSyncService({
+      storage,
+      getSettings,
+    });
+
+    const syncNow = async () => {
+      try {
+        const result = await sync.sync();
+        if (result?.added > 0 && overlay) {
+          await overlay.clearLearningData();
+          await overlay.rebuildLearningFromReports();
+          await overlay.refresh();
+        }
+      } catch (error) {
+        global.console.warn('[NytrinA] Falha na sincronização GitHub:', error);
+      }
+    };
 
     const scanner = new root.ScannerService({
       storage,
@@ -102,12 +119,17 @@
     overlay = new root.Overlay({
       storage,
       scanner,
+      sync,
       getSettings,
       saveSettings
     });
 
     overlay.mount();
     scanner.start();
+    syncNow().catch(() => undefined);
+    global.addEventListener('focus', () => {
+      syncNow().catch(() => undefined);
+    });
 
     global.NytrinA.getSettings = getSettings;
     global.NytrinA.saveSettings = saveSettings;
