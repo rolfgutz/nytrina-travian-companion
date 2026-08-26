@@ -5,12 +5,11 @@
 
   class Overlay {
     /**
-    * @param {{storage:any,scanner:any,sync:any,getSettings:Function,saveSettings:Function}} deps
+     * @param {{storage:any,scanner:any,getSettings:Function,saveSettings:Function}} deps
      */
     constructor(deps) {
       this.storage = deps.storage;
       this.scanner = deps.scanner;
-      this.sync = deps.sync;
       this.getSettings = deps.getSettings;
       this.saveSettings = deps.saveSettings;
       this.currentScan = null;
@@ -535,8 +534,8 @@
      */
     tribeOptions() {
       return [
-        { value: "gauls", label: "Gauleses" },
         { value: "romans", label: "Romanos" },
+        { value: "gauls", label: "Gauleses" },
         { value: "teutons", label: "Teutoes" },
       ];
     }
@@ -1015,10 +1014,11 @@
 
       const groups = [
         {
-          label: "Gauleses",
-          items: ["phalanx", "swordsman", "theutates_thunder", "haeduan", "druidrider"]
-            .filter((key) => speedMap.gauls[key])
-            .map((key) => ({ key, base: Number(speedMap.gauls[key]) })),
+          label: "Geral",
+          items: [
+            { key: "hero", base: Number(speedMap.hero || 14) },
+            { key: "custom", base: Number(speedMap.custom || 14) },
+          ],
         },
         {
           label: "Romanos",
@@ -1042,11 +1042,10 @@
             .map((key) => ({ key, base: Number(speedMap.teutons[key]) })),
         },
         {
-          label: "Geral",
-          items: [
-            { key: "hero", base: Number(speedMap.hero || 14) },
-            { key: "custom", base: Number(speedMap.custom || 14) },
-          ],
+          label: "Gauleses",
+          items: ["phalanx", "swordsman", "theutates_thunder", "haeduan", "druidrider"]
+            .filter((key) => speedMap.gauls[key])
+            .map((key) => ({ key, base: Number(speedMap.gauls[key]) })),
         },
       ];
 
@@ -1529,6 +1528,10 @@
         '<div class="stack">',
         "<label>Tipo de tropa (define tempo)</label>",
         '<select id="nytrina-scanner-troop">' + groupedOptions + "</select>",
+        "<label>Velocidade personalizada</label>",
+        '<input id="nytrina-scanner-custom-speed" type="number" step="0.1" value="' +
+          Number(settings.customSpeed || 14) +
+          '">',
         '<label class="check-row"><input id="nytrina-scanner-small-map" type="checkbox"' +
           (settings.smallMap ? ' checked="checked"' : "") +
           ">Mapa pequeno na volta</label>",
@@ -1607,11 +1610,20 @@
       ].join("");
 
       const scannerTroop = node.querySelector("#nytrina-scanner-troop");
+      const scannerCustomSpeed = node.querySelector(
+        "#nytrina-scanner-custom-speed",
+      );
       const scannerSmallMap = node.querySelector("#nytrina-scanner-small-map");
 
       if (scannerSmallMap) {
         scannerSmallMap.checked = Boolean(settings.smallMap);
       }
+
+      const updateCustomState = () => {
+        if (!scannerCustomSpeed || !scannerTroop) return;
+        scannerCustomSpeed.disabled = scannerTroop.value !== "custom";
+      };
+      updateCustomState();
 
       scannerTroop?.addEventListener("change", async () => {
         const troopType = String(scannerTroop.value || "hero");
@@ -1619,6 +1631,14 @@
         await this.saveSettings({
           troopType,
           troopTribe: inferredTribe || settings.troopTribe || "romans",
+        });
+        updateCustomState();
+        await this.refresh();
+      });
+
+      scannerCustomSpeed?.addEventListener("change", async () => {
+        await this.saveSettings({
+          customSpeed: Number(scannerCustomSpeed.value || 14),
         });
         await this.refresh();
       });
@@ -1721,17 +1741,7 @@
             return;
           }
 
-          const saved = await this.scanner.saveReport(report);
-
-          if (!saved) {
-            root.Modal.show(
-              "Relatorio",
-              "Este relatorio ja foi importado anteriormente.",
-            );
-            return;
-          }
-
-          await this.sync?.sync();
+          await this.scanner.saveReport(report);
 
           console.log("ANTES DO BATTLE - ABA RELATORIOS");
 
@@ -1906,22 +1916,18 @@
 
             console.log("RELATORIOS: REPORT GERADO", report);
 
-            const saved = await this.scanner.saveReport(report);
-
-            if (!saved) {
-              root.Modal.show(
-                "Relatorio",
-                "Este relatorio ja foi importado anteriormente.",
-              );
-              return;
-            }
+            // Primeiro aprende, para identificarmos qualquer erro isoladamente.
+            console.log("RELATORIOS: ANTES DO BATTLE");
 
             const learningResult = await root.BattleKnowledge.learnFromReport({
               storage: this.storage,
               report,
             });
 
-            await this.sync?.sync();
+            console.log("RELATORIOS: BATTLE SALVO", learningResult);
+
+            // Depois salva o relatório normal.
+            await this.scanner.saveReport(report);
 
             console.log("RELATORIOS: REPORT SALVO");
 
@@ -2258,20 +2264,12 @@
         '<div class="card"><span>Tipo de tropa</span><select id="nytrina-setting-troop">' +
           groupedOptions +
           "</select></div>",
+        '<div class="card"><span>Velocidade personalizada</span><input id="nytrina-setting-speed" type="number" step="0.1" value="' +
+          Number(settings.customSpeed) +
+          '"></div>',
         '<div class="card"><span>Mapa pequeno</span><label class="check-row"><input id="nytrina-setting-small-map" type="checkbox" ' +
           (settings.smallMap ? ' checked="checked"' : "") +
           ">Ativar volta reduzida</label></div>",
-        '<div class="card"><span>Sincronizacao GitHub</span><label class="check-row"><input id="nytrina-setting-github-enabled" type="checkbox" ' +
-          (settings.githubSyncEnabled ? ' checked="checked"' : "") +
-          ">Ativar sincronizacao automatica</label></div>",
-        '<div class="card"><span>GitHub Owner / Repository</span><input id="nytrina-setting-github-repo" value="' +
-          String(settings.githubSyncOwner || "") +
-          (settings.githubSyncRepo ? "/" + String(settings.githubSyncRepo) : "") +
-          '" placeholder="usuario/repositorio"></div>',
-        '<div class="card"><span>Arquivo remoto</span><input id="nytrina-setting-github-path" value="' +
-          String(settings.githubSyncPath || "nytrina/reports.json") +
-          '"></div>',
-        '<div class="card"><span>Token GitHub</span><input id="nytrina-setting-github-token" type="password" placeholder="Deixe vazio para manter o atual"></div>',
         "</div>",
         '<div id="nytrina-setting-server-warning" class="server-warning' +
           (isManualInvalid ? " show" : "") +
@@ -2284,6 +2282,7 @@
       const serverInput = node.querySelector("#nytrina-setting-server");
       const tribeSelect = node.querySelector("#nytrina-setting-tribe");
       const troopSelect = node.querySelector("#nytrina-setting-troop");
+      const speedInput = node.querySelector("#nytrina-setting-speed");
       const warning = node.querySelector("#nytrina-setting-server-warning");
       const smallMapInput = node.querySelector("#nytrina-setting-small-map");
       const exportBackupButton = node.querySelector("#nytrina-export-backup");
@@ -2320,6 +2319,12 @@
         syncServerField();
       });
 
+      const syncCustomSpeedInput = () => {
+        if (!troopSelect || !speedInput) return;
+        speedInput.disabled = troopSelect.value !== "custom";
+      };
+      syncCustomSpeedInput();
+
       tribeSelect?.addEventListener("change", async () => {
         const nextTribe = String(tribeSelect.value || "romans");
         const currentTroop = String(troopSelect?.value || "hero");
@@ -2342,6 +2347,7 @@
         } else {
           await this.saveSettings({ troopType });
         }
+        syncCustomSpeedInput();
       });
 
       node
@@ -2368,6 +2374,10 @@
               node.querySelector("#nytrina-setting-tribe")?.value || "romans",
             ),
 
+            customSpeed: Number(
+              node.querySelector("#nytrina-setting-speed")?.value || 14,
+            ),
+
             smallMap:
               node.querySelector("#nytrina-setting-small-map")?.checked ===
               true,
@@ -2375,35 +2385,11 @@
             language: String(
               node.querySelector("#nytrina-setting-language")?.value || "pt-BR",
             ),
-
-            githubSyncEnabled:
-              node.querySelector("#nytrina-setting-github-enabled")?.checked ===
-              true,
-            githubSyncOwner: String(
-              node.querySelector("#nytrina-setting-github-repo")?.value || "",
-            )
-              .trim()
-              .split("/")[0],
-            githubSyncRepo: String(
-              node.querySelector("#nytrina-setting-github-repo")?.value || "",
-            )
-              .trim()
-              .split("/")[1] || "",
-            githubSyncPath: String(
-              node.querySelector("#nytrina-setting-github-path")?.value ||
-                "nytrina/reports.json",
-            ).trim(),
           };
-
-          const token = String(
-            node.querySelector("#nytrina-setting-github-token")?.value || "",
-          ).trim();
-          if (token) this.sync?.setToken(token);
 
           console.log("[NytrinA] Salvando payload:", payload);
 
           await this.saveSettings(payload);
-          await this.sync?.sync();
 
           this.scanner.lastSignature = "";
 

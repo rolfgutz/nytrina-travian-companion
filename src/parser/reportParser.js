@@ -313,10 +313,38 @@
     return 0;
   }
 
+  function parseReportTimestampToken() {
+    const rawText = String(
+      global.document.body?.innerText ||
+        global.document.body?.textContent ||
+        "",
+    );
+
+    // Data/hora exata exibida no relatorio (ex: 23.08.26, 01:47:10), unica por relatorio.
+    const match = rawText.match(
+      /(\d{2}[./]\d{2}[./]\d{2,4}),?\s*(\d{2}:\d{2}:\d{2})/,
+    );
+
+    if (!match) return null;
+
+    return match[1].replace(/[./]/g, "") + "-" + match[2].replace(/:/g, "");
+  }
+
   function parseReportIdFromUrl() {
     const params = new URL(global.location.href).searchParams;
-    const byUrl = params.get("id");
+    const byUrl =
+      params.get("id") || params.get("newdid") || params.get("uid");
     if (byUrl) return byUrl;
+
+    // Tokens hash-like no path (ex: /report/97e2fdb6c4b1e2d1) sao unicos por relatorio.
+    const pathToken = global.location.pathname.match(/[a-f0-9]{12,}/i);
+    if (pathToken) return pathToken[0];
+
+    // Data/hora exibida + coordenada evita colidir com o nome da aldeia/oasis.
+    const timestamp = parseReportTimestampToken();
+    if (timestamp) {
+      return "report-" + (parseReportCoord() || "coord") + "-" + timestamp;
+    }
 
     const candidates = Array.from(
       global.document.querySelectorAll(
