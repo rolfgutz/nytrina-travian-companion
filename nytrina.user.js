@@ -2320,7 +2320,7 @@
     if (safeCasualtyRate <= targetRate) return 1;
 
     const ratio = safeCasualtyRate / Math.max(targetRate, 0.01);
-    
+
     let confidenceDampener =
       Number(sampleCount || 0) >= 20 && Number(confidenceScore || 0) >= 0.8
         ? 0.78
@@ -3269,7 +3269,7 @@
 
     const boundedMaxInfluence = 1 + (Math.max(cappedHighFactor, 1) - 1) * 0.9;
     const maxWeight = clamp((sampleCount - 3) / 10, 0, 1) * 0.35;
-    
+
     const blendedFactor =
       averageFactor * (1 - maxWeight) + boundedMaxInfluence * maxWeight;
     const learnedFactor = Math.max(1, blendedFactor);
