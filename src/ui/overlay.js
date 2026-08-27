@@ -534,8 +534,8 @@
      */
     tribeOptions() {
       return [
-        { value: "romans", label: "Romanos" },
         { value: "gauls", label: "Gauleses" },
+        { value: "romans", label: "Romanos" },
         { value: "teutons", label: "Teutoes" },
       ];
     }
@@ -1014,11 +1014,10 @@
 
       const groups = [
         {
-          label: "Geral",
-          items: [
-            { key: "hero", base: Number(speedMap.hero || 14) },
-            { key: "custom", base: Number(speedMap.custom || 14) },
-          ],
+          label: "Gauleses",
+          items: ["phalanx", "swordsman", "theutates_thunder", "haeduan", "druidrider"]
+            .filter((key) => speedMap.gauls[key])
+            .map((key) => ({ key, base: Number(speedMap.gauls[key]) })),
         },
         {
           label: "Romanos",
@@ -1042,10 +1041,11 @@
             .map((key) => ({ key, base: Number(speedMap.teutons[key]) })),
         },
         {
-          label: "Gauleses",
-          items: ["phalanx", "swordsman", "theutates_thunder", "haeduan", "druidrider"]
-            .filter((key) => speedMap.gauls[key])
-            .map((key) => ({ key, base: Number(speedMap.gauls[key]) })),
+          label: "Geral",
+          items: [
+            { key: "hero", base: Number(speedMap.hero || 14) },
+            { key: "custom", base: Number(speedMap.custom || 14) },
+          ],
         },
       ];
 

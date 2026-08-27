@@ -21,6 +21,7 @@ const orderedFiles = [
   "core/battleAI.js",
   "core/battleAdvisor.js",
   "core/battleLearning.js",
+  "core/githubSync.js",
   "core/scanner.js",
   "ui/tabs.js",
   "ui/modal.js",
