@@ -5,11 +5,12 @@
 
   class Overlay {
     /**
-     * @param {{storage:any,scanner:any,getSettings:Function,saveSettings:Function}} deps
+     * @param {{storage:any,scanner:any,sync:any,getSettings:Function,saveSettings:Function}} deps
      */
     constructor(deps) {
       this.storage = deps.storage;
       this.scanner = deps.scanner;
+      this.sync = deps.sync;
       this.getSettings = deps.getSettings;
       this.saveSettings = deps.saveSettings;
       this.currentScan = null;
@@ -2270,6 +2271,22 @@
         '<div class="card"><span>Mapa pequeno</span><label class="check-row"><input id="nytrina-setting-small-map" type="checkbox" ' +
           (settings.smallMap ? ' checked="checked"' : "") +
           ">Ativar volta reduzida</label></div>",
+        '<div class="card"><span>Sincronizacao GitHub</span><label class="check-row"><input id="nytrina-setting-github-enabled" type="checkbox" ' +
+          (settings.githubSyncEnabled ? ' checked="checked"' : "") +
+          ">Ativar sincronizacao automatica</label></div>",
+        '<div class="card"><span>GitHub Owner</span><input id="nytrina-setting-github-owner" value="' +
+          this.escapeHtml(settings.githubSyncOwner || "") +
+          '" placeholder="usuario"></div>',
+        '<div class="card"><span>GitHub Repository</span><input id="nytrina-setting-github-repo" value="' +
+          this.escapeHtml(settings.githubSyncRepo || "") +
+          '" placeholder="repositorio"></div>',
+        '<div class="card"><span>GitHub Branch</span><input id="nytrina-setting-github-branch" value="' +
+          this.escapeHtml(settings.githubSyncBranch || "main") +
+          '" placeholder="main"></div>',
+        '<div class="card"><span>Arquivo remoto</span><input id="nytrina-setting-github-path" value="' +
+          this.escapeHtml(settings.githubSyncPath || "nytrina/reports.json") +
+          '" placeholder="nytrina/reports.json"></div>',
+        '<div class="card"><span>Token GitHub</span><input id="nytrina-setting-github-token" type="password" placeholder="cole o token aqui"></div>',
         "</div>",
         '<div id="nytrina-setting-server-warning" class="server-warning' +
           (isManualInvalid ? " show" : "") +
@@ -2285,6 +2302,12 @@
       const speedInput = node.querySelector("#nytrina-setting-speed");
       const warning = node.querySelector("#nytrina-setting-server-warning");
       const smallMapInput = node.querySelector("#nytrina-setting-small-map");
+      const githubEnabledInput = node.querySelector("#nytrina-setting-github-enabled");
+      const githubOwnerInput = node.querySelector("#nytrina-setting-github-owner");
+      const githubRepoInput = node.querySelector("#nytrina-setting-github-repo");
+      const githubBranchInput = node.querySelector("#nytrina-setting-github-branch");
+      const githubPathInput = node.querySelector("#nytrina-setting-github-path");
+      const githubTokenInput = node.querySelector("#nytrina-setting-github-token");
       const exportBackupButton = node.querySelector("#nytrina-export-backup");
       const importBackupButton = node.querySelector("#nytrina-import-backup");
       const importBackupFile = node.querySelector("#nytrina-import-backup-file");
@@ -2378,6 +2401,28 @@
               node.querySelector("#nytrina-setting-speed")?.value || 14,
             ),
 
+            githubSyncEnabled:
+              node.querySelector("#nytrina-setting-github-enabled")?.checked ===
+              true,
+
+            githubSyncOwner: String(
+              node.querySelector("#nytrina-setting-github-owner")?.value || "",
+            ).trim(),
+
+            githubSyncRepo: String(
+              node.querySelector("#nytrina-setting-github-repo")?.value || "",
+            ).trim(),
+
+            githubSyncBranch: String(
+              node.querySelector("#nytrina-setting-github-branch")?.value ||
+                "main",
+            ).trim() || "main",
+
+            githubSyncPath: String(
+              node.querySelector("#nytrina-setting-github-path")?.value ||
+                "nytrina/reports.json",
+            ).trim() || "nytrina/reports.json",
+
             smallMap:
               node.querySelector("#nytrina-setting-small-map")?.checked ===
               true,
@@ -2390,6 +2435,11 @@
           console.log("[NytrinA] Salvando payload:", payload);
 
           await this.saveSettings(payload);
+
+          const githubToken = String(githubTokenInput?.value || "").trim();
+          if (this.sync && typeof this.sync.setToken === "function") {
+            this.sync.setToken(githubToken);
+          }
 
           this.scanner.lastSignature = "";
 

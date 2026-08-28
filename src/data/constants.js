@@ -23,7 +23,12 @@
       troopTribe: 'romans',
       customSpeed: 14,
       smallMap: false,
-      language: 'pt-BR'
+      language: 'pt-BR',
+      githubSyncEnabled: false,
+      githubSyncOwner: '',
+      githubSyncRepo: '',
+      githubSyncBranch: 'main',
+      githubSyncPath: 'nytrina/reports.json'
     },
     SAVE_DEBOUNCE_MS: 900,
     SCAN_INTERVAL_MS: 1500
