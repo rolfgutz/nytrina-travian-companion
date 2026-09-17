@@ -896,8 +896,78 @@
         return { applied: false, value: 0, reason: "alvo-player" };
       }
 
-      void params;
-      return { applied: false, value: 0, reason: "desativado" };
+      const rallyCoord = String(params?.rallyCoord || "").trim();
+      const selectedTribe = String(params?.selectedTribe || "").trim();
+      const selectedTroopType = String(params?.selectedTroopType || "").trim();
+      const withHeroSuggestion = Number(params?.withHeroSuggestion || 0);
+      const withoutHeroSuggestion = Number(params?.withoutHeroSuggestion || 0);
+
+      if (!rallyCoord) {
+        return { applied: false, value: 0, reason: "sem-alvo" };
+      }
+
+      if (!selectedTroopType || selectedTroopType === "hero" || selectedTroopType === "custom") {
+        return { applied: false, value: 0, reason: "perfil-invalido" };
+      }
+
+      const troopClass = this.troopClassByType(selectedTribe, selectedTroopType);
+      if (!troopClass) {
+        return { applied: false, value: 0, reason: "classe-nao-encontrada" };
+      }
+
+      const input = this.findTroopInputByClass(troopClass);
+      if (!input) {
+        return { applied: false, value: 0, reason: "campo-nao-encontrado" };
+      }
+
+      this.ensureManualEditGuard(input);
+
+      const hasHero = this.isHeroEnabledInRallyForm();
+      let suggested = hasHero ? withHeroSuggestion : withoutHeroSuggestion;
+
+      if (!Number.isFinite(suggested) || suggested <= 0) {
+        suggested = Math.max(withHeroSuggestion, withoutHeroSuggestion, 0);
+      }
+
+      suggested = Math.round(Number(suggested || 0));
+      if (!Number.isFinite(suggested) || suggested <= 0) {
+        return { applied: false, value: 0, reason: "sem-valor-sugerido" };
+      }
+
+      const stamp =
+        rallyCoord +
+        "|" +
+        selectedTribe +
+        "|" +
+        selectedTroopType +
+        "|" +
+        String(suggested);
+
+      const currentRaw = String(input.value || "").trim();
+      const current = Number(currentRaw || 0);
+      const wasAutoFilled = input.dataset.nytrinaPrefilled === "1";
+      const previousStamp = String(input.dataset.nytrinaPrefillStamp || "");
+
+      const shouldFill =
+        !currentRaw ||
+        current <= 0 ||
+        (wasAutoFilled && previousStamp !== stamp);
+
+      if (!shouldFill) {
+        return { applied: false, value: suggested, reason: "mantido-manual" };
+      }
+
+      this.clearSuggestedTroopInputs(input);
+
+      input.dataset.nytrinaApplying = "1";
+      input.value = String(suggested);
+      input.dataset.nytrinaPrefilled = "1";
+      input.dataset.nytrinaPrefillStamp = stamp;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+      input.dataset.nytrinaApplying = "0";
+
+      return { applied: true, value: suggested, reason: "preenchido" };
     }
 
     /**
@@ -2541,6 +2611,14 @@
           return String(a.troopType).localeCompare(String(b.troopType));
         });
       const recentKnowledgeRows = sortedKnowledgeRows.slice(0, 50);
+      const totalSamples = recentKnowledgeRows.reduce(
+        (sum, row) => sum + Number(row.samples || 0),
+        0,
+      );
+      const latestRow = recentKnowledgeRows[0] || null;
+      const topRowBySamples = recentKnowledgeRows
+        .slice()
+        .sort((a, b) => Number(b.samples || 0) - Number(a.samples || 0))[0] || null;
 
       const debugMeta = this.paginationMeta(
         recentKnowledgeRows.length,
@@ -2551,23 +2629,39 @@
       const debugPageRows = recentKnowledgeRows.slice(debugMeta.start, debugMeta.end);
 
       node.innerHTML = [
+        '<div class="grid">',
+        '<div class="card"><span>Ultima entrada</span><b>' +
+          (latestRow ? String(latestRow.reportSeq || latestRow.lastBattle?.reportSeq || "-") : "-") +
+          '</b><div class="hint">' +
+          this.escapeHtml(latestRow?.troopType || "-") +
+          ' | ' +
+          this.escapeHtml(this.formatDateTimeFull(latestRow?.updatedAt || latestRow?.lastBattle?.date)) +
+          '</div></div>',
+        '<div class="card"><span>Amostras totais</span><b>' +
+          String(totalSamples) +
+          '</b><div class="hint">' +
+          String(recentKnowledgeRows.length) +
+          ' perfis recentes</div></div>',
+        '<div class="card"><span>Mais treinado</span><b>' +
+          this.escapeHtml(this.compactTroopLabel(topRowBySamples?.troopType || "-")) +
+          '</b><div class="hint">' +
+          String(Number(topRowBySamples?.samples || 0)) +
+          ' amostras</div></div>',
+        '<div class="card"><span>Resultado recente</span><b>' +
+          this.escapeHtml((latestRow && (latestRow.lastOutcome || latestRow.lastBattle?.outcome)) || "-") +
+          '</b><div class="hint">' +
+          String(Number(latestRow?.estimatedSafe || latestRow?.minSuccess || 0) || "-") +
+          ' envio(s)</div></div>',
+        '</div>',
+
         '<div class="actions">',
         '<button id="nytrina-clear-knowledge">Limpar Battle Knowledge</button>',
         '<button id="nytrina-rebuild-knowledge">Reconstruir via Relatórios</button>',
         "</div>",
 
-        '<div class="grid">',
-        '<div class="card"><span>Conhecimentos (últimos 50)</span><b>' +
-          recentKnowledgeRows.length +
-          "</b></div>",
-        '<div class="card"><span>Amostras (últimos 50)</span><b>' +
-          recentKnowledgeRows.reduce((s, r) => s + Number(r.samples || 0), 0) +
-          "</b></div>",
-        "</div>",
-
         '<div class="table-scroll">',
         '<table class="debug-table"><thead><tr>',
-        "<th>#</th><th>Data/Hora</th><th>Relatório</th><th>Tropa</th><th>Enviadas</th><th>Sugestão</th><th>Acerto</th><th>Baixas</th><th>% Baixas</th><th>Mortas</th><th>Enfermaria</th><th>Resultado</th><th>XP</th><th>Amostras</th>",
+        "<th>#</th><th>Tropa</th><th>Enviadas</th><th>Sugestão</th><th>Acerto</th><th>Resultado</th><th>Relatório</th><th>XP</th><th>Baixas</th><th>Mortas</th><th>Enfermaria</th><th>% Baixas</th><th>Amostras</th><th>Data/Hora</th>",
         "</tr></thead><tbody>",
 
         debugPageRows
@@ -2596,14 +2690,6 @@
               "<tr><td>" +
               (reportSeq > 0 ? String(reportSeq) : "-") +
               "</td><td>" +
-              '<span class="debug-col-datetime">' +
-              this.formatDateTimeFull(row.updatedAt || last.date) +
-              "</span>" +
-              "</td><td>" +
-              '<span class="debug-col-report">' +
-              this.escapeHtml(String(last.reportId || row.id || "-")) +
-              "</span>" +
-              "</td><td>" +
               '<span class="debug-col-troop">' +
               this.compactTroopLabel(row.troopType || "-") +
               "</span>" +
@@ -2615,21 +2701,29 @@
               killRate.toFixed(1) +
               "%" +
               "</td><td>" +
-              casualties +
-              "</td><td>" +
-              casualtyRate.toFixed(1) +
-              "%</td><td>" +
-              lost +
-              "</td><td>" +
-              wounded +
-              "</td><td>" +
               '<span class="debug-col-result">' +
               (outcomeLabels[row.lastOutcome] || "-") +
               "</span>" +
               "</td><td>" +
+              '<span class="debug-col-report">' +
+              this.escapeHtml(String(last.reportId || row.id || "-")) +
+              "</span>" +
+              "</td><td>" +
               Math.round(row.xp || 0) +
               "</td><td>" +
+              casualties +
+              "</td><td>" +
+              lost +
+              "</td><td>" +
+              wounded +
+              "</td><td>" +
+              casualtyRate.toFixed(1) +
+              "%</td><td>" +
               Number(row.samples || 0) +
+              "</td><td>" +
+              '<span class="debug-col-datetime">' +
+              this.formatDateTimeFull(row.updatedAt || last.date) +
+              "</span>" +
               "</td></tr>"
             );
           })

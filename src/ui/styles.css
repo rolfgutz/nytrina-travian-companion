@@ -329,7 +329,8 @@
 #nytrina-overlay .debug-table th:first-child,
 #nytrina-overlay .debug-table td:first-child {
   white-space: normal;
-  min-width: 128px;
+  min-width: 64px;
+  width: 64px;
 }
 
 #nytrina-overlay .debug-col-datetime {

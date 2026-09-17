@@ -1,7 +1,7 @@
 (function attachStylesNamespace(global) {
   'use strict';
   const root = (global.NytrinA = global.NytrinA || {});
-  root.UI_STYLES = "#nytrina-overlay {\r\n  position: fixed;\r\n  top: 70px;\r\n  right: 16px;\r\n  width: 520px;\r\n  max-width: calc(100vw - 24px);\r\n  max-height: 88vh;\r\n  overflow: auto;\r\n  z-index: 999999;\r\n  background: linear-gradient(180deg, #1a130e, #100c08);\r\n  color: #f7ebd7;\r\n  border: 2px solid #b97822;\r\n  border-radius: 12px;\r\n  box-shadow: 0 0 24px rgba(0, 0, 0, 0.8);\r\n  font-family: Verdana, sans-serif;\r\n  font-size: 13px;\r\n}\r\n\r\n#nytrina-overlay * {\r\n  box-sizing: border-box;\r\n}\r\n\r\n#nytrina-overlay .head {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  align-items: center;\r\n  padding: 10px 12px;\r\n  background: #25170d;\r\n  border-bottom: 1px solid #6e4518;\r\n  cursor: grab;\r\n  user-select: none;\r\n}\r\n\r\n#nytrina-overlay.dragging .head {\r\n  cursor: grabbing;\r\n}\r\n\r\n#nytrina-overlay .tabs {\r\n  display: grid;\r\n  grid-template-columns: repeat(8, minmax(0, 1fr));\r\n  gap: 4px;\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .planner-steps-scroll {\r\n  max-height: 420px;\r\n  overflow: auto;\r\n}\r\n\r\n#nytrina-overlay .nytrina-planner-first-pending td {\r\n  background: linear-gradient(180deg, #4a2e10, #32200d);\r\n  border-top-color: #f4bf63;\r\n  border-bottom-color: #f4bf63;\r\n}\r\n\r\n#nytrina-overlay .nytrina-planner-first-pending td:first-child {\r\n  box-shadow: inset 3px 0 0 #ffcf75;\r\n}\r\n\r\n#nytrina-overlay .tab {\r\n  background: #23170d;\r\n  color: #d8bc91;\r\n  border: 1px solid #7a4c1a;\r\n  border-radius: 6px;\r\n  padding: 6px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay .tab.active {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border-color: #c9892a;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .panel {\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .hidden {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay .grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .scanner-controls {\r\n  background: #342114;\r\n  border: 1px solid #8b5a22;\r\n  border-radius: 10px;\r\n  padding: 10px;\r\n  margin-bottom: 10px;\r\n  box-shadow: inset 0 0 0 1px rgba(255, 223, 168, 0.06);\r\n}\r\n\r\n#nytrina-overlay .scanner-actions {\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .scanner-actions button {\r\n  flex: 1 1 150px;\r\n}\r\n\r\n#nytrina-overlay .scanner-actions .hint {\r\n  flex: 1 1 100%;\r\n  color: #f2d7aa;\r\n  font-size: 12px;\r\n  padding-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-summary {\r\n  margin-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-essential-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n  margin-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-card-highlight {\r\n  border-color: #c9892a;\r\n  background: linear-gradient(180deg, #322010, #28190d);\r\n}\r\n\r\n#nytrina-overlay .scanner-context-line {\r\n  margin-top: 8px;\r\n  padding: 8px;\r\n  border-radius: 7px;\r\n  border: 1px solid #6e4518;\r\n  background: #1e130a;\r\n  color: #e6cda3;\r\n  font-size: 12px;\r\n  line-height: 1.4;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced {\r\n  margin-top: 8px;\r\n  border: 1px solid #6e4518;\r\n  border-radius: 7px;\r\n  background: #1a1109;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced summary {\r\n  cursor: pointer;\r\n  padding: 8px;\r\n  color: #ffd79b;\r\n  font-weight: bold;\r\n  list-style: none;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced summary::-webkit-details-marker {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced[open] summary {\r\n  border-bottom: 1px solid #6e4518;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced .scanner-summary {\r\n  padding: 8px;\r\n  margin-top: 0;\r\n}\r\n\r\n#nytrina-overlay .card {\r\n  background: #28190d;\r\n  border: 1px solid #6e4518;\r\n  border-radius: 7px;\r\n  padding: 8px;\r\n}\r\n\r\n#nytrina-overlay .card span {\r\n  display: block;\r\n  font-size: 11px;\r\n  color: #d0ad7b;\r\n  margin-bottom: 3px;\r\n}\r\n\r\n#nytrina-overlay .card b {\r\n  color: #fff;\r\n}\r\n\r\n#nytrina-overlay table {\r\n  width: 100%;\r\n  border-collapse: collapse;\r\n  margin-top: 8px;\r\n  background: #120b06;\r\n}\r\n\r\n#nytrina-overlay th,\r\n#nytrina-overlay td {\r\n  border: 1px solid #6f461c;\r\n  padding: 6px;\r\n  text-align: left;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay th {\r\n  background: #3a230f;\r\n  color: #ffe0ad;\r\n}\r\n\r\n#nytrina-overlay td {\r\n  background: #1d1209;\r\n}\r\n\r\n#nytrina-overlay .actions {\r\n  display: flex;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay button {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border: 1px solid #c9892a;\r\n  border-radius: 7px;\r\n  padding: 6px 10px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay label {\r\n  display: block;\r\n  margin-top: 8px;\r\n  color: #ffd79b;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay input,\r\n#nytrina-overlay select {\r\n  width: 100%;\r\n  height: 34px;\r\n  margin-top: 4px;\r\n  padding: 6px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8b5a22;\r\n  background: #23170d;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop,\r\n#nytrina-overlay #nytrina-setting-troop {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n  border-color: #c9a16a;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop option,\r\n#nytrina-overlay #nytrina-setting-troop option,\r\n#nytrina-overlay #nytrina-scanner-troop optgroup,\r\n#nytrina-overlay #nytrina-setting-troop optgroup {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n}\r\n\r\n#nytrina-overlay,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll,\r\n#nytrina-overlay .debug-json {\r\n  scrollbar-width: thin;\r\n  scrollbar-color: #b97822 #1a120a;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar {\r\n  width: 10px;\r\n  height: 10px;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-track,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-track,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-track {\r\n  background: #1a120a;\r\n  border-radius: 10px;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-thumb,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-thumb,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-thumb {\r\n  background: linear-gradient(180deg, #c9892a, #8a5318);\r\n  border-radius: 10px;\r\n  border: 2px solid #1a120a;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-thumb:hover,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-thumb:hover,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-thumb:hover {\r\n  background: linear-gradient(180deg, #e3a63e, #a86620);\r\n}\r\n\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll {\r\n  overflow: auto;\r\n  max-height: 52vh;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  margin-top: 8px;\r\n}\r\n\r\n#nytrina-overlay .debug-table {\r\n  table-layout: fixed;\r\n  min-width: 1080px;\r\n  margin-top: 0;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay .debug-table th,\r\n#nytrina-overlay .debug-table td {\r\n  white-space: nowrap;\r\n  overflow: hidden;\r\n  text-overflow: ellipsis;\r\n  padding: 5px 6px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-troop {\r\n  max-width: 150px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-result {\r\n  max-width: 140px;\r\n}\r\n\r\n#nytrina-overlay .debug-table th:first-child,\r\n#nytrina-overlay .debug-table td:first-child {\r\n  white-space: normal;\r\n  min-width: 128px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-datetime {\r\n  display: inline-block;\r\n  line-height: 1.2;\r\n  word-break: break-word;\r\n}\r\n\r\n#nytrina-overlay input[type='checkbox'] {\r\n  width: 16px;\r\n  height: 16px;\r\n  margin-top: 0;\r\n  margin-right: 6px;\r\n  vertical-align: middle;\r\n}\r\n\r\n#nytrina-overlay .check-row {\r\n  display: flex;\r\n  align-items: center;\r\n  color: #ffd79b;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .form-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .stack {\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .server-badge {\r\n  margin-bottom: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8a5a24;\r\n  background: #1b120a;\r\n  color: #ffd79b;\r\n}\r\n\r\n#nytrina-overlay .server-warning {\r\n  display: none;\r\n  margin-top: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #c9892a;\r\n  background: #3a230f;\r\n  color: #ffd26a;\r\n}\r\n\r\n#nytrina-overlay .server-warning.show {\r\n  display: block;\r\n}\r\n\r\n#nytrina-overlay .rank-good {\r\n  color: #72ff72;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-mid {\r\n  color: #ffd26a;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-bad {\r\n  color: #ff7d7d;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .debug-json {\r\n  white-space: pre-wrap;\r\n  background: #120b06;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  padding: 8px;\r\n  font-family: Consolas, monospace;\r\n  max-height: 360px;\r\n  overflow: auto;\r\n}\r\n\r\n#nytrina-overlay input[type=\"checkbox\"] {\r\n    appearance: checkbox !important;\r\n    -webkit-appearance: checkbox !important;\r\n    accent-color: #c9892a;\r\n    width: 16px !important;\r\n    height: 16px !important;\r\n    cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay.minimized .tabs {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay.minimized .panel {\r\n  display: none;\r\n}\r\n\r\n#nytrina-toggle-minimize {\r\n  min-width: 92px;\r\n}\r\n\r\n@media (max-width: 700px) {\r\n  #nytrina-overlay .scanner-essential-grid {\r\n    grid-template-columns: 1fr;\r\n  }\r\n}";
+  root.UI_STYLES = "#nytrina-overlay {\r\n  position: fixed;\r\n  top: 70px;\r\n  right: 16px;\r\n  width: 520px;\r\n  max-width: calc(100vw - 24px);\r\n  max-height: 88vh;\r\n  overflow: auto;\r\n  z-index: 999999;\r\n  background: linear-gradient(180deg, #1a130e, #100c08);\r\n  color: #f7ebd7;\r\n  border: 2px solid #b97822;\r\n  border-radius: 12px;\r\n  box-shadow: 0 0 24px rgba(0, 0, 0, 0.8);\r\n  font-family: Verdana, sans-serif;\r\n  font-size: 13px;\r\n}\r\n\r\n#nytrina-overlay * {\r\n  box-sizing: border-box;\r\n}\r\n\r\n#nytrina-overlay .head {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  align-items: center;\r\n  padding: 10px 12px;\r\n  background: #25170d;\r\n  border-bottom: 1px solid #6e4518;\r\n  cursor: grab;\r\n  user-select: none;\r\n}\r\n\r\n#nytrina-overlay.dragging .head {\r\n  cursor: grabbing;\r\n}\r\n\r\n#nytrina-overlay .tabs {\r\n  display: grid;\r\n  grid-template-columns: repeat(8, minmax(0, 1fr));\r\n  gap: 4px;\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .planner-steps-scroll {\r\n  max-height: 420px;\r\n  overflow: auto;\r\n}\r\n\r\n#nytrina-overlay .nytrina-planner-first-pending td {\r\n  background: linear-gradient(180deg, #4a2e10, #32200d);\r\n  border-top-color: #f4bf63;\r\n  border-bottom-color: #f4bf63;\r\n}\r\n\r\n#nytrina-overlay .nytrina-planner-first-pending td:first-child {\r\n  box-shadow: inset 3px 0 0 #ffcf75;\r\n}\r\n\r\n#nytrina-overlay .tab {\r\n  background: #23170d;\r\n  color: #d8bc91;\r\n  border: 1px solid #7a4c1a;\r\n  border-radius: 6px;\r\n  padding: 6px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay .tab.active {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border-color: #c9892a;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .panel {\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .hidden {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay .grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .scanner-controls {\r\n  background: #342114;\r\n  border: 1px solid #8b5a22;\r\n  border-radius: 10px;\r\n  padding: 10px;\r\n  margin-bottom: 10px;\r\n  box-shadow: inset 0 0 0 1px rgba(255, 223, 168, 0.06);\r\n}\r\n\r\n#nytrina-overlay .scanner-actions {\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .scanner-actions button {\r\n  flex: 1 1 150px;\r\n}\r\n\r\n#nytrina-overlay .scanner-actions .hint {\r\n  flex: 1 1 100%;\r\n  color: #f2d7aa;\r\n  font-size: 12px;\r\n  padding-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-summary {\r\n  margin-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-essential-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n  margin-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-card-highlight {\r\n  border-color: #c9892a;\r\n  background: linear-gradient(180deg, #322010, #28190d);\r\n}\r\n\r\n#nytrina-overlay .scanner-context-line {\r\n  margin-top: 8px;\r\n  padding: 8px;\r\n  border-radius: 7px;\r\n  border: 1px solid #6e4518;\r\n  background: #1e130a;\r\n  color: #e6cda3;\r\n  font-size: 12px;\r\n  line-height: 1.4;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced {\r\n  margin-top: 8px;\r\n  border: 1px solid #6e4518;\r\n  border-radius: 7px;\r\n  background: #1a1109;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced summary {\r\n  cursor: pointer;\r\n  padding: 8px;\r\n  color: #ffd79b;\r\n  font-weight: bold;\r\n  list-style: none;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced summary::-webkit-details-marker {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced[open] summary {\r\n  border-bottom: 1px solid #6e4518;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced .scanner-summary {\r\n  padding: 8px;\r\n  margin-top: 0;\r\n}\r\n\r\n#nytrina-overlay .card {\r\n  background: #28190d;\r\n  border: 1px solid #6e4518;\r\n  border-radius: 7px;\r\n  padding: 8px;\r\n}\r\n\r\n#nytrina-overlay .card span {\r\n  display: block;\r\n  font-size: 11px;\r\n  color: #d0ad7b;\r\n  margin-bottom: 3px;\r\n}\r\n\r\n#nytrina-overlay .card b {\r\n  color: #fff;\r\n}\r\n\r\n#nytrina-overlay table {\r\n  width: 100%;\r\n  border-collapse: collapse;\r\n  margin-top: 8px;\r\n  background: #120b06;\r\n}\r\n\r\n#nytrina-overlay th,\r\n#nytrina-overlay td {\r\n  border: 1px solid #6f461c;\r\n  padding: 6px;\r\n  text-align: left;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay th {\r\n  background: #3a230f;\r\n  color: #ffe0ad;\r\n}\r\n\r\n#nytrina-overlay td {\r\n  background: #1d1209;\r\n}\r\n\r\n#nytrina-overlay .actions {\r\n  display: flex;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay button {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border: 1px solid #c9892a;\r\n  border-radius: 7px;\r\n  padding: 6px 10px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay label {\r\n  display: block;\r\n  margin-top: 8px;\r\n  color: #ffd79b;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay input,\r\n#nytrina-overlay select {\r\n  width: 100%;\r\n  height: 34px;\r\n  margin-top: 4px;\r\n  padding: 6px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8b5a22;\r\n  background: #23170d;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop,\r\n#nytrina-overlay #nytrina-setting-troop {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n  border-color: #c9a16a;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop option,\r\n#nytrina-overlay #nytrina-setting-troop option,\r\n#nytrina-overlay #nytrina-scanner-troop optgroup,\r\n#nytrina-overlay #nytrina-setting-troop optgroup {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n}\r\n\r\n#nytrina-overlay,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll,\r\n#nytrina-overlay .debug-json {\r\n  scrollbar-width: thin;\r\n  scrollbar-color: #b97822 #1a120a;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar {\r\n  width: 10px;\r\n  height: 10px;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-track,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-track,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-track {\r\n  background: #1a120a;\r\n  border-radius: 10px;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-thumb,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-thumb,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-thumb {\r\n  background: linear-gradient(180deg, #c9892a, #8a5318);\r\n  border-radius: 10px;\r\n  border: 2px solid #1a120a;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-thumb:hover,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-thumb:hover,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-thumb:hover {\r\n  background: linear-gradient(180deg, #e3a63e, #a86620);\r\n}\r\n\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll {\r\n  overflow: auto;\r\n  max-height: 52vh;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  margin-top: 8px;\r\n}\r\n\r\n#nytrina-overlay .debug-table {\r\n  table-layout: fixed;\r\n  min-width: 1080px;\r\n  margin-top: 0;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay .debug-table th,\r\n#nytrina-overlay .debug-table td {\r\n  white-space: nowrap;\r\n  overflow: hidden;\r\n  text-overflow: ellipsis;\r\n  padding: 5px 6px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-troop {\r\n  max-width: 150px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-result {\r\n  max-width: 140px;\r\n}\r\n\r\n#nytrina-overlay .debug-table th:first-child,\r\n#nytrina-overlay .debug-table td:first-child {\r\n  white-space: normal;\r\n  min-width: 64px;\r\n  width: 64px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-datetime {\r\n  display: inline-block;\r\n  line-height: 1.2;\r\n  word-break: break-word;\r\n}\r\n\r\n#nytrina-overlay input[type='checkbox'] {\r\n  width: 16px;\r\n  height: 16px;\r\n  margin-top: 0;\r\n  margin-right: 6px;\r\n  vertical-align: middle;\r\n}\r\n\r\n#nytrina-overlay .check-row {\r\n  display: flex;\r\n  align-items: center;\r\n  color: #ffd79b;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .form-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .stack {\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .server-badge {\r\n  margin-bottom: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8a5a24;\r\n  background: #1b120a;\r\n  color: #ffd79b;\r\n}\r\n\r\n#nytrina-overlay .server-warning {\r\n  display: none;\r\n  margin-top: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #c9892a;\r\n  background: #3a230f;\r\n  color: #ffd26a;\r\n}\r\n\r\n#nytrina-overlay .server-warning.show {\r\n  display: block;\r\n}\r\n\r\n#nytrina-overlay .rank-good {\r\n  color: #72ff72;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-mid {\r\n  color: #ffd26a;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-bad {\r\n  color: #ff7d7d;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .debug-json {\r\n  white-space: pre-wrap;\r\n  background: #120b06;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  padding: 8px;\r\n  font-family: Consolas, monospace;\r\n  max-height: 360px;\r\n  overflow: auto;\r\n}\r\n\r\n#nytrina-overlay input[type=\"checkbox\"] {\r\n    appearance: checkbox !important;\r\n    -webkit-appearance: checkbox !important;\r\n    accent-color: #c9892a;\r\n    width: 16px !important;\r\n    height: 16px !important;\r\n    cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay.minimized .tabs {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay.minimized .panel {\r\n  display: none;\r\n}\r\n\r\n#nytrina-toggle-minimize {\r\n  min-width: 92px;\r\n}\r\n\r\n@media (max-width: 700px) {\r\n  #nytrina-overlay .scanner-essential-grid {\r\n    grid-template-columns: 1fr;\r\n  }\r\n}";
 })(window);
 
 
@@ -4536,8 +4536,78 @@
         return { applied: false, value: 0, reason: "alvo-player" };
       }
 
-      void params;
-      return { applied: false, value: 0, reason: "desativado" };
+      const rallyCoord = String(params?.rallyCoord || "").trim();
+      const selectedTribe = String(params?.selectedTribe || "").trim();
+      const selectedTroopType = String(params?.selectedTroopType || "").trim();
+      const withHeroSuggestion = Number(params?.withHeroSuggestion || 0);
+      const withoutHeroSuggestion = Number(params?.withoutHeroSuggestion || 0);
+
+      if (!rallyCoord) {
+        return { applied: false, value: 0, reason: "sem-alvo" };
+      }
+
+      if (!selectedTroopType || selectedTroopType === "hero" || selectedTroopType === "custom") {
+        return { applied: false, value: 0, reason: "perfil-invalido" };
+      }
+
+      const troopClass = this.troopClassByType(selectedTribe, selectedTroopType);
+      if (!troopClass) {
+        return { applied: false, value: 0, reason: "classe-nao-encontrada" };
+      }
+
+      const input = this.findTroopInputByClass(troopClass);
+      if (!input) {
+        return { applied: false, value: 0, reason: "campo-nao-encontrado" };
+      }
+
+      this.ensureManualEditGuard(input);
+
+      const hasHero = this.isHeroEnabledInRallyForm();
+      let suggested = hasHero ? withHeroSuggestion : withoutHeroSuggestion;
+
+      if (!Number.isFinite(suggested) || suggested <= 0) {
+        suggested = Math.max(withHeroSuggestion, withoutHeroSuggestion, 0);
+      }
+
+      suggested = Math.round(Number(suggested || 0));
+      if (!Number.isFinite(suggested) || suggested <= 0) {
+        return { applied: false, value: 0, reason: "sem-valor-sugerido" };
+      }
+
+      const stamp =
+        rallyCoord +
+        "|" +
+        selectedTribe +
+        "|" +
+        selectedTroopType +
+        "|" +
+        String(suggested);
+
+      const currentRaw = String(input.value || "").trim();
+      const current = Number(currentRaw || 0);
+      const wasAutoFilled = input.dataset.nytrinaPrefilled === "1";
+      const previousStamp = String(input.dataset.nytrinaPrefillStamp || "");
+
+      const shouldFill =
+        !currentRaw ||
+        current <= 0 ||
+        (wasAutoFilled && previousStamp !== stamp);
+
+      if (!shouldFill) {
+        return { applied: false, value: suggested, reason: "mantido-manual" };
+      }
+
+      this.clearSuggestedTroopInputs(input);
+
+      input.dataset.nytrinaApplying = "1";
+      input.value = String(suggested);
+      input.dataset.nytrinaPrefilled = "1";
+      input.dataset.nytrinaPrefillStamp = stamp;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+      input.dataset.nytrinaApplying = "0";
+
+      return { applied: true, value: suggested, reason: "preenchido" };
     }
 
     /**
@@ -6181,6 +6251,14 @@
           return String(a.troopType).localeCompare(String(b.troopType));
         });
       const recentKnowledgeRows = sortedKnowledgeRows.slice(0, 50);
+      const totalSamples = recentKnowledgeRows.reduce(
+        (sum, row) => sum + Number(row.samples || 0),
+        0,
+      );
+      const latestRow = recentKnowledgeRows[0] || null;
+      const topRowBySamples = recentKnowledgeRows
+        .slice()
+        .sort((a, b) => Number(b.samples || 0) - Number(a.samples || 0))[0] || null;
 
       const debugMeta = this.paginationMeta(
         recentKnowledgeRows.length,
@@ -6191,23 +6269,39 @@
       const debugPageRows = recentKnowledgeRows.slice(debugMeta.start, debugMeta.end);
 
       node.innerHTML = [
+        '<div class="grid">',
+        '<div class="card"><span>Ultima entrada</span><b>' +
+          (latestRow ? String(latestRow.reportSeq || latestRow.lastBattle?.reportSeq || "-") : "-") +
+          '</b><div class="hint">' +
+          this.escapeHtml(latestRow?.troopType || "-") +
+          ' | ' +
+          this.escapeHtml(this.formatDateTimeFull(latestRow?.updatedAt || latestRow?.lastBattle?.date)) +
+          '</div></div>',
+        '<div class="card"><span>Amostras totais</span><b>' +
+          String(totalSamples) +
+          '</b><div class="hint">' +
+          String(recentKnowledgeRows.length) +
+          ' perfis recentes</div></div>',
+        '<div class="card"><span>Mais treinado</span><b>' +
+          this.escapeHtml(this.compactTroopLabel(topRowBySamples?.troopType || "-")) +
+          '</b><div class="hint">' +
+          String(Number(topRowBySamples?.samples || 0)) +
+          ' amostras</div></div>',
+        '<div class="card"><span>Resultado recente</span><b>' +
+          this.escapeHtml((latestRow && (latestRow.lastOutcome || latestRow.lastBattle?.outcome)) || "-") +
+          '</b><div class="hint">' +
+          String(Number(latestRow?.estimatedSafe || latestRow?.minSuccess || 0) || "-") +
+          ' envio(s)</div></div>',
+        '</div>',
+
         '<div class="actions">',
         '<button id="nytrina-clear-knowledge">Limpar Battle Knowledge</button>',
         '<button id="nytrina-rebuild-knowledge">Reconstruir via Relatórios</button>',
         "</div>",
 
-        '<div class="grid">',
-        '<div class="card"><span>Conhecimentos (últimos 50)</span><b>' +
-          recentKnowledgeRows.length +
-          "</b></div>",
-        '<div class="card"><span>Amostras (últimos 50)</span><b>' +
-          recentKnowledgeRows.reduce((s, r) => s + Number(r.samples || 0), 0) +
-          "</b></div>",
-        "</div>",
-
         '<div class="table-scroll">',
         '<table class="debug-table"><thead><tr>',
-        "<th>#</th><th>Data/Hora</th><th>Relatório</th><th>Tropa</th><th>Enviadas</th><th>Sugestão</th><th>Acerto</th><th>Baixas</th><th>% Baixas</th><th>Mortas</th><th>Enfermaria</th><th>Resultado</th><th>XP</th><th>Amostras</th>",
+        "<th>#</th><th>Tropa</th><th>Enviadas</th><th>Sugestão</th><th>Acerto</th><th>Resultado</th><th>Relatório</th><th>XP</th><th>Baixas</th><th>Mortas</th><th>Enfermaria</th><th>% Baixas</th><th>Amostras</th><th>Data/Hora</th>",
         "</tr></thead><tbody>",
 
         debugPageRows
@@ -6236,14 +6330,6 @@
               "<tr><td>" +
               (reportSeq > 0 ? String(reportSeq) : "-") +
               "</td><td>" +
-              '<span class="debug-col-datetime">' +
-              this.formatDateTimeFull(row.updatedAt || last.date) +
-              "</span>" +
-              "</td><td>" +
-              '<span class="debug-col-report">' +
-              this.escapeHtml(String(last.reportId || row.id || "-")) +
-              "</span>" +
-              "</td><td>" +
               '<span class="debug-col-troop">' +
               this.compactTroopLabel(row.troopType || "-") +
               "</span>" +
@@ -6255,21 +6341,29 @@
               killRate.toFixed(1) +
               "%" +
               "</td><td>" +
-              casualties +
-              "</td><td>" +
-              casualtyRate.toFixed(1) +
-              "%</td><td>" +
-              lost +
-              "</td><td>" +
-              wounded +
-              "</td><td>" +
               '<span class="debug-col-result">' +
               (outcomeLabels[row.lastOutcome] || "-") +
               "</span>" +
               "</td><td>" +
+              '<span class="debug-col-report">' +
+              this.escapeHtml(String(last.reportId || row.id || "-")) +
+              "</span>" +
+              "</td><td>" +
               Math.round(row.xp || 0) +
               "</td><td>" +
+              casualties +
+              "</td><td>" +
+              lost +
+              "</td><td>" +
+              wounded +
+              "</td><td>" +
+              casualtyRate.toFixed(1) +
+              "%</td><td>" +
               Number(row.samples || 0) +
+              "</td><td>" +
+              '<span class="debug-col-datetime">' +
+              this.formatDateTimeFull(row.updatedAt || last.date) +
+              "</span>" +
               "</td></tr>"
             );
           })
