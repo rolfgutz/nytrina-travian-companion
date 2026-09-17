@@ -888,82 +888,16 @@
     }
 
     /**
-     * @param {{rallyCoord:string|null,selectedTribe:string,selectedTroopType:string,withHeroSuggestion:string,withoutHeroSuggestion:string}} params
+     * @param {{rallyCoord:string|null,selectedTribe:string,selectedTroopType:string,isOasisTarget?:boolean,withHeroSuggestion:string,withoutHeroSuggestion:string}} params
      * @returns {{applied:boolean,value:number,reason:string}}
      */
     autoFillTroopSuggestedValue(params) {
-      const rallyCoord = String(params?.rallyCoord || "").trim();
-      const selectedTribe = String(params?.selectedTribe || "").trim();
-      const selectedTroopType = String(params?.selectedTroopType || "").trim();
-      const withHeroSuggestion = Number(params?.withHeroSuggestion || 0);
-      const withoutHeroSuggestion = Number(params?.withoutHeroSuggestion || 0);
-
-      if (!rallyCoord) {
-        return { applied: false, value: 0, reason: "sem-alvo" };
+      if (!params?.isOasisTarget) {
+        return { applied: false, value: 0, reason: "alvo-player" };
       }
 
-      if (!selectedTroopType || selectedTroopType === "hero" || selectedTroopType === "custom") {
-        return { applied: false, value: 0, reason: "perfil-invalido" };
-      }
-
-      const troopClass = this.troopClassByType(selectedTribe, selectedTroopType);
-      if (!troopClass) {
-        return { applied: false, value: 0, reason: "classe-nao-encontrada" };
-      }
-
-      const input = this.findTroopInputByClass(troopClass);
-      if (!input) {
-        return { applied: false, value: 0, reason: "campo-nao-encontrado" };
-      }
-
-      this.ensureManualEditGuard(input);
-
-      const hasHero = this.isHeroEnabledInRallyForm();
-      let suggested = hasHero ? withHeroSuggestion : withoutHeroSuggestion;
-
-      if (!Number.isFinite(suggested) || suggested <= 0) {
-        suggested = Math.max(withHeroSuggestion, withoutHeroSuggestion, 0);
-      }
-
-      suggested = Math.round(Number(suggested || 0));
-      if (!Number.isFinite(suggested) || suggested <= 0) {
-        return { applied: false, value: 0, reason: "sem-valor-sugerido" };
-      }
-
-      const stamp =
-        rallyCoord +
-        "|" +
-        selectedTribe +
-        "|" +
-        selectedTroopType +
-        "|" +
-        String(suggested);
-
-      const currentRaw = String(input.value || "").trim();
-      const current = Number(currentRaw || 0);
-      const wasAutoFilled = input.dataset.nytrinaPrefilled === "1";
-      const previousStamp = String(input.dataset.nytrinaPrefillStamp || "");
-
-      const shouldFill =
-        !currentRaw ||
-        current <= 0 ||
-        (wasAutoFilled && previousStamp !== stamp);
-
-      if (!shouldFill) {
-        return { applied: false, value: suggested, reason: "mantido-manual" };
-      }
-
-      this.clearSuggestedTroopInputs(input);
-
-      input.dataset.nytrinaApplying = "1";
-      input.value = String(suggested);
-      input.dataset.nytrinaPrefilled = "1";
-      input.dataset.nytrinaPrefillStamp = stamp;
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-      input.dispatchEvent(new Event("change", { bubbles: true }));
-      input.dataset.nytrinaApplying = "0";
-
-      return { applied: true, value: suggested, reason: "preenchido" };
+      void params;
+      return { applied: false, value: 0, reason: "desativado" };
     }
 
     /**
@@ -1509,6 +1443,7 @@
         rallyCoord,
         selectedTribe,
         selectedTroopType,
+        isOasisTarget: Boolean(parsed?.animals),
         withHeroSuggestion,
         withoutHeroSuggestion,
       });
@@ -1861,11 +1796,13 @@
 
       node.innerHTML = [
         '<div class="actions"><button id="nytrina-import-report-tab">Importar relatorio atual</button><button id="nytrina-clear-reports">Limpar Relatórios</button></div>',
-        "<table><thead><tr><th>Data/Hora</th><th>ID</th><th>Coord</th><th>XP</th><th>Rec.</th><th>Perda</th><th>Lucro</th></tr></thead><tbody>",
+        "<table><thead><tr><th>#</th><th>Data/Hora</th><th>ID</th><th>Coord</th><th>XP</th><th>Rec.</th><th>Perda</th><th>Lucro</th></tr></thead><tbody>",
         reportsPageRows
           .map(
-            (report) =>
+            (report, index) =>
               "<tr><td>" +
+              (Number(report.reportSeq || 0) > 0 ? Number(report.reportSeq) : String(reportsMeta.start + index + 1)) +
+              "</td><td>" +
               this.formatDateTime(report.date || report.updatedAt) +
               "</td><td>" +
               report.reportId +
@@ -2592,6 +2529,12 @@
       const sortedKnowledgeRows = knowledgeRows
         .slice()
         .sort((a, b) => {
+          const seqRight = Number(b?.reportSeq || b?.lastBattle?.reportSeq || 0);
+          const seqLeft = Number(a?.reportSeq || a?.lastBattle?.reportSeq || 0);
+          if (seqRight !== seqLeft) {
+            return seqRight - seqLeft;
+          }
+
           const right = new Date(b.updatedAt || b.lastBattle?.date || 0).getTime();
           const left = new Date(a.updatedAt || a.lastBattle?.date || 0).getTime();
           if (right !== left) return right - left;
@@ -2624,7 +2567,7 @@
 
         '<div class="table-scroll">',
         '<table class="debug-table"><thead><tr>',
-        "<th>Data/Hora</th><th>Tropa</th><th>Enviadas</th><th>Sugestão</th><th>Acerto</th><th>Baixas</th><th>% Baixas</th><th>Mortas</th><th>Enfermaria</th><th>Resultado</th><th>XP</th><th>Amostras</th>",
+        "<th>#</th><th>Data/Hora</th><th>Relatório</th><th>Tropa</th><th>Enviadas</th><th>Sugestão</th><th>Acerto</th><th>Baixas</th><th>% Baixas</th><th>Mortas</th><th>Enfermaria</th><th>Resultado</th><th>XP</th><th>Amostras</th>",
         "</tr></thead><tbody>",
 
         debugPageRows
@@ -2639,6 +2582,7 @@
             const suggested = Number(
               row.estimatedSafe || last.estimatedSafe || row.minSuccess || 0,
             );
+            const reportSeq = Number(row.reportSeq || last.reportSeq || 0);
 
             const outcomeLabels = {
               perfect: "Perfeito",
@@ -2650,8 +2594,14 @@
 
             return (
               "<tr><td>" +
+              (reportSeq > 0 ? String(reportSeq) : "-") +
+              "</td><td>" +
               '<span class="debug-col-datetime">' +
               this.formatDateTimeFull(row.updatedAt || last.date) +
+              "</span>" +
+              "</td><td>" +
+              '<span class="debug-col-report">' +
+              this.escapeHtml(String(last.reportId || row.id || "-")) +
               "</span>" +
               "</td><td>" +
               '<span class="debug-col-troop">' +

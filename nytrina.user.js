@@ -1995,8 +1995,13 @@
     return "★".repeat(safe) + "☆".repeat(5 - safe);
   }
 
-  function confidenceSafetyMultiplier(score) {
+  function confidenceSafetyMultiplier(score, sampleCount) {
     const safeScore = clamp(Number(score || 0), 0, 1);
+    const samples = Number(sampleCount || 0);
+
+    if (samples < 3) return 1.24;
+    if (samples < 5) return 1.2;
+    if (samples < 8) return 1.15;
 
     // Margem automática para reduzir risco quando a base ainda é incerta.
     // Reduzido vs original: menos penalidade quando tem dados bons
@@ -2019,6 +2024,9 @@
   function operationalConfidenceExtraMultiplier(score, sampleCount) {
     const safeScore = clamp(Number(score || 0), 0, 1);
     const samples = Number(sampleCount || 0);
+
+    if (samples < 3) return 1.14;
+    if (samples < 5) return 1.1;
 
     // Com base ampla, desliga o extra operacional para evitar inflação.
     if (samples >= 20) return 1;
@@ -2152,6 +2160,11 @@
     // Tropa barata (ex.: salteador) recebe teto menor para reduzir oversend
     // e melhorar retorno líquido em farm de oásis.
     let cap = 1.45;
+
+    if (samples < 3) cap += 0.28;
+    else if (samples < 5) cap += 0.2;
+    else if (samples < 8) cap += 0.12;
+
     if (unitCost >= 1800) cap = 2.2;
     else if (unitCost >= 1200) cap = 1.95;
     else if (unitCost >= 700) cap = 1.75;
@@ -2630,6 +2643,7 @@
       cleared,
       outcome,
       reportId: report.reportId || null,
+      reportSeq: Number(report.reportSeq || 0) || null,
       date: report.date || new Date().toISOString(),
     };
 
@@ -3095,7 +3109,10 @@
 
     const effectiveFloor = canUseHardFloor ? floorCandidate : 0;
     const baseTroops = Math.max(factorTroops, Math.ceil(effectiveFloor));
-    const baseSafetyMultiplier = confidenceSafetyMultiplier(confidence.score);
+    const baseSafetyMultiplier = confidenceSafetyMultiplier(
+      confidence.score,
+      sampleCount,
+    );
     const operationalExtraMultiplier = operationalConfidenceExtraMultiplier(
       confidence.score,
       sampleCount,
@@ -3158,6 +3175,8 @@
           ? Number(calibration.sumProfit || 0) /
             Number(calibration.sumLosses || 1)
           : 0,
+      reportId: calibration.lastBattle?.reportId || null,
+      reportSeq: Number(calibration.lastBattle?.reportSeq || 0) || null,
     };
   }
 
@@ -3490,6 +3509,16 @@
         return false;
       }
 
+      const reportsBeforeInsert = await this.storage.getAll(root.Constants.STORES.REPORTS);
+      const maxSeq = reportsBeforeInsert.reduce((max, item) => {
+        const seq = Number(item?.reportSeq || 0);
+        return seq > max ? seq : max;
+      }, 0);
+      const reportSeq = maxSeq + 1;
+
+      report.reportSeq = reportSeq;
+      report.id = report.reportId;
+
       await this.storage.put(root.Constants.STORES.REPORTS, report);
 
       const reports = await this.storage.getAll(root.Constants.STORES.REPORTS);
@@ -3516,6 +3545,7 @@
         id: historyId,
         coord: report.coord || null,
         reportId: report.reportId,
+        reportSeq,
         date: report.date,
         lossCost: report.lossCost,
         profit: report.profit,
@@ -4498,82 +4528,16 @@
     }
 
     /**
-     * @param {{rallyCoord:string|null,selectedTribe:string,selectedTroopType:string,withHeroSuggestion:string,withoutHeroSuggestion:string}} params
+     * @param {{rallyCoord:string|null,selectedTribe:string,selectedTroopType:string,isOasisTarget?:boolean,withHeroSuggestion:string,withoutHeroSuggestion:string}} params
      * @returns {{applied:boolean,value:number,reason:string}}
      */
     autoFillTroopSuggestedValue(params) {
-      const rallyCoord = String(params?.rallyCoord || "").trim();
-      const selectedTribe = String(params?.selectedTribe || "").trim();
-      const selectedTroopType = String(params?.selectedTroopType || "").trim();
-      const withHeroSuggestion = Number(params?.withHeroSuggestion || 0);
-      const withoutHeroSuggestion = Number(params?.withoutHeroSuggestion || 0);
-
-      if (!rallyCoord) {
-        return { applied: false, value: 0, reason: "sem-alvo" };
+      if (!params?.isOasisTarget) {
+        return { applied: false, value: 0, reason: "alvo-player" };
       }
 
-      if (!selectedTroopType || selectedTroopType === "hero" || selectedTroopType === "custom") {
-        return { applied: false, value: 0, reason: "perfil-invalido" };
-      }
-
-      const troopClass = this.troopClassByType(selectedTribe, selectedTroopType);
-      if (!troopClass) {
-        return { applied: false, value: 0, reason: "classe-nao-encontrada" };
-      }
-
-      const input = this.findTroopInputByClass(troopClass);
-      if (!input) {
-        return { applied: false, value: 0, reason: "campo-nao-encontrado" };
-      }
-
-      this.ensureManualEditGuard(input);
-
-      const hasHero = this.isHeroEnabledInRallyForm();
-      let suggested = hasHero ? withHeroSuggestion : withoutHeroSuggestion;
-
-      if (!Number.isFinite(suggested) || suggested <= 0) {
-        suggested = Math.max(withHeroSuggestion, withoutHeroSuggestion, 0);
-      }
-
-      suggested = Math.round(Number(suggested || 0));
-      if (!Number.isFinite(suggested) || suggested <= 0) {
-        return { applied: false, value: 0, reason: "sem-valor-sugerido" };
-      }
-
-      const stamp =
-        rallyCoord +
-        "|" +
-        selectedTribe +
-        "|" +
-        selectedTroopType +
-        "|" +
-        String(suggested);
-
-      const currentRaw = String(input.value || "").trim();
-      const current = Number(currentRaw || 0);
-      const wasAutoFilled = input.dataset.nytrinaPrefilled === "1";
-      const previousStamp = String(input.dataset.nytrinaPrefillStamp || "");
-
-      const shouldFill =
-        !currentRaw ||
-        current <= 0 ||
-        (wasAutoFilled && previousStamp !== stamp);
-
-      if (!shouldFill) {
-        return { applied: false, value: suggested, reason: "mantido-manual" };
-      }
-
-      this.clearSuggestedTroopInputs(input);
-
-      input.dataset.nytrinaApplying = "1";
-      input.value = String(suggested);
-      input.dataset.nytrinaPrefilled = "1";
-      input.dataset.nytrinaPrefillStamp = stamp;
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-      input.dispatchEvent(new Event("change", { bubbles: true }));
-      input.dataset.nytrinaApplying = "0";
-
-      return { applied: true, value: suggested, reason: "preenchido" };
+      void params;
+      return { applied: false, value: 0, reason: "desativado" };
     }
 
     /**
@@ -5119,6 +5083,7 @@
         rallyCoord,
         selectedTribe,
         selectedTroopType,
+        isOasisTarget: Boolean(parsed?.animals),
         withHeroSuggestion,
         withoutHeroSuggestion,
       });
@@ -5471,11 +5436,13 @@
 
       node.innerHTML = [
         '<div class="actions"><button id="nytrina-import-report-tab">Importar relatorio atual</button><button id="nytrina-clear-reports">Limpar Relatórios</button></div>',
-        "<table><thead><tr><th>Data/Hora</th><th>ID</th><th>Coord</th><th>XP</th><th>Rec.</th><th>Perda</th><th>Lucro</th></tr></thead><tbody>",
+        "<table><thead><tr><th>#</th><th>Data/Hora</th><th>ID</th><th>Coord</th><th>XP</th><th>Rec.</th><th>Perda</th><th>Lucro</th></tr></thead><tbody>",
         reportsPageRows
           .map(
-            (report) =>
+            (report, index) =>
               "<tr><td>" +
+              (Number(report.reportSeq || 0) > 0 ? Number(report.reportSeq) : String(reportsMeta.start + index + 1)) +
+              "</td><td>" +
               this.formatDateTime(report.date || report.updatedAt) +
               "</td><td>" +
               report.reportId +
@@ -6202,6 +6169,12 @@
       const sortedKnowledgeRows = knowledgeRows
         .slice()
         .sort((a, b) => {
+          const seqRight = Number(b?.reportSeq || b?.lastBattle?.reportSeq || 0);
+          const seqLeft = Number(a?.reportSeq || a?.lastBattle?.reportSeq || 0);
+          if (seqRight !== seqLeft) {
+            return seqRight - seqLeft;
+          }
+
           const right = new Date(b.updatedAt || b.lastBattle?.date || 0).getTime();
           const left = new Date(a.updatedAt || a.lastBattle?.date || 0).getTime();
           if (right !== left) return right - left;
@@ -6234,7 +6207,7 @@
 
         '<div class="table-scroll">',
         '<table class="debug-table"><thead><tr>',
-        "<th>Data/Hora</th><th>Tropa</th><th>Enviadas</th><th>Sugestão</th><th>Acerto</th><th>Baixas</th><th>% Baixas</th><th>Mortas</th><th>Enfermaria</th><th>Resultado</th><th>XP</th><th>Amostras</th>",
+        "<th>#</th><th>Data/Hora</th><th>Relatório</th><th>Tropa</th><th>Enviadas</th><th>Sugestão</th><th>Acerto</th><th>Baixas</th><th>% Baixas</th><th>Mortas</th><th>Enfermaria</th><th>Resultado</th><th>XP</th><th>Amostras</th>",
         "</tr></thead><tbody>",
 
         debugPageRows
@@ -6249,6 +6222,7 @@
             const suggested = Number(
               row.estimatedSafe || last.estimatedSafe || row.minSuccess || 0,
             );
+            const reportSeq = Number(row.reportSeq || last.reportSeq || 0);
 
             const outcomeLabels = {
               perfect: "Perfeito",
@@ -6260,8 +6234,14 @@
 
             return (
               "<tr><td>" +
+              (reportSeq > 0 ? String(reportSeq) : "-") +
+              "</td><td>" +
               '<span class="debug-col-datetime">' +
               this.formatDateTimeFull(row.updatedAt || last.date) +
+              "</span>" +
+              "</td><td>" +
+              '<span class="debug-col-report">' +
+              this.escapeHtml(String(last.reportId || row.id || "-")) +
               "</span>" +
               "</td><td>" +
               '<span class="debug-col-troop">' +

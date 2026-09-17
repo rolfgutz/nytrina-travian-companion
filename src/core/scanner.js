@@ -106,6 +106,16 @@
         return false;
       }
 
+      const reportsBeforeInsert = await this.storage.getAll(root.Constants.STORES.REPORTS);
+      const maxSeq = reportsBeforeInsert.reduce((max, item) => {
+        const seq = Number(item?.reportSeq || 0);
+        return seq > max ? seq : max;
+      }, 0);
+      const reportSeq = maxSeq + 1;
+
+      report.reportSeq = reportSeq;
+      report.id = report.reportId;
+
       await this.storage.put(root.Constants.STORES.REPORTS, report);
 
       const reports = await this.storage.getAll(root.Constants.STORES.REPORTS);
@@ -132,6 +142,7 @@
         id: historyId,
         coord: report.coord || null,
         reportId: report.reportId,
+        reportSeq,
         date: report.date,
         lossCost: report.lossCost,
         profit: report.profit,

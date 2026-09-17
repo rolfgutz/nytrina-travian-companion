@@ -57,8 +57,13 @@
     return "★".repeat(safe) + "☆".repeat(5 - safe);
   }
 
-  function confidenceSafetyMultiplier(score) {
+  function confidenceSafetyMultiplier(score, sampleCount) {
     const safeScore = clamp(Number(score || 0), 0, 1);
+    const samples = Number(sampleCount || 0);
+
+    if (samples < 3) return 1.24;
+    if (samples < 5) return 1.2;
+    if (samples < 8) return 1.15;
 
     // Margem automática para reduzir risco quando a base ainda é incerta.
     // Reduzido vs original: menos penalidade quando tem dados bons
@@ -81,6 +86,9 @@
   function operationalConfidenceExtraMultiplier(score, sampleCount) {
     const safeScore = clamp(Number(score || 0), 0, 1);
     const samples = Number(sampleCount || 0);
+
+    if (samples < 3) return 1.14;
+    if (samples < 5) return 1.1;
 
     // Com base ampla, desliga o extra operacional para evitar inflação.
     if (samples >= 20) return 1;
@@ -214,6 +222,11 @@
     // Tropa barata (ex.: salteador) recebe teto menor para reduzir oversend
     // e melhorar retorno líquido em farm de oásis.
     let cap = 1.45;
+
+    if (samples < 3) cap += 0.28;
+    else if (samples < 5) cap += 0.2;
+    else if (samples < 8) cap += 0.12;
+
     if (unitCost >= 1800) cap = 2.2;
     else if (unitCost >= 1200) cap = 1.95;
     else if (unitCost >= 700) cap = 1.75;
@@ -692,6 +705,7 @@
       cleared,
       outcome,
       reportId: report.reportId || null,
+      reportSeq: Number(report.reportSeq || 0) || null,
       date: report.date || new Date().toISOString(),
     };
 
@@ -1157,7 +1171,10 @@
 
     const effectiveFloor = canUseHardFloor ? floorCandidate : 0;
     const baseTroops = Math.max(factorTroops, Math.ceil(effectiveFloor));
-    const baseSafetyMultiplier = confidenceSafetyMultiplier(confidence.score);
+    const baseSafetyMultiplier = confidenceSafetyMultiplier(
+      confidence.score,
+      sampleCount,
+    );
     const operationalExtraMultiplier = operationalConfidenceExtraMultiplier(
       confidence.score,
       sampleCount,
@@ -1220,6 +1237,8 @@
           ? Number(calibration.sumProfit || 0) /
             Number(calibration.sumLosses || 1)
           : 0,
+      reportId: calibration.lastBattle?.reportId || null,
+      reportSeq: Number(calibration.lastBattle?.reportSeq || 0) || null,
     };
   }
 
