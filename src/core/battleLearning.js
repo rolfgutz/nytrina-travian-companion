@@ -61,9 +61,9 @@
     const safeScore = clamp(Number(score || 0), 0, 1);
     const samples = Number(sampleCount || 0);
 
-    if (samples < 3) return 1.24;
-    if (samples < 5) return 1.2;
-    if (samples < 8) return 1.15;
+    if (samples < 3) return 1.3;
+    if (samples < 5) return 1.26;
+    if (samples < 8) return 1.18;
 
     // Margem automática para reduzir risco quando a base ainda é incerta.
     // Reduzido vs original: menos penalidade quando tem dados bons
@@ -87,8 +87,8 @@
     const safeScore = clamp(Number(score || 0), 0, 1);
     const samples = Number(sampleCount || 0);
 
-    if (samples < 3) return 1.14;
-    if (samples < 5) return 1.1;
+    if (samples < 3) return 1.18;
+    if (samples < 5) return 1.13;
 
     // Com base ampla, desliga o extra operacional para evitar inflação.
     if (samples >= 20) return 1;
@@ -98,8 +98,8 @@
     if (samples >= 10) return 1.08;
 
     // Modo operacional: extra aplicado por cima da margem base de confiança.
-    if (safeScore < 0.5) return 1.2;
-    if (safeScore < 0.8) return 1.11;
+    if (safeScore < 0.5) return 1.24;
+    if (safeScore < 0.8) return 1.13;
     return 1;
   }
 
@@ -240,10 +240,35 @@
     return cap;
   }
 
+  function simulationSafetyMultiplier(calibration, sampleCount) {
+    const samples = Number(sampleCount || 0);
+    const avgKillRate = Number(calibration?.avgKillRate || 0);
+    const avgCasualtyRate = Number(calibration?.avgCasualtyRate || 0);
+    const negativeProfitSamples = Number(calibration?.negativeProfitSamples || 0);
+    const lossPressure = samples > 0 ? negativeProfitSamples / samples : 0;
+
+    let multiplier = 1.35;
+
+    if (samples < 3) multiplier = 2.15;
+    else if (samples < 5) multiplier = 1.85;
+    else if (samples < 8) multiplier = 1.55;
+    else if (samples < 15) multiplier = 1.32;
+    else multiplier = 1.18;
+
+    if (avgKillRate < 0.9) multiplier += 0.18;
+    if (avgKillRate < 0.8) multiplier += 0.18;
+    if (avgCasualtyRate > 0.05) multiplier += Math.min(0.2, avgCasualtyRate * 2);
+    if (lossPressure >= 0.5) multiplier += 0.18;
+    if (lossPressure >= 0.75) multiplier += 0.12;
+
+    return clamp(multiplier, 1.15, 2.6);
+  }
+
   function economicSafetyMultiplier(calibration, troopType) {
     const losses = Number(calibration?.sumLosses || 0);
     const profit = Number(calibration?.sumProfit || 0);
     const samples = Number(calibration?.samples || 0);
+    const negativeProfitSamples = Number(calibration?.negativeProfitSamples || 0);
 
     if (samples < 5 || losses <= 0) return 1;
 
@@ -254,9 +279,13 @@
 
     // ROI ruim deve aumentar proteção (menos mortes), não derrubar envio.
     // O ajuste anterior podia reduzir demais e provocar ciclo de baixas.
-    if (roi < 0) return cheapTroop ? 1.08 : 1.12;
-    if (roi < 0.25) return cheapTroop ? 1.05 : 1.08;
-    if (roi < 0.5) return cheapTroop ? 1.02 : 1.04;
+    const lossPressure = samples > 0 ? negativeProfitSamples / samples : 0;
+
+    if (roi < 0) return cheapTroop ? 1.12 : 1.18;
+    if (roi < 0.25) return cheapTroop ? 1.08 : 1.12;
+    if (roi < 0.5) return cheapTroop ? 1.04 : 1.06;
+
+    if (lossPressure >= 0.5) return cheapTroop ? 1.05 : 1.08;
     return 1;
   }
 
@@ -400,6 +429,9 @@
         : {};
 
     let troopType = String(report?.troopType || "").trim() || null;
+    if (troopType === "hero" || troopType === "custom") {
+      troopType = null;
+    }
 
     if (!troopType && report?.troopClass) {
       const classInfo = classInfoByClassToken(report.troopClass);
@@ -424,6 +456,10 @@
       } else {
         troopType = inferTroopTypeFromTroopsSent(tribe, troopsSent);
       }
+    }
+
+    if (troopType === "hero" || troopType === "custom") {
+      troopType = inferTroopInfoFromTroopsSentAnyTribe(troopsSent, tribe)?.troopType || null;
     }
 
     let sent = Number(report?.troopsSentCount || 0);
@@ -1201,6 +1237,7 @@
       operationalExtraMultiplier *
       preservationSafetyMultiplier;
     const economicMultiplier = economicSafetyMultiplier(calibration, troopType);
+    const simulationMultiplier = simulationSafetyMultiplier(calibration, sampleCount);
     const maxTotalSafetyMultiplier = totalSafetyCapByTroop({
       tribe,
       troopType,
@@ -1208,13 +1245,13 @@
       sampleCount,
     });
     const safetyMultiplier = Math.min(
-      Math.max(1, rawSafetyMultiplier * economicMultiplier),
+      Math.max(1, rawSafetyMultiplier * economicMultiplier * simulationMultiplier),
       maxTotalSafetyMultiplier,
     );
     const troopsWithSafety = Math.ceil(baseTroops * safetyMultiplier);
 
     let source = "Cálculo ajustado pelo aprendizado";
-    if (confidence.score >= 0.5) {
+    if (confidence.score >= 0.65 && sampleCount >= 8) {
       source = "IA Aprendida";
     }
 
