@@ -73,6 +73,68 @@
       );
     }
 
+    async validateToken() {
+      const token = this.getToken();
+      if (!token) {
+        return { tokenPresent: false, valid: false, syncConfigured: false };
+      }
+
+      const config = this.config();
+      const controller =
+        typeof global.AbortController === "function"
+          ? new global.AbortController()
+          : null;
+      const timeoutId = controller
+        ? global.setTimeout(() => controller.abort(), 10000)
+        : null;
+
+      try {
+        const response = await global.fetch(API_BASE + "/user", {
+          headers: {
+            Accept: "application/vnd.github+json",
+            Authorization: "Bearer " + token,
+            "X-GitHub-Api-Version": "2022-11-28",
+          },
+          ...(controller ? { signal: controller.signal } : {}),
+        });
+
+        if (response.status === 401) {
+          return {
+            tokenPresent: true,
+            valid: false,
+            status: response.status,
+            syncConfigured: this.isConfigured(config),
+          };
+        }
+
+        if (!response.ok) {
+          return {
+            tokenPresent: true,
+            valid: null,
+            status: response.status,
+            syncConfigured: this.isConfigured(config),
+          };
+        }
+
+        const user = await response.json();
+        return {
+          tokenPresent: true,
+          valid: true,
+          login: String(user?.login || ""),
+          syncConfigured: this.isConfigured(config),
+        };
+      } catch (error) {
+        return {
+          tokenPresent: true,
+          valid: null,
+          reason: error?.name === "AbortError" ? "timeout" : "network",
+          syncConfigured: this.isConfigured(config),
+        };
+      } finally {
+        if (timeoutId !== null) global.clearTimeout(timeoutId);
+      }
+    }
+
     async request(url, options = {}) {
       const response = await global.fetch(url, {
         ...options,

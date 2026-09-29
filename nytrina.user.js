@@ -32,12 +32,7 @@
       troopTribe: 'romans',
       customSpeed: 14,
       smallMap: false,
-      language: 'pt-BR',
-      githubSyncEnabled: false,
-      githubSyncOwner: '',
-      githubSyncRepo: '',
-      githubSyncBranch: 'main',
-      githubSyncPath: 'nytrina/reports.json'
+      language: 'pt-BR'
     },
     SAVE_DEBOUNCE_MS: 900,
     SCAN_INTERVAL_MS: 1500
@@ -3223,219 +3218,6 @@
 
 
 
-// FILE: core/githubSync.js
-
-(function initGitHubSync(global) {
-  "use strict";
-
-  const root = (global.NytrinA = global.NytrinA || {});
-  const TOKEN_KEY = "nytrina:github-sync-token";
-  const API_BASE = "https://api.github.com";
-
-  function encodeContent(value) {
-    const bytes = new TextEncoder().encode(String(value || ""));
-    let binary = "";
-    bytes.forEach((byte) => {
-      binary += String.fromCharCode(byte);
-    });
-    return global.btoa(binary);
-  }
-
-  function decodeContent(value) {
-    const binary = global.atob(String(value || "").replace(/\n/g, ""));
-    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
-    return new TextDecoder().decode(bytes);
-  }
-
-  class GitHubSyncService {
-    constructor({ storage, getSettings }) {
-      this.storage = storage;
-      this.getSettings = getSettings;
-      this.syncing = false;
-    }
-
-    tokenKey() {
-      const host = String(root.Server?.getContext?.().host || "default");
-      return TOKEN_KEY + ":" + host;
-    }
-
-    getToken() {
-      try {
-        return String(global.localStorage.getItem(this.tokenKey()) || "").trim();
-      } catch (_error) {
-        return "";
-      }
-    }
-
-    setToken(token) {
-      try {
-        const value = String(token || "").trim();
-        if (value) global.localStorage.setItem(this.tokenKey(), value);
-        else global.localStorage.removeItem(this.tokenKey());
-      } catch (_error) {
-        return;
-      }
-    }
-
-    config() {
-      const settings = this.getSettings() || {};
-      return {
-        enabled: Boolean(settings.githubSyncEnabled),
-        owner: String(settings.githubSyncOwner || "").trim(),
-        repo: String(settings.githubSyncRepo || "").trim(),
-        branch: String(settings.githubSyncBranch || "main").trim() || "main",
-        path: String(settings.githubSyncPath || "nytrina/reports.json").trim() || "nytrina/reports.json",
-        token: this.getToken(),
-      };
-    }
-
-    isConfigured(config = this.config()) {
-      return Boolean(
-        config.enabled &&
-        config.owner &&
-        config.repo &&
-        config.branch &&
-        config.path &&
-        config.token,
-      );
-    }
-
-    async request(url, options = {}) {
-      const response = await global.fetch(url, {
-        ...options,
-        headers: {
-          Accept: "application/vnd.github+json",
-          Authorization: "Bearer " + this.config().token,
-          "X-GitHub-Api-Version": "2022-11-28",
-          ...(options.headers || {}),
-        },
-      });
-
-      if (!response.ok) {
-        const detail = await response.text();
-        throw new Error("GitHub " + response.status + ": " + detail.slice(0, 240));
-      }
-
-      return response.json();
-    }
-
-    contentsUrl(config) {
-      return (
-        API_BASE +
-        "/repos/" +
-        encodeURIComponent(config.owner) +
-        "/" +
-        encodeURIComponent(config.repo) +
-        "/contents/" +
-        config.path.split("/").map(encodeURIComponent).join("/") +
-        "?ref=" +
-        encodeURIComponent(config.branch)
-      );
-    }
-
-    async readRemote(config) {
-      try {
-        const file = await this.request(this.contentsUrl(config));
-        const content = JSON.parse(decodeContent(file.content));
-        return {
-          sha: String(file.sha || ""),
-          reports: Array.isArray(content?.reports) ? content.reports : [],
-        };
-      } catch (error) {
-        if (String(error?.message || "").includes("GitHub 404")) {
-          return { sha: "", reports: [] };
-        }
-        throw error;
-      }
-    }
-
-    mergeReports(localReports, remoteReports) {
-      const merged = new Map();
-      const add = (report) => {
-        const id = String(report?.reportId || "").trim();
-        if (!id) return;
-        const current = merged.get(id);
-        const currentTime = new Date(current?.date || 0).getTime();
-        const nextTime = new Date(report?.date || 0).getTime();
-        if (!current || nextTime >= currentTime) merged.set(id, report);
-      };
-
-      (remoteReports || []).forEach(add);
-      (localReports || []).forEach(add);
-
-      return Array.from(merged.values()).sort(
-        (a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime(),
-      );
-    }
-
-    async writeRemote(config, reports, sha) {
-      const body = JSON.stringify(
-        {
-          version: "1",
-          updatedAt: new Date().toISOString(),
-          source: String(global.location.hostname || "unknown"),
-          reports,
-        },
-        null,
-        2,
-      );
-
-      return this.request(this.contentsUrl(config).split("?")[0], {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: "sync: reports " + new Date().toISOString(),
-          content: encodeContent(body),
-          branch: config.branch,
-          ...(sha ? { sha } : {}),
-        }),
-      });
-    }
-
-    async sync() {
-      if (this.syncing) return { skipped: true };
-      const config = this.config();
-      if (!this.isConfigured(config)) return { configured: false };
-
-      this.syncing = true;
-      try {
-        const localReports = await this.storage.getAll(root.Constants.STORES.REPORTS);
-        let remote = await this.readRemote(config);
-        let merged = this.mergeReports(localReports, remote.reports);
-
-        for (let attempt = 0; attempt < 3; attempt += 1) {
-          try {
-            await this.writeRemote(config, merged, remote.sha);
-            break;
-          } catch (error) {
-            if (!String(error?.message || "").includes("GitHub 409") || attempt === 2) {
-              throw error;
-            }
-            remote = await this.readRemote(config);
-            merged = this.mergeReports(merged, remote.reports);
-          }
-        }
-
-        const localById = new Map(localReports.map((report) => [String(report.reportId), report]));
-        let added = 0;
-        for (const report of merged) {
-          if (!localById.has(String(report.reportId))) added += 1;
-          await this.storage.put(root.Constants.STORES.REPORTS, report);
-        }
-
-        return { configured: true, reports: merged.length, added };
-      } finally {
-        this.syncing = false;
-      }
-    }
-  }
-
-  root.GitHubSyncService = GitHubSyncService;
-})(window);
-
-
-
-
 // FILE: core/scanner.js
 
 (function initScanner(global) {
@@ -3682,12 +3464,11 @@
 
   class Overlay {
     /**
-     * @param {{storage:any,scanner:any,sync:any,getSettings:Function,saveSettings:Function}} deps
+    * @param {{storage:any,scanner:any,getSettings:Function,saveSettings:Function}} deps
      */
     constructor(deps) {
       this.storage = deps.storage;
       this.scanner = deps.scanner;
-      this.sync = deps.sync;
       this.getSettings = deps.getSettings;
       this.saveSettings = deps.saveSettings;
       this.currentScan = null;
@@ -5955,22 +5736,6 @@
         '<div class="card"><span>Mapa pequeno</span><label class="check-row"><input id="nytrina-setting-small-map" type="checkbox" ' +
           (settings.smallMap ? ' checked="checked"' : "") +
           ">Ativar volta reduzida</label></div>",
-        '<div class="card"><span>Sincronizacao GitHub</span><label class="check-row"><input id="nytrina-setting-github-enabled" type="checkbox" ' +
-          (settings.githubSyncEnabled ? ' checked="checked"' : "") +
-          ">Ativar sincronizacao automatica</label></div>",
-        '<div class="card"><span>GitHub Owner</span><input id="nytrina-setting-github-owner" value="' +
-          this.escapeHtml(settings.githubSyncOwner || "") +
-          '" placeholder="usuario"></div>',
-        '<div class="card"><span>GitHub Repository</span><input id="nytrina-setting-github-repo" value="' +
-          this.escapeHtml(settings.githubSyncRepo || "") +
-          '" placeholder="repositorio"></div>',
-        '<div class="card"><span>GitHub Branch</span><input id="nytrina-setting-github-branch" value="' +
-          this.escapeHtml(settings.githubSyncBranch || "main") +
-          '" placeholder="main"></div>',
-        '<div class="card"><span>Arquivo remoto</span><input id="nytrina-setting-github-path" value="' +
-          this.escapeHtml(settings.githubSyncPath || "nytrina/reports.json") +
-          '" placeholder="nytrina/reports.json"></div>',
-        '<div class="card"><span>Token GitHub</span><input id="nytrina-setting-github-token" type="password" placeholder="cole o token aqui"></div>',
         "</div>",
         '<div id="nytrina-setting-server-warning" class="server-warning' +
           (isManualInvalid ? " show" : "") +
@@ -5986,12 +5751,6 @@
       const speedInput = node.querySelector("#nytrina-setting-speed");
       const warning = node.querySelector("#nytrina-setting-server-warning");
       const smallMapInput = node.querySelector("#nytrina-setting-small-map");
-      const githubEnabledInput = node.querySelector("#nytrina-setting-github-enabled");
-      const githubOwnerInput = node.querySelector("#nytrina-setting-github-owner");
-      const githubRepoInput = node.querySelector("#nytrina-setting-github-repo");
-      const githubBranchInput = node.querySelector("#nytrina-setting-github-branch");
-      const githubPathInput = node.querySelector("#nytrina-setting-github-path");
-      const githubTokenInput = node.querySelector("#nytrina-setting-github-token");
       const exportBackupButton = node.querySelector("#nytrina-export-backup");
       const importBackupButton = node.querySelector("#nytrina-import-backup");
       const importBackupFile = node.querySelector("#nytrina-import-backup-file");
@@ -6085,28 +5844,6 @@
               node.querySelector("#nytrina-setting-speed")?.value || 14,
             ),
 
-            githubSyncEnabled:
-              node.querySelector("#nytrina-setting-github-enabled")?.checked ===
-              true,
-
-            githubSyncOwner: String(
-              node.querySelector("#nytrina-setting-github-owner")?.value || "",
-            ).trim(),
-
-            githubSyncRepo: String(
-              node.querySelector("#nytrina-setting-github-repo")?.value || "",
-            ).trim(),
-
-            githubSyncBranch: String(
-              node.querySelector("#nytrina-setting-github-branch")?.value ||
-                "main",
-            ).trim() || "main",
-
-            githubSyncPath: String(
-              node.querySelector("#nytrina-setting-github-path")?.value ||
-                "nytrina/reports.json",
-            ).trim() || "nytrina/reports.json",
-
             smallMap:
               node.querySelector("#nytrina-setting-small-map")?.checked ===
               true,
@@ -6119,11 +5856,6 @@
           console.log("[NytrinA] Salvando payload:", payload);
 
           await this.saveSettings(payload);
-
-          const githubToken = String(githubTokenInput?.value || "").trim();
-          if (this.sync && typeof this.sync.setToken === "function") {
-            this.sync.setToken(githubToken);
-          }
 
           this.scanner.lastSignature = "";
 
@@ -6235,6 +5967,22 @@
 
           const result = await this.storage.importBackup(parsed);
 
+          const importedStatistics = await this.storage.getAll(
+            root.Constants.STORES.STATISTICS,
+          );
+          const hasLearningData = importedStatistics.some((row) => {
+            const id = String(row?.id || "");
+            return (
+              id.startsWith("battleKnowledge:") ||
+              id.startsWith("battleCalibration:")
+            );
+          });
+          let learnedFromReports = 0;
+          if (!hasLearningData && Number(result?.REPORTS || 0) > 0) {
+            const rebuilt = await this.rebuildLearningFromReports();
+            learnedFromReports = rebuilt.learned;
+          }
+
           this.scanner.lastSignature = "";
           await this.refresh();
 
@@ -6245,7 +5993,10 @@
               " | REPORTS: " +
               Number(result?.REPORTS || 0) +
               " | STATISTICS: " +
-              Number(result?.STATISTICS || 0),
+              Number(result?.STATISTICS || 0) +
+              (learnedFromReports > 0
+                ? " | Batalhas usadas para aprendizado: " + learnedFromReports
+                : ""),
           );
         } catch (error) {
           console.error("Falha ao importar backup", error);
@@ -6589,23 +6340,6 @@
     }
 
     let overlay = null;
-    const sync = new root.GitHubSyncService({
-      storage,
-      getSettings,
-    });
-
-    const syncNow = async () => {
-      try {
-        const result = await sync.sync();
-        if (result?.added > 0 && overlay) {
-          await overlay.clearLearningData();
-          await overlay.rebuildLearningFromReports();
-          await overlay.refresh();
-        }
-      } catch (error) {
-        global.console.warn('[NytrinA] Falha na sincronização GitHub:', error);
-      }
-    };
 
     const scanner = new root.ScannerService({
       storage,
@@ -6620,17 +6354,12 @@
     overlay = new root.Overlay({
       storage,
       scanner,
-      sync,
       getSettings,
       saveSettings
     });
 
     overlay.mount();
     scanner.start();
-    syncNow().catch(() => undefined);
-    global.addEventListener('focus', () => {
-      syncNow().catch(() => undefined);
-    });
 
     global.NytrinA.getSettings = getSettings;
     global.NytrinA.saveSettings = saveSettings;
