@@ -582,14 +582,9 @@
   }
 
   async function learnFromReport({ storage, report }) {
-    console.log("1 - Entrou no learnFromReport");
-
     if (!report) {
-      console.log("2 - report vazio");
       return null;
     }
-
-    console.log(report);
 
     const defaultTribe = report.tribe || "romans";
     const resolved = resolveTroopTypeAndSent(report);
@@ -599,21 +594,11 @@
     const xp = Number(report.xp || 0);
     const animals = report.animalsInitial || report.animalsKilled || {};
 
-    console.log({
-      tribe,
-      troopType,
-      sent,
-      xp,
-      animals,
-    });
-
     if (!troopType) {
-      console.log("PAROU: troopType");
       return null;
     }
 
     if (!sent) {
-      console.log("PAROU: sent");
       return null;
     }
 
@@ -661,7 +646,6 @@
       estimatedClear = sent;
       estimatedSafe = sent;
     }
-    console.log("Cleared:", cleared);
 
     const knowledge = await getKnowledge(
       storage,
@@ -670,8 +654,6 @@
       xp,
       animals,
     );
-
-    console.log("Knowledge carregado", knowledge);
 
     knowledge.samples++;
 
@@ -748,7 +730,7 @@
     const hasHero = Boolean(report.hasHero);
     const troopsCasualtiesCount = Number(report.troopsCasualtiesCount || 0);
 
-    const calibration = await updateCalibration({
+    await updateCalibration({
       storage,
       tribe,
       troopType,
@@ -764,9 +746,6 @@
       lossCost: Number(report.lossCost || 0),
       profit: Number(report.profit || 0),
     });
-
-    console.log("CALIBRAÇÃO ATUALIZADA", calibration);
-    console.log("SALVANDO", knowledge);
 
     return await saveKnowledge(storage, knowledge);
   }
@@ -1146,6 +1125,9 @@
         starsText: starsText(1),
         basedOn: 0,
         learnedFloor: 0,
+        successSamples: 0,
+        perfectSamples: 0,
+        failureSamples: 0,
       };
     }
 
@@ -1276,6 +1258,9 @@
           : 0,
       reportId: calibration.lastBattle?.reportId || null,
       reportSeq: Number(calibration.lastBattle?.reportSeq || 0) || null,
+      successSamples: Number(calibration.successSamples || 0),
+      perfectSamples: Number(calibration.perfectSamples || 0),
+      failureSamples: Number(calibration.failureSamples || 0),
     };
   }
 

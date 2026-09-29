@@ -68,7 +68,6 @@
       const allowed = new Set([
         "scanner",
         "debug",
-        "dashboard",
         "ranking",
         "reports",
         "economy",
@@ -87,6 +86,7 @@
         const value = String(
           global.localStorage.getItem(this.tabStorageKey()) || "",
         ).trim();
+        if (value === "dashboard") return "economy";
         return this.isValidTabId(value) ? value : "scanner";
       } catch (_error) {
         return "scanner";
@@ -129,17 +129,15 @@
         "</div>",
         '<div class="tabs">',
         '<button class="tab' + (activeTab === "scanner" ? " active" : "") + '" data-tab="scanner">Scanner</button>',
-        '<button class="tab' + (activeTab === "debug" ? " active" : "") + '" data-tab="debug" id="nytrina-debug-tab">Debug</button>',
-        '<button class="tab' + (activeTab === "dashboard" ? " active" : "") + '" data-tab="dashboard">Dashboard</button>',
-        '<button class="tab' + (activeTab === "ranking" ? " active" : "") + '" data-tab="ranking">Ranking</button>',
-        '<button class="tab' + (activeTab === "reports" ? " active" : "") + '" data-tab="reports">Relatorios</button>',
+        '<button class="tab' + (activeTab === "reports" ? " active" : "") + '" data-tab="reports">Relatórios</button>',
         '<button class="tab' + (activeTab === "economy" ? " active" : "") + '" data-tab="economy">Economia</button>',
+        '<button class="tab' + (activeTab === "ranking" ? " active" : "") + '" data-tab="ranking">Ranking</button>',
         '<button class="tab' + (activeTab === "planner" ? " active" : "") + '" data-tab="planner">Planner</button>',
-        '<button class="tab' + (activeTab === "settings" ? " active" : "") + '" data-tab="settings">Configuracoes</button>',
+        '<button class="tab' + (activeTab === "settings" ? " active" : "") + '" data-tab="settings">Config.</button>',
+        '<button class="tab tab-secondary' + (activeTab === "debug" ? " active" : "") + '" data-tab="debug" id="nytrina-debug-tab">Debug</button>',
         "</div>",
         '<div class="panel' + (activeTab === "scanner" ? "" : " hidden") + '" data-panel="scanner"></div>',
         '<div class="panel' + (activeTab === "debug" ? "" : " hidden") + '" data-panel="debug"></div>',
-        '<div class="panel' + (activeTab === "dashboard" ? "" : " hidden") + '" data-panel="dashboard"></div>',
         '<div class="panel' + (activeTab === "ranking" ? "" : " hidden") + '" data-panel="ranking"></div>',
         '<div class="panel' + (activeTab === "reports" ? "" : " hidden") + '" data-panel="reports"></div>',
         '<div class="panel' + (activeTab === "economy" ? "" : " hidden") + '" data-panel="economy"></div>',
@@ -329,18 +327,22 @@
      * @returns {void}
      */
     bindEvents() {
-      console.error("######## OVERLAY NOVO ########");
       this.overlay.querySelectorAll(".tab").forEach((button) => {
         button.addEventListener("click", () => {
           const tab = button.getAttribute("data-tab") || "scanner";
           this.currentTab = tab;
           this.saveCurrentTab(tab);
           root.Tabs.activateTab(this.overlay, tab);
-
-          if (tab === "planner") {
-            this.refreshPlanner().catch(() => undefined);
-          }
+          this.refreshPanel(tab).catch(() => undefined);
         });
+      });
+
+      global.document.addEventListener("change", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement) || target.type !== "checkbox") return;
+        if (target.closest("#nytrina-overlay")) return;
+        if (!/hero/i.test(String(target.name) + " " + String(target.id))) return;
+        this.refreshScanner().catch(() => undefined);
       });
 
       this.overlay
@@ -497,6 +499,14 @@
      */
     async rebuildLearningFromReports() {
       const reports = await this.storage.getAll(root.Constants.STORES.REPORTS);
+      return this.learnReports(reports);
+    }
+
+    /**
+     * @param {Array<any>} reports
+     * @returns {Promise<{learned:number,skipped:number}>}
+     */
+    async learnReports(reports) {
       const settings = this.getSettings();
       const ordered = reports.slice().sort((a, b) => {
         const left = new Date(a.date || a.updatedAt || 0).getTime();
@@ -589,6 +599,8 @@
         ram: "Ariete",
         fire_catapult: "Catapulta",
         clubman: "Salteador",
+        spearman: "Lanceiro",
+        axeman: "Machado",
         paladin: "Paladino",
         teutonic_knight: "Cavaleiro Teutao",
         phalanx: "Falange",
@@ -1040,7 +1052,7 @@
         },
         {
           label: "Teutoes",
-          items: ["clubman", "paladin", "teutonic_knight"]
+          items: ["clubman", "spearman", "axeman", "paladin", "teutonic_knight"]
             .filter((key) => speedMap.teutons[key])
             .map((key) => ({ key, base: Number(speedMap.teutons[key]) })),
         },
@@ -1085,45 +1097,122 @@
     }
 
     /**
+     * @param {string} tab
+     * @returns {Promise<void>}
+     */
+    async refreshPanel(tab) {
+      const refreshers = {
+        scanner: () => this.refreshScanner(),
+        debug: () => this.refreshDebug(),
+        ranking: () => this.refreshRanking(),
+        reports: () => this.refreshReports(),
+        economy: () => this.refreshEconomy(),
+        planner: () => this.refreshPlanner(),
+        settings: () => this.refreshSettings(),
+      };
+      const refresher = refreshers[tab];
+      if (refresher) await refresher();
+    }
+
+    /**
+     * Hidden panels are rendered when their tab is opened.
      * @returns {Promise<void>}
      */
     async refresh() {
-      await this.refreshDashboard();
-      await this.refreshScanner();
-      await this.refreshRanking();
-      await this.refreshReports();
-      await this.refreshEconomy();
-      await this.refreshPlanner();
-      await this.refreshSettings();
-      await this.refreshDebug();
+      const tab = this.currentTab || "scanner";
+      // Scanner also auto-fills the rally point form, so it runs even when hidden.
+      if (tab !== "scanner") await this.refreshScanner();
+      await this.refreshPanel(tab);
+    }
+
+    /**
+     * Background data updates must not wipe forms being edited.
+     * @returns {Promise<void>}
+     */
+    async refreshFromData() {
+      const tab = this.currentTab || "scanner";
+      if (tab === "settings" || tab === "planner") {
+        await this.refreshScanner();
+        return;
+      }
+      await this.refresh();
     }
 
     /**
      * @returns {Promise<void>}
      */
-    async refreshDashboard() {
-      const reports = await this.storage.getAll(root.Constants.STORES.REPORTS);
-      const oasis = await this.storage.getAll(root.Constants.STORES.OASIS);
-      const summary = root.Economy.calculateSummary(reports);
-      const node = this.panel("dashboard");
-      if (!node) return;
+    async importCurrentReport() {
+      const settings = this.getSettings();
 
-      node.innerHTML = [
-        '<div class="grid">',
-        '<div class="card"><span>Oasis mapeados</span><b>' +
-          oasis.length +
-          "</b></div>",
-        '<div class="card"><span>Relatorios</span><b>' +
-          reports.length +
-          "</b></div>",
-        '<div class="card"><span>Lucro liquido</span><b>' +
-          Math.round(summary.netProfit) +
-          "</b></div>",
-        '<div class="card"><span>XP total</span><b>' +
-          Math.round(summary.totalXp) +
-          "</b></div>",
-        "</div>",
-      ].join("");
+      try {
+        const report = root.ReportParser.parse({
+          tribe: settings.troopTribe || "romans",
+          troopType: settings.troopType || null,
+        });
+
+        if (!report) {
+          root.Modal.show("Relatorio", "Nenhum relatorio valido encontrado na tela.");
+          return;
+        }
+
+        const result = await this.scanner.importReport(report);
+
+        if (!result.saved) {
+          root.Modal.show(
+            "Relatorio",
+            "Este relatório já foi importado. Nada foi aprendido novamente.",
+          );
+        } else if (result.learned) {
+          root.Modal.show(
+            "Relatorio",
+            "Importado e aprendido com sucesso. Coord: " +
+              (report.coord || "-") +
+              " | Lucro: " +
+              this.formatNumber(report.profit),
+          );
+        } else {
+          root.Modal.show(
+            "Relatorio",
+            "Relatório salvo, mas sem dados suficientes para aprendizado automático (tipo de tropa/quantidade enviada).",
+          );
+        }
+
+        await this.refresh();
+      } catch (error) {
+        console.error("[NytrinA] Falha ao importar relatório:", error);
+        root.Modal.show(
+          "Erro",
+          "Falha ao importar ou aprender com o relatório. Veja o console.",
+        );
+      }
+    }
+
+    /**
+     * @param {any} value
+     * @returns {string}
+     */
+    formatNumber(value) {
+      return Math.round(Number(value || 0)).toLocaleString("pt-BR");
+    }
+
+    /**
+     * @param {any} value
+     * @returns {string}
+     */
+    formatSuggestion(value) {
+      const text = String(value ?? "-");
+      return /^\d+$/.test(text) ? this.formatNumber(text) : this.escapeHtml(text);
+    }
+
+    /**
+     * @param {any} value
+     * @returns {string}
+     */
+    signedClass(value) {
+      const number = Number(value || 0);
+      if (number > 0) return "pos";
+      if (number < 0) return "neg";
+      return "";
     }
 
     /**
@@ -1518,14 +1607,53 @@
       });
 
       const lockedTargetDisplay = rallyCoord
-        ? '<div class="card" style="background: #3d5a2a; border-color: #6b9f35;"><span>Alvo travado</span><b>' + rallyCoord + '</b></div>'
-        : '';
+        ? '<div class="card scanner-locked"><span>Alvo travado</span><b>' + this.escapeHtml(rallyCoord) + "</b></div>"
+        : "";
 
-      const compactSuggestion =
-        "Sem herói: " +
-        withoutHeroSuggestion +
-        " | Com herói: " +
-        withHeroSuggestion;
+      const heroSelected = this.isHeroEnabledInRallyForm();
+      const primaryValue = heroSelected ? withHeroSuggestion : withoutHeroSuggestion;
+      const secondaryText = heroSelected
+        ? "Sem herói: " + this.formatSuggestion(withoutHeroSuggestion)
+        : "Com herói: " + this.formatSuggestion(withHeroSuggestion);
+      const primaryCalibration = heroSelected ? calibratedWithHero : calibratedWithoutHero;
+      const heroSamples = Number(calibratedWithHero?.samples || 0);
+      const noHeroSamples = Number(calibratedWithoutHero?.samples || 0);
+
+      let confidenceLabel = String(suggestionConfidence || "Sem dados");
+      let confidenceDetail = "";
+      let basedOnText = suggestionBasedOn + " batalha(s)";
+
+      if (learnedAdvice?.ok) {
+        basedOnText = suggestionBasedOn + " batalha(s) neste mesmo oásis";
+      } else if (heroSamples > 0 || noHeroSamples > 0) {
+        confidenceLabel = String(primaryCalibration?.confidence || "Sem dados");
+        basedOnText = "Com herói: " + heroSamples + " · Sem herói: " + noHeroSamples;
+
+        const samples = Number(primaryCalibration?.samples || 0);
+        if (samples > 0) {
+          const successPct = Math.round(
+            (Number(primaryCalibration.successSamples || 0) / samples) * 100,
+          );
+          confidenceDetail =
+            (heroSelected ? "Com herói: " : "Sem herói: ") +
+            samples +
+            " amostra(s) · " +
+            successPct +
+            "% limpou · " +
+            Number(primaryCalibration.perfectSamples || 0) +
+            " sem baixas · " +
+            Number(primaryCalibration.failureSamples || 0) +
+            " falha(s)";
+        }
+      }
+
+      const confidenceClass = /^Alta/.test(confidenceLabel)
+        ? "conf-high"
+        : /^Média/.test(confidenceLabel)
+          ? "conf-mid"
+          : /^Baixa/.test(confidenceLabel)
+            ? "conf-low"
+            : "conf-none";
 
       node.innerHTML = [
         '<div class="scanner-controls">',
@@ -1555,28 +1683,37 @@
           "</span>",
         "</div>",
         "</div>",
+        '<div class="scanner-primary">',
+        '<div class="scanner-primary-target"><span>Alvo</span><b>' +
+          this.escapeHtml(displayCoord) +
+          "</b><small>XP " +
+          this.formatNumber(displayXp) +
+          "</small></div>",
+        '<div class="scanner-primary-value"><span>' +
+          (heroSelected ? "Enviar com herói" : "Enviar sem herói") +
+          "</span><strong>" +
+          this.formatSuggestion(primaryValue) +
+          "</strong><small>" +
+          secondaryText +
+          "</small></div>",
+        "</div>",
         '<div class="scanner-essential-grid">',
-        '<div class="card scanner-card-highlight"><span>Alvo</span><b>' +
-          displayCoord +
-          "</b></div>",
-        '<div class="card scanner-card-highlight"><span>Sugestão rápida</span><b>' +
-          compactSuggestion +
-          "</b></div>",
-        '<div class="card"><span>XP</span><b>' +
-          displayXp +
-          "</b></div>",
-        '<div class="card"><span>Avaliação IA</span><b>' +
+        '<div class="card"><span>Confiança</span><b class="' +
+          confidenceClass +
+          '">' +
+          this.escapeHtml(confidenceLabel) +
+          "</b>" +
+          (confidenceDetail ? '<div class="hint">' + confidenceDetail + "</div>" : "") +
+          "</div>",
+        '<div class="card"><span>Avaliação IA</span><b class="stars">' +
           suggestionStars +
-          "</b></div>",
-        '<div class="card"><span>Confiança</span><b>' +
-          suggestionConfidence +
           "</b></div>",
         '<div class="card"><span>Fonte</span><b>' +
           suggestionSource +
           "</b></div>",
         '<div class="card"><span>Baseado em</span><b>' +
-          suggestionBasedOn +
-          " batalha(s) semelhantes</b></div>",
+          basedOnText +
+          "</b></div>",
         "</div>",
         '<div class="scanner-context-line">' +
           "Dist: " +
@@ -1600,16 +1737,22 @@
           suggestionText +
           "</b></div>",
         '<div class="card"><span>Com herói</span><b>' +
-          withHeroSuggestion +
+          this.formatSuggestion(withHeroSuggestion) +
           "</b></div>",
         '<div class="card"><span>Sem herói</span><b>' +
-          withoutHeroSuggestion +
+          this.formatSuggestion(withoutHeroSuggestion) +
           "</b></div>",
         '<div class="card"><span>Fator aprendido</span><b>' +
           learnedFactorText +
           "</b></div>",
         '<div class="card"><span>Margem confiança</span><b>' +
           confidenceSafetyText +
+          "</b></div>",
+        '<div class="card"><span>Defesa dos animais</span><b>' +
+          (formulaAdvice?.ok
+            ? this.formatNumber(formulaAdvice.defense) +
+              (formulaAdvice.cavalry ? " (vs cavalaria)" : " (vs infantaria)")
+            : this.escapeHtml(formulaAdvice?.message || "-")) +
           "</b></div>",
         '</div></details>',
       ].join("");
@@ -1731,48 +1874,8 @@
 
       node
         .querySelector("#nytrina-import-report")
-        ?.addEventListener("click", async () => {
-          console.log("CLICOU IMPORTAR");
-
-          const report = root.ReportParser.parse({
-            tribe: settings.troopTribe || "romans",
-          });
-
-          if (!report) {
-            root.Modal.show(
-              "Relatorio",
-              "Nenhum relatorio valido encontrado na tela.",
-            );
-            return;
-          }
-
-          await this.scanner.saveReport(report);
-
-          console.log("ANTES DO BATTLE - ABA RELATORIOS");
-
-          const learningResult = await root.BattleKnowledge.learnFromReport({
-            storage: this.storage,
-            report,
-          });
-
-          console.log("DEPOIS DO BATTLE - ABA RELATORIOS");
-
-          if (learningResult) {
-            root.Modal.show(
-              "Relatorio",
-              "Importado e aprendido com sucesso. Coord: " +
-                (report.coord || "-") +
-                " | Lucro: " +
-                Math.round(report.profit || 0),
-            );
-          } else {
-            root.Modal.show(
-              "Relatorio",
-              "Relatório salvo, mas sem dados suficientes para aprendizado automático (tipo de tropa/quantidade enviada).",
-            );
-          }
-
-          await this.refresh();
+        ?.addEventListener("click", () => {
+          this.importCurrentReport().catch(() => undefined);
         });
     }
 
@@ -1783,7 +1886,23 @@
       const node = this.panel("ranking");
       if (!node) return;
       const oasis = await this.storage.getAll(root.Constants.STORES.OASIS);
-      const ranking = root.Ranking.buildRanking(oasis);
+      const settings = this.getSettings();
+      const sortBy = ["xph", "xp", "distance"].includes(settings.rankingSort)
+        ? settings.rankingSort
+        : "xph";
+      const ranking = root.Ranking.buildRanking(oasis, {
+        speed: Number(settings.effectiveSpeed || 0),
+        smallMap: Boolean(settings.smallMap),
+        sortBy,
+      });
+      const formatXph = (value) => {
+        const number = Number(value || 0);
+        if (!Number.isFinite(number) || number <= 0) return "-";
+        if (number >= 10) return this.formatNumber(number);
+        return number.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+      };
+      const sortOption = (value, label) =>
+        '<option value="' + value + '"' + (sortBy === value ? " selected" : "") + ">" + label + "</option>";
 
       const rankByXp = (xp) => {
         const value = Number(xp || 0);
@@ -1802,8 +1921,17 @@
       };
 
       node.innerHTML = [
-        '<div class="actions"><button id="nytrina-ranking-clear">Limpar Ranking</button></div>',
-        "<table><thead><tr><th>Nota</th><th>Coord</th><th>Dist</th><th>XP</th><th>XP/h</th><th>Tempo</th></tr></thead><tbody>",
+        '<div class="actions"><label class="inline-label">Ordenar por <select id="nytrina-ranking-sort">' +
+          sortOption("xph", "XP/h (tropa atual)") +
+          sortOption("xp", "XP total") +
+          sortOption("distance", "Distância") +
+          '</select></label><button id="nytrina-ranking-clear">Limpar Ranking</button></div>',
+        '<div class="hint">XP/h e tempo calculados com a velocidade da tropa selecionada (' +
+          this.formatNumber(settings.effectiveSpeed) +
+          " campos/h" +
+          (settings.smallMap ? ", mapa pequeno na volta" : "") +
+          ").</div>",
+        "<table><thead><tr><th>Nota</th><th>Coord</th><th class=\"num\">Dist</th><th class=\"num\">XP</th><th class=\"num\">XP/h</th><th>Tempo</th></tr></thead><tbody>",
         ranking
           .map((row) => {
             const rank = rankByXp(row.xp);
@@ -1813,21 +1941,28 @@
               '">' +
               rank.text +
               "</td><td>" +
-              (row.coord || "-") +
-              "</td><td>" +
+              this.escapeHtml(row.coord || "-") +
+              '</td><td class="num">' +
               formatDistance(row.distance) +
+              '</td><td class="num">' +
+              this.formatNumber(row.xp) +
+              '</td><td class="num">' +
+              formatXph(row.xph) +
               "</td><td>" +
-              Math.round(row.xp || 0) +
-              "</td><td>" +
-              Math.round(row.xph || 0) +
-              "</td><td>" +
-              (row.time || "-") +
+              this.escapeHtml(row.time || "-") +
               "</td></tr>"
             );
           })
           .join(""),
         "</tbody></table>",
       ].join("");
+
+      node
+        .querySelector("#nytrina-ranking-sort")
+        ?.addEventListener("change", async (event) => {
+          await this.saveSettings({ rankingSort: String(event.target.value || "xph") });
+          await this.refreshRanking();
+        });
 
       node
         .querySelector("#nytrina-ranking-clear")
@@ -1846,7 +1981,6 @@
       const node = this.panel("reports");
       if (!node) return;
       const reports = await this.storage.getAll(root.Constants.STORES.REPORTS);
-      const settings = this.getSettings();
       const sortedReports = reports
         .slice()
         .sort((a, b) => {
@@ -1854,7 +1988,7 @@
           const left = new Date(a.date || a.updatedAt || 0).getTime();
           return right - left;
         });
-      const recentReports = sortedReports.slice(0, 50);
+      const recentReports = sortedReports;
       const reportsMeta = this.paginationMeta(
         recentReports.length,
         this.reportsPage,
@@ -1865,30 +1999,34 @@
 
       node.innerHTML = [
         '<div class="actions"><button id="nytrina-import-report-tab">Importar relatorio atual</button><button id="nytrina-clear-reports">Limpar Relatórios</button></div>',
-        "<table><thead><tr><th>#</th><th>Data/Hora</th><th>ID</th><th>Coord</th><th>XP</th><th>Rec.</th><th>Perda</th><th>Lucro</th></tr></thead><tbody>",
+        '<div class="table-scroll"><table><thead><tr><th class="num">#</th><th>Data/Hora</th><th>ID</th><th>Coord</th><th class="num">XP</th><th class="num">Rec.</th><th class="num">Perda</th><th class="num">Lucro</th></tr></thead><tbody>',
         reportsPageRows
           .map(
             (report, index) =>
-              "<tr><td>" +
+              '<tr><td class="num">' +
               (Number(report.reportSeq || 0) > 0 ? Number(report.reportSeq) : String(reportsMeta.start + index + 1)) +
               "</td><td>" +
               this.formatDateTime(report.date || report.updatedAt) +
+              '</td><td class="cell-id" title="' +
+              this.escapeHtml(report.reportId) +
+              '">' +
+              this.escapeHtml(report.reportId) +
               "</td><td>" +
-              report.reportId +
-              "</td><td>" +
-              (report.coord || "-") +
-              "</td><td>" +
-              Math.round(report.xp || 0) +
-              "</td><td>" +
-              Math.round(report.totalResources || 0) +
-              "</td><td>" +
-              Math.round(report.lossCost || 0) +
-              "</td><td>" +
-              Math.round(report.profit || 0) +
+              this.escapeHtml(report.coord || "-") +
+              '</td><td class="num">' +
+              this.formatNumber(report.xp) +
+              '</td><td class="num">' +
+              this.formatNumber(report.totalResources) +
+              '</td><td class="num neg-soft">' +
+              this.formatNumber(report.lossCost) +
+              '</td><td class="num ' +
+              this.signedClass(report.profit) +
+              '">' +
+              this.formatNumber(report.profit) +
               "</td></tr>",
           )
           .join(""),
-        "</tbody></table>",
+        "</tbody></table></div>",
         this.paginationControls("nytrina-reports-page", reportsMeta, recentReports.length),
       ].join("");
 
@@ -1904,64 +2042,8 @@
 
       node
         .querySelector("#nytrina-import-report-tab")
-        ?.addEventListener("click", async () => {
-          console.error("RELATORIOS: BOTAO CLICADO");
-
-          try {
-            const report = root.ReportParser.parse({
-              tribe: settings.troopTribe || "romans",
-              troopType: settings.troopType || null,
-            });
-
-            if (!report) {
-              root.Modal.show(
-                "Relatorio",
-                "Nenhum relatorio valido encontrado na tela.",
-              );
-              return;
-            }
-
-            console.log("RELATORIOS: REPORT GERADO", report);
-
-            // Primeiro aprende, para identificarmos qualquer erro isoladamente.
-            console.log("RELATORIOS: ANTES DO BATTLE");
-
-            const learningResult = await root.BattleKnowledge.learnFromReport({
-              storage: this.storage,
-              report,
-            });
-
-            console.log("RELATORIOS: BATTLE SALVO", learningResult);
-
-            // Depois salva o relatório normal.
-            await this.scanner.saveReport(report);
-
-            console.log("RELATORIOS: REPORT SALVO");
-
-            if (learningResult) {
-              root.Modal.show(
-                "Relatorio",
-                "Importado e aprendido com sucesso. Coord: " +
-                  (report.coord || "-") +
-                  " | Lucro: " +
-                  Math.round(report.profit || 0),
-              );
-            } else {
-              root.Modal.show(
-                "Relatorio",
-                "Relatório salvo, mas sem dados suficientes para aprendizado automático (tipo de tropa/quantidade enviada).",
-              );
-            }
-
-            await this.refresh();
-          } catch (error) {
-            console.error("ERRO AO IMPORTAR RELATORIO:", error);
-
-            root.Modal.show(
-              "Erro",
-              "Falha ao importar ou aprender com o relatório. Veja o console.",
-            );
-          }
+        ?.addEventListener("click", () => {
+          this.importCurrentReport().catch(() => undefined);
         });
 
       node
@@ -1983,31 +2065,33 @@
       const node = this.panel("economy");
       if (!node) return;
       const reports = await this.storage.getAll(root.Constants.STORES.REPORTS);
+      const oasis = await this.storage.getAll(root.Constants.STORES.OASIS);
       const summary = root.Economy.calculateSummary(reports);
+      const card = (label, value, cls) =>
+        '<div class="card"><span>' +
+        label +
+        '</span><b class="' +
+        (cls || "") +
+        '">' +
+        value +
+        "</b></div>";
 
       node.innerHTML = [
-        '<div class="grid">',
-        '<div class="card"><span>Lucro liquido</span><b>' +
-          Math.round(summary.netProfit) +
-          "</b></div>",
-        '<div class="card"><span>Lucro/h</span><b>' +
-          Math.round(summary.profitPerHour) +
-          "</b></div>",
-        '<div class="card"><span>Lucro/min</span><b>' +
-          Math.round(summary.profitPerMinute) +
-          "</b></div>",
-        '<div class="card"><span>XP/h</span><b>' +
-          Math.round(summary.xpPerHour) +
-          "</b></div>",
-        '<div class="card"><span>Recursos/h</span><b>' +
-          Math.round(summary.resourcesPerHour) +
-          "</b></div>",
-        '<div class="card"><span>Perdas</span><b>' +
-          Math.round(summary.losses) +
-          "</b></div>",
-        '<div class="card"><span>ROI</span><b>' +
-          summary.roi.toFixed(2) +
-          "</b></div>",
+        '<div class="section-title">Resumo</div>',
+        '<div class="grid grid-3">',
+        card("Lucro líquido", this.formatNumber(summary.netProfit), this.signedClass(summary.netProfit)),
+        card("XP total", this.formatNumber(summary.totalXp)),
+        card("ROI", summary.roi.toFixed(2), this.signedClass(summary.roi)),
+        card("Relatórios", this.formatNumber(reports.length)),
+        card("Oásis mapeados", this.formatNumber(oasis.length)),
+        card("Perdas", this.formatNumber(summary.losses), summary.losses > 0 ? "neg-soft" : ""),
+        "</div>",
+        '<div class="section-title">Ritmo</div>',
+        '<div class="grid grid-3">',
+        card("Lucro/h", this.formatNumber(summary.profitPerHour), this.signedClass(summary.profitPerHour)),
+        card("Lucro/min", this.formatNumber(summary.profitPerMinute), this.signedClass(summary.profitPerMinute)),
+        card("XP/h", this.formatNumber(summary.xpPerHour)),
+        card("Recursos/h", this.formatNumber(summary.resourcesPerHour)),
         "</div>",
       ].join("");
     }
@@ -2262,9 +2346,6 @@
           '>Manual</option></select><input id="nytrina-setting-server" value="' +
           manualServer +
           '" placeholder="ts8.x1.america.travian.com"></div>',
-        '<div class="card"><span>Idioma</span><input id="nytrina-setting-language" value="' +
-          settings.language +
-          '"></div>',
         '<div class="card"><span>Tribo</span><select id="nytrina-setting-tribe">' +
           tribeOptions +
           "</select></div>",
@@ -2281,7 +2362,7 @@
         '<div id="nytrina-setting-server-warning" class="server-warning' +
           (isManualInvalid ? " show" : "") +
           '">Servidor manual invalido. Informe um host travian valido ou use Auto.</div>',
-        '<div class="actions"><button id="nytrina-save-settings">Salvar</button><button id="nytrina-export-backup">Exportar Backup</button><button id="nytrina-import-backup">Importar Backup</button><input id="nytrina-import-backup-file" type="file" accept="application/json" style="display:none"></div>',
+        '<div class="actions"><button id="nytrina-save-settings">Salvar</button><button id="nytrina-export-backup">Exportar Backup</button><button id="nytrina-import-backup">Substituir por Backup</button><button id="nytrina-merge-backup">Mesclar Backup</button><input id="nytrina-import-backup-file" type="file" accept="application/json" style="display:none"></div>',
         "</div>",
       ].join("");
 
@@ -2294,7 +2375,9 @@
       const smallMapInput = node.querySelector("#nytrina-setting-small-map");
       const exportBackupButton = node.querySelector("#nytrina-export-backup");
       const importBackupButton = node.querySelector("#nytrina-import-backup");
+      const mergeBackupButton = node.querySelector("#nytrina-merge-backup");
       const importBackupFile = node.querySelector("#nytrina-import-backup-file");
+      let backupMode = "replace";
 
       if (smallMapInput) {
         smallMapInput.checked = Boolean(settings.smallMap);
@@ -2360,8 +2443,6 @@
       node
         .querySelector("#nytrina-save-settings")
         ?.addEventListener("click", async () => {
-          console.log("[NytrinA] Clique no salvar");
-
           const payload = {
             server:
               String(
@@ -2388,13 +2469,7 @@
             smallMap:
               node.querySelector("#nytrina-setting-small-map")?.checked ===
               true,
-
-            language: String(
-              node.querySelector("#nytrina-setting-language")?.value || "pt-BR",
-            ),
           };
-
-          console.log("[NytrinA] Salvando payload:", payload);
 
           await this.saveSettings(payload);
 
@@ -2464,6 +2539,12 @@
       });
 
       importBackupButton?.addEventListener("click", () => {
+        backupMode = "replace";
+        importBackupFile?.click();
+      });
+
+      mergeBackupButton?.addEventListener("click", () => {
+        backupMode = "merge";
         importBackupFile?.click();
       });
 
@@ -2475,6 +2556,27 @@
         try {
           const content = await file.text();
           const parsed = JSON.parse(content);
+
+          if (backupMode === "merge") {
+            const merged = await this.storage.mergeBackup(parsed);
+            const learned = await this.learnReports(merged.newReports);
+
+            this.scanner.lastSignature = "";
+            await this.refresh();
+
+            root.Modal.show(
+              "Backup",
+              "Backup mesclado. Relatórios novos: " +
+                merged.newReports.length +
+                " | Aprendidos: " +
+                learned.learned +
+                " | Históricos novos: " +
+                merged.history +
+                " | Oásis atualizados: " +
+                merged.oasis,
+            );
+            return;
+          }
 
           const reportCount = Number(
             parsed?.counts?.REPORTS || parsed?.reports?.length || 0,

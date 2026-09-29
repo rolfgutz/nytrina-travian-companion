@@ -71,8 +71,6 @@
       .map((icon) => [...icon.classList].find((c) => /^u\d+$/.test(c)))
       .filter(Boolean);
 
-    console.log("Keys:", keys);
-
     // Linhas da tabela
     const totalRow = table.querySelector(".troopCount_small")?.closest("tr");
     const deadRow = table.querySelector(".troopDead_small")?.closest("tr");
@@ -95,8 +93,6 @@
         utils.toInt(td.textContent),
       );
 
-      console.log("Valores:", values);
-
       keys.forEach((key, index) => {
         out[key] = values[index] || 0;
       });
@@ -111,9 +107,6 @@
     result.total = read(totalRow);
     result.lost = read(deadRow);
     result.wounded = read(woundedRow);
-
-    console.log("TOTAL", result.total);
-    console.log("LOST", result.lost);
 
     return result;
   }
@@ -330,10 +323,19 @@
     return match[1].replace(/[./]/g, "") + "-" + match[2].replace(/:/g, "");
   }
 
-  function parseReportIdFromUrl() {
+  function hashText(text) {
+    let hash = 0x811c9dc5;
+    for (let i = 0; i < text.length; i += 1) {
+      hash ^= text.charCodeAt(i);
+      hash = Math.imul(hash, 0x01000193);
+    }
+    return (hash >>> 0).toString(16).padStart(8, "0");
+  }
+
+  function parseReportIdFromUrl(contentFingerprint) {
     const params = new URL(global.location.href).searchParams;
-    const byUrl =
-      params.get("id") || params.get("newdid") || params.get("uid");
+    // newdid/uid identify the village/user, not the report.
+    const byUrl = params.get("id");
     if (byUrl) return byUrl;
 
     // Tokens hash-like no path (ex: /report/97e2fdb6c4b1e2d1) sao unicos por relatorio.
@@ -346,21 +348,7 @@
       return "report-" + (parseReportCoord() || "coord") + "-" + timestamp;
     }
 
-    const candidates = Array.from(
-      global.document.querySelectorAll(
-        "h1,h2,h3,.title,.header,.headline,.additionalInformation",
-      ),
-    );
-
-    for (const node of candidates) {
-      const text = String(node.textContent || "").trim();
-      if (!text) continue;
-
-      const token = text.match(/[\w-]{8,}/);
-      if (token) return token[0];
-    }
-
-    return "report-" + Date.now();
+    return "report-" + hashText(String(contentFingerprint || ""));
   }
 
   function parseReportCoord() {
@@ -420,7 +408,6 @@
     const natureData = parseNatureTableExact();
 
     const attackerData = parseAttackerTableExact();
-    console.log(attackerData);
     const resources = parseResourcesByTableCells();
 
     const hasCombatData =
@@ -514,15 +501,6 @@
     const troopCasualtyRate =
       troopsSentCount > 0 ? troopsCasualtiesCount / troopsSentCount : 0;
 
-    console.log({
-      troopType: selectedTroopType,
-      troopClass: selectedTroopClass,
-      troopsSentCount,
-      troopsLostCount,
-      troopsWoundedCount,
-      troopsCasualtiesCount,
-    });
-
     const totalAnimalsInitial = Object.values(animalsInitial).reduce(
       (sum, value) => sum + Number(value || 0),
       0,
@@ -549,7 +527,17 @@
 
     return {
       url: global.location.href,
-      reportId: parseReportIdFromUrl(),
+      reportId: parseReportIdFromUrl(
+        JSON.stringify([
+          attackerData.total,
+          attackerData.lost,
+          attackerData.wounded,
+          natureData.total,
+          natureData.lost,
+          resources.resourcesLoot,
+          resources.heroResources,
+        ]),
+      ),
       server: server.getContext().key,
       tribe: resolvedTribe,
       date: new Date().toISOString(),

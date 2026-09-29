@@ -64,16 +64,18 @@
     },
     teutons: {
       clubman: 7,
+      spearman: 7,
+      axeman: 6,
       paladin: 10,
       teutonic_knight: 9
     },
     gauls: {
-      phalanx: 14,
-      swordsman: 12,
-      pathfinder: 34,
-      theutates_thunder: 38,
-      druidrider: 32,
-      haeduan: 26
+      phalanx: 7,
+      swordsman: 6,
+      pathfinder: 17,
+      theutates_thunder: 19,
+      druidrider: 16,
+      haeduan: 13
     }
   };
 
@@ -82,6 +84,13 @@
    * @param {Record<string, number>} lost
    * @returns {{total:number,detail:Array<{unit:string,qty:number,total:number}>}}
    */
+  function localUnitClass(unitClass) {
+    const match = /^u(\d+)$/.exec(String(unitClass || ''));
+    if (!match) return null;
+    // Report DOM uses u11-u20 for Teutons and u21-u30 for Gauls.
+    return 'u' + (((Number(match[1]) - 1) % 10) + 1);
+  }
+
   function calcLossCost(tribe, lost) {
     const tribeCosts = TROOP_COSTS[tribe] || TROOP_COSTS.romans;
     let total = 0;
@@ -89,7 +98,7 @@
 
     Object.entries(lost || {}).forEach(([unitClass, qty]) => {
       const normalizedQty = Number(qty || 0);
-      const cost = tribeCosts[unitClass];
+      const cost = tribeCosts[unitClass] || tribeCosts[localUnitClass(unitClass)];
       if (!cost || normalizedQty <= 0) return;
 
       const unitTotal = cost.wood + cost.clay + cost.iron + cost.crop;

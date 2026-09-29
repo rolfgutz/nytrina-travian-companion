@@ -3,8 +3,8 @@
 
   const root = (global.NytrinA = global.NytrinA || {});
   const constants = root.Constants;
-  const MAX_REPORT_ROWS = 50;
-  const MAX_HISTORY_ROWS = 50;
+  const MAX_REPORT_ROWS = 2000;
+  const MAX_HISTORY_ROWS = 2000;
 
   class ScannerService {
     /**
@@ -102,7 +102,6 @@
         report.reportId,
       );
       if (existing) {
-        console.log('[NytrinA] Relatorio ja importado:', report.reportId);
         return false;
       }
 
@@ -129,7 +128,6 @@
 
       const toDelete = orderedReports.slice(MAX_REPORT_ROWS);
       if (toDelete.length > 0) {
-        console.log('[NytrinA] Limpando banco: deletando', toDelete.length, 'relatórios antigos');
         for (const oldReport of toDelete) {
           if (oldReport?.reportId) {
             await this.storage.delete(root.Constants.STORES.REPORTS, oldReport.reportId);
@@ -161,7 +159,6 @@
 
       const historyToDelete = orderedHistory.slice(MAX_HISTORY_ROWS);
       if (historyToDelete.length > 0) {
-        console.log('[NytrinA] Limpando banco: deletando', historyToDelete.length, 'históricos antigos');
         for (const oldHistory of historyToDelete) {
           if (oldHistory?.id) {
             await this.storage.delete(root.Constants.STORES.HISTORY, oldHistory.id);
@@ -171,6 +168,21 @@
 
       if (typeof this.onUpdate === 'function') this.onUpdate('report', report);
       return true;
+    }
+
+    /**
+     * @param {any} report
+     * @returns {Promise<{saved:boolean,learned:any}>}
+     */
+    async importReport(report) {
+      const saved = await this.saveReport(report);
+      if (!saved) return { saved: false, learned: null };
+
+      const learned = await root.BattleKnowledge.learnFromReport({
+        storage: this.storage,
+        report,
+      });
+      return { saved: true, learned };
     }
   }
 

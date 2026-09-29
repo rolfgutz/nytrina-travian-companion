@@ -82,8 +82,6 @@
 
       await storage.put(settingsStoreName, settings);
 
-      console.log('[NytrinA] Configurações salvas:', settings);
-
       return getSettings();
     }
 
@@ -94,7 +92,7 @@
       getSettings,
       onUpdate: () => {
         if (overlay) {
-          overlay.refresh().catch(() => undefined);
+          overlay.refreshFromData().catch(() => undefined);
         }
       }
     });

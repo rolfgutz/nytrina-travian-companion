@@ -182,15 +182,35 @@
     }
 
     /**
-     * @param {any} backup
-     * @returns {Promise<Record<string, number>>}
+     * @param {Array<string>} storeNames
+     * @param {(tx: IDBTransaction) => void} work
+     * @returns {Promise<void>}
      */
-    async importBackup(backup) {
+    runTransaction(storeNames, work) {
+      if (!this.db) throw new Error('Storage not initialized');
+      return new Promise((resolve, reject) => {
+        const tx = this.db.transaction(storeNames, 'readwrite');
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error || new Error('Transação abortada.'));
+        try {
+          work(tx);
+        } catch (error) {
+          tx.abort();
+          reject(error);
+        }
+      });
+    }
+
+    /**
+     * @param {any} backup
+     * @returns {Record<string, Array<any>>}
+     */
+    readBackupRows(backup) {
       if (!backup || typeof backup !== 'object') {
         throw new Error('Backup inválido.');
       }
 
-      const stores = this.getStoreNames();
       const storeData = backup.stores && typeof backup.stores === 'object'
         ? backup.stores
         : {};
@@ -234,23 +254,83 @@
       });
 
       const statisticsRows = Array.from(statisticsMap.values());
-
-      for (const storeName of stores) {
-        await this.clear(storeName);
-      }
-
-      await this.putMany(constants.STORES.OASIS, oasisRows);
-      await this.putMany(constants.STORES.REPORTS, reportsRows);
-      await this.putMany(constants.STORES.SETTINGS, settingsRows);
-      await this.putMany(constants.STORES.HISTORY, historyRows);
-      await this.putMany(constants.STORES.STATISTICS, statisticsRows);
+      const withKey = (rows, key) =>
+        rows.filter((row) => row && row[key] !== undefined && row[key] !== null);
 
       return {
-        [constants.STORES.OASIS]: oasisRows.length,
-        [constants.STORES.REPORTS]: reportsRows.length,
-        [constants.STORES.SETTINGS]: settingsRows.length,
-        [constants.STORES.HISTORY]: historyRows.length,
-        [constants.STORES.STATISTICS]: statisticsRows.length,
+        [constants.STORES.OASIS]: withKey(oasisRows, 'id'),
+        [constants.STORES.REPORTS]: withKey(reportsRows, 'reportId'),
+        [constants.STORES.SETTINGS]: withKey(settingsRows, 'id'),
+        [constants.STORES.HISTORY]: withKey(historyRows, 'id'),
+        [constants.STORES.STATISTICS]: statisticsRows,
+      };
+    }
+
+    /**
+     * @param {any} backup
+     * @returns {Promise<Record<string, number>>}
+     */
+    async importBackup(backup) {
+      const rows = this.readBackupRows(backup);
+      const stores = this.getStoreNames();
+
+      await this.runTransaction(stores, (tx) => {
+        for (const storeName of stores) {
+          const store = tx.objectStore(storeName);
+          store.clear();
+          (rows[storeName] || []).forEach((row) => store.put(row));
+        }
+      });
+
+      const counts = {};
+      for (const storeName of stores) {
+        counts[storeName] = (rows[storeName] || []).length;
+      }
+      return counts;
+    }
+
+    /**
+     * Keeps local settings and learning; adds reports, history and oases missing locally.
+     * @param {any} backup
+     * @returns {Promise<{newReports:Array<any>,history:number,oasis:number}>}
+     */
+    async mergeBackup(backup) {
+      const rows = this.readBackupRows(backup);
+      const S = constants.STORES;
+      const timeOf = (row) =>
+        new Date(row?.updatedAt || row?.scanDate || row?.date || 0).getTime() || 0;
+
+      const localReportIds = new Set(
+        (await this.getAll(S.REPORTS)).map((row) => String(row.reportId)),
+      );
+      const localHistoryIds = new Set(
+        (await this.getAll(S.HISTORY)).map((row) => String(row.id)),
+      );
+      const localOasis = new Map(
+        (await this.getAll(S.OASIS)).map((row) => [String(row.id), row]),
+      );
+
+      const newReports = rows[S.REPORTS].filter(
+        (row) => !localReportIds.has(String(row.reportId)),
+      );
+      const newHistory = rows[S.HISTORY].filter(
+        (row) => !localHistoryIds.has(String(row.id)),
+      );
+      const oasisToWrite = rows[S.OASIS].filter((row) => {
+        const current = localOasis.get(String(row.id));
+        return !current || timeOf(row) > timeOf(current);
+      });
+
+      await this.runTransaction([S.REPORTS, S.HISTORY, S.OASIS], (tx) => {
+        newReports.forEach((row) => tx.objectStore(S.REPORTS).put(row));
+        newHistory.forEach((row) => tx.objectStore(S.HISTORY).put(row));
+        oasisToWrite.forEach((row) => tx.objectStore(S.OASIS).put(row));
+      });
+
+      return {
+        newReports,
+        history: newHistory.length,
+        oasis: oasisToWrite.length,
       };
     }
   }

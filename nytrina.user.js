@@ -1,7 +1,7 @@
 (function attachStylesNamespace(global) {
   'use strict';
   const root = (global.NytrinA = global.NytrinA || {});
-  root.UI_STYLES = "#nytrina-overlay {\r\n  position: fixed;\r\n  top: 70px;\r\n  right: 16px;\r\n  width: 520px;\r\n  max-width: calc(100vw - 24px);\r\n  max-height: 88vh;\r\n  overflow: auto;\r\n  z-index: 999999;\r\n  background: linear-gradient(180deg, #1a130e, #100c08);\r\n  color: #f7ebd7;\r\n  border: 2px solid #b97822;\r\n  border-radius: 12px;\r\n  box-shadow: 0 0 24px rgba(0, 0, 0, 0.8);\r\n  font-family: Verdana, sans-serif;\r\n  font-size: 13px;\r\n}\r\n\r\n#nytrina-overlay * {\r\n  box-sizing: border-box;\r\n}\r\n\r\n#nytrina-overlay .head {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  align-items: center;\r\n  padding: 10px 12px;\r\n  background: #25170d;\r\n  border-bottom: 1px solid #6e4518;\r\n  cursor: grab;\r\n  user-select: none;\r\n}\r\n\r\n#nytrina-overlay.dragging .head {\r\n  cursor: grabbing;\r\n}\r\n\r\n#nytrina-overlay .tabs {\r\n  display: grid;\r\n  grid-template-columns: repeat(8, minmax(0, 1fr));\r\n  gap: 4px;\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .planner-steps-scroll {\r\n  max-height: 420px;\r\n  overflow: auto;\r\n}\r\n\r\n#nytrina-overlay .nytrina-planner-first-pending td {\r\n  background: linear-gradient(180deg, #4a2e10, #32200d);\r\n  border-top-color: #f4bf63;\r\n  border-bottom-color: #f4bf63;\r\n}\r\n\r\n#nytrina-overlay .nytrina-planner-first-pending td:first-child {\r\n  box-shadow: inset 3px 0 0 #ffcf75;\r\n}\r\n\r\n#nytrina-overlay .tab {\r\n  background: #23170d;\r\n  color: #d8bc91;\r\n  border: 1px solid #7a4c1a;\r\n  border-radius: 6px;\r\n  padding: 6px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay .tab.active {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border-color: #c9892a;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .panel {\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .hidden {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay .grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .scanner-controls {\r\n  background: #342114;\r\n  border: 1px solid #8b5a22;\r\n  border-radius: 10px;\r\n  padding: 10px;\r\n  margin-bottom: 10px;\r\n  box-shadow: inset 0 0 0 1px rgba(255, 223, 168, 0.06);\r\n}\r\n\r\n#nytrina-overlay .scanner-actions {\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .scanner-actions button {\r\n  flex: 1 1 150px;\r\n}\r\n\r\n#nytrina-overlay .scanner-actions .hint {\r\n  flex: 1 1 100%;\r\n  color: #f2d7aa;\r\n  font-size: 12px;\r\n  padding-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-summary {\r\n  margin-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-essential-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n  margin-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-card-highlight {\r\n  border-color: #c9892a;\r\n  background: linear-gradient(180deg, #322010, #28190d);\r\n}\r\n\r\n#nytrina-overlay .scanner-context-line {\r\n  margin-top: 8px;\r\n  padding: 8px;\r\n  border-radius: 7px;\r\n  border: 1px solid #6e4518;\r\n  background: #1e130a;\r\n  color: #e6cda3;\r\n  font-size: 12px;\r\n  line-height: 1.4;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced {\r\n  margin-top: 8px;\r\n  border: 1px solid #6e4518;\r\n  border-radius: 7px;\r\n  background: #1a1109;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced summary {\r\n  cursor: pointer;\r\n  padding: 8px;\r\n  color: #ffd79b;\r\n  font-weight: bold;\r\n  list-style: none;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced summary::-webkit-details-marker {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced[open] summary {\r\n  border-bottom: 1px solid #6e4518;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced .scanner-summary {\r\n  padding: 8px;\r\n  margin-top: 0;\r\n}\r\n\r\n#nytrina-overlay .card {\r\n  background: #28190d;\r\n  border: 1px solid #6e4518;\r\n  border-radius: 7px;\r\n  padding: 8px;\r\n}\r\n\r\n#nytrina-overlay .card span {\r\n  display: block;\r\n  font-size: 11px;\r\n  color: #d0ad7b;\r\n  margin-bottom: 3px;\r\n}\r\n\r\n#nytrina-overlay .card b {\r\n  color: #fff;\r\n}\r\n\r\n#nytrina-overlay table {\r\n  width: 100%;\r\n  border-collapse: collapse;\r\n  margin-top: 8px;\r\n  background: #120b06;\r\n}\r\n\r\n#nytrina-overlay th,\r\n#nytrina-overlay td {\r\n  border: 1px solid #6f461c;\r\n  padding: 6px;\r\n  text-align: left;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay th {\r\n  background: #3a230f;\r\n  color: #ffe0ad;\r\n}\r\n\r\n#nytrina-overlay td {\r\n  background: #1d1209;\r\n}\r\n\r\n#nytrina-overlay .actions {\r\n  display: flex;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay button {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border: 1px solid #c9892a;\r\n  border-radius: 7px;\r\n  padding: 6px 10px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay label {\r\n  display: block;\r\n  margin-top: 8px;\r\n  color: #ffd79b;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay input,\r\n#nytrina-overlay select {\r\n  width: 100%;\r\n  height: 34px;\r\n  margin-top: 4px;\r\n  padding: 6px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8b5a22;\r\n  background: #23170d;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop,\r\n#nytrina-overlay #nytrina-setting-troop {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n  border-color: #c9a16a;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop option,\r\n#nytrina-overlay #nytrina-setting-troop option,\r\n#nytrina-overlay #nytrina-scanner-troop optgroup,\r\n#nytrina-overlay #nytrina-setting-troop optgroup {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n}\r\n\r\n#nytrina-overlay,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll,\r\n#nytrina-overlay .debug-json {\r\n  scrollbar-width: thin;\r\n  scrollbar-color: #b97822 #1a120a;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar {\r\n  width: 10px;\r\n  height: 10px;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-track,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-track,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-track {\r\n  background: #1a120a;\r\n  border-radius: 10px;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-thumb,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-thumb,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-thumb {\r\n  background: linear-gradient(180deg, #c9892a, #8a5318);\r\n  border-radius: 10px;\r\n  border: 2px solid #1a120a;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-thumb:hover,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-thumb:hover,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-thumb:hover {\r\n  background: linear-gradient(180deg, #e3a63e, #a86620);\r\n}\r\n\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll {\r\n  overflow: auto;\r\n  max-height: 52vh;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  margin-top: 8px;\r\n}\r\n\r\n#nytrina-overlay .debug-table {\r\n  table-layout: fixed;\r\n  min-width: 1080px;\r\n  margin-top: 0;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay .debug-table th,\r\n#nytrina-overlay .debug-table td {\r\n  white-space: nowrap;\r\n  overflow: hidden;\r\n  text-overflow: ellipsis;\r\n  padding: 5px 6px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-troop {\r\n  max-width: 150px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-result {\r\n  max-width: 140px;\r\n}\r\n\r\n#nytrina-overlay .debug-table th:first-child,\r\n#nytrina-overlay .debug-table td:first-child {\r\n  white-space: normal;\r\n  min-width: 64px;\r\n  width: 64px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-datetime {\r\n  display: inline-block;\r\n  line-height: 1.2;\r\n  word-break: break-word;\r\n}\r\n\r\n#nytrina-overlay input[type='checkbox'] {\r\n  width: 16px;\r\n  height: 16px;\r\n  margin-top: 0;\r\n  margin-right: 6px;\r\n  vertical-align: middle;\r\n}\r\n\r\n#nytrina-overlay .check-row {\r\n  display: flex;\r\n  align-items: center;\r\n  color: #ffd79b;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .form-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .stack {\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .server-badge {\r\n  margin-bottom: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8a5a24;\r\n  background: #1b120a;\r\n  color: #ffd79b;\r\n}\r\n\r\n#nytrina-overlay .server-warning {\r\n  display: none;\r\n  margin-top: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #c9892a;\r\n  background: #3a230f;\r\n  color: #ffd26a;\r\n}\r\n\r\n#nytrina-overlay .server-warning.show {\r\n  display: block;\r\n}\r\n\r\n#nytrina-overlay .rank-good {\r\n  color: #72ff72;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-mid {\r\n  color: #ffd26a;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-bad {\r\n  color: #ff7d7d;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .debug-json {\r\n  white-space: pre-wrap;\r\n  background: #120b06;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  padding: 8px;\r\n  font-family: Consolas, monospace;\r\n  max-height: 360px;\r\n  overflow: auto;\r\n}\r\n\r\n#nytrina-overlay input[type=\"checkbox\"] {\r\n    appearance: checkbox !important;\r\n    -webkit-appearance: checkbox !important;\r\n    accent-color: #c9892a;\r\n    width: 16px !important;\r\n    height: 16px !important;\r\n    cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay.minimized .tabs {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay.minimized .panel {\r\n  display: none;\r\n}\r\n\r\n#nytrina-toggle-minimize {\r\n  min-width: 92px;\r\n}\r\n\r\n@media (max-width: 700px) {\r\n  #nytrina-overlay .scanner-essential-grid {\r\n    grid-template-columns: 1fr;\r\n  }\r\n}";
+  root.UI_STYLES = "#nytrina-overlay,\r\n#nytrina-toasts {\r\n  --nyt-bg: #100c08;\r\n  --nyt-bg-top: #1a130e;\r\n  --nyt-surface: #28190d;\r\n  --nyt-surface-2: #1d1209;\r\n  --nyt-border: #6e4518;\r\n  --nyt-accent: #c9892a;\r\n  --nyt-accent-strong: #ffcf75;\r\n  --nyt-text: #f7ebd7;\r\n  --nyt-text-muted: #d0ad7b;\r\n  --nyt-heading: #ffd79b;\r\n  --nyt-ok: #7ddc7d;\r\n  --nyt-warn: #ffd26a;\r\n  --nyt-bad: #ff7d7d;\r\n}\r\n\r\n#nytrina-overlay {\r\n  position: fixed;\r\n  top: 70px;\r\n  right: 16px;\r\n  width: 520px;\r\n  max-width: calc(100vw - 24px);\r\n  max-height: 88vh;\r\n  overflow: auto;\r\n  z-index: 999999;\r\n  background: linear-gradient(180deg, var(--nyt-bg-top), var(--nyt-bg));\r\n  color: var(--nyt-text);\r\n  border: 2px solid #b97822;\r\n  border-radius: 12px;\r\n  box-shadow: 0 0 24px rgba(0, 0, 0, 0.8);\r\n  font-family: Verdana, sans-serif;\r\n  font-size: 13px;\r\n}\r\n\r\n#nytrina-overlay * {\r\n  box-sizing: border-box;\r\n}\r\n\r\n#nytrina-overlay .head {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  align-items: center;\r\n  padding: 10px 12px;\r\n  background: #25170d;\r\n  border-bottom: 1px solid #6e4518;\r\n  cursor: grab;\r\n  user-select: none;\r\n}\r\n\r\n#nytrina-overlay.dragging .head {\r\n  cursor: grabbing;\r\n}\r\n\r\n#nytrina-overlay .tabs {\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  gap: 4px;\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .planner-steps-scroll {\r\n  max-height: 420px;\r\n  overflow: auto;\r\n}\r\n\r\n#nytrina-overlay .nytrina-planner-first-pending td {\r\n  background: linear-gradient(180deg, #4a2e10, #32200d);\r\n  border-top-color: #f4bf63;\r\n  border-bottom-color: #f4bf63;\r\n}\r\n\r\n#nytrina-overlay .nytrina-planner-first-pending td:first-child {\r\n  box-shadow: inset 3px 0 0 #ffcf75;\r\n}\r\n\r\n#nytrina-overlay .tab {\r\n  flex: 1 1 auto;\r\n  background: #23170d;\r\n  color: #d8bc91;\r\n  border: 1px solid #7a4c1a;\r\n  border-radius: 6px;\r\n  padding: 6px 8px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay .tab:hover {\r\n  background: #3a230f;\r\n  color: #ffe0ad;\r\n}\r\n\r\n#nytrina-overlay .tab-secondary {\r\n  flex: 0 0 auto;\r\n  opacity: 0.75;\r\n}\r\n\r\n#nytrina-overlay .tab.active {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border-color: var(--nyt-accent);\r\n  font-weight: bold;\r\n  opacity: 1;\r\n}\r\n\r\n#nytrina-overlay .panel {\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .hidden {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay .grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .grid-3 {\r\n  grid-template-columns: repeat(3, minmax(0, 1fr));\r\n}\r\n\r\n#nytrina-overlay .section-title {\r\n  margin: 12px 0 6px;\r\n  color: var(--nyt-heading);\r\n  font-size: 11px;\r\n  font-weight: bold;\r\n  letter-spacing: 0.06em;\r\n  text-transform: uppercase;\r\n}\r\n\r\n#nytrina-overlay .section-title:first-child {\r\n  margin-top: 0;\r\n}\r\n\r\n#nytrina-overlay .hint {\r\n  margin-top: 4px;\r\n  color: var(--nyt-text-muted);\r\n  font-size: 11px;\r\n  line-height: 1.4;\r\n}\r\n\r\n#nytrina-overlay .inline-label {\r\n  display: flex;\r\n  flex: 1 1 auto;\r\n  align-items: center;\r\n  gap: 6px;\r\n  margin-top: 0;\r\n}\r\n\r\n#nytrina-overlay .inline-label select {\r\n  width: auto;\r\n  flex: 1 1 auto;\r\n  margin-top: 0;\r\n}\r\n\r\n#nytrina-overlay .scanner-primary {\r\n  display: grid;\r\n  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);\r\n  gap: 8px;\r\n  margin-bottom: 8px;\r\n}\r\n\r\n#nytrina-overlay .scanner-primary > div {\r\n  border: 1px solid var(--nyt-accent);\r\n  border-radius: 8px;\r\n  padding: 10px;\r\n  background: linear-gradient(180deg, #3a2410, #28190d);\r\n}\r\n\r\n#nytrina-overlay .scanner-primary span {\r\n  display: block;\r\n  color: var(--nyt-text-muted);\r\n  font-size: 11px;\r\n}\r\n\r\n#nytrina-overlay .scanner-primary b {\r\n  display: block;\r\n  margin-top: 4px;\r\n  color: #fff;\r\n  font-size: 18px;\r\n}\r\n\r\n#nytrina-overlay .scanner-primary strong {\r\n  display: block;\r\n  color: var(--nyt-accent-strong);\r\n  font-size: 30px;\r\n  line-height: 1.15;\r\n  font-variant-numeric: tabular-nums;\r\n}\r\n\r\n#nytrina-overlay .scanner-primary small {\r\n  display: block;\r\n  margin-top: 4px;\r\n  color: var(--nyt-text-muted);\r\n  font-size: 11px;\r\n}\r\n\r\n#nytrina-overlay .scanner-locked {\r\n  background: #2f4520;\r\n  border-color: #6b9f35;\r\n}\r\n\r\n#nytrina-overlay .conf-high {\r\n  color: var(--nyt-ok);\r\n}\r\n\r\n#nytrina-overlay .conf-mid {\r\n  color: var(--nyt-warn);\r\n}\r\n\r\n#nytrina-overlay .conf-low {\r\n  color: var(--nyt-bad);\r\n}\r\n\r\n#nytrina-overlay .conf-none {\r\n  color: var(--nyt-text-muted);\r\n}\r\n\r\n#nytrina-overlay .card b.stars {\r\n  color: var(--nyt-accent-strong);\r\n  letter-spacing: 1px;\r\n}\r\n\r\n#nytrina-overlay .scanner-controls {\r\n  background: #342114;\r\n  border: 1px solid #8b5a22;\r\n  border-radius: 10px;\r\n  padding: 10px;\r\n  margin-bottom: 10px;\r\n  box-shadow: inset 0 0 0 1px rgba(255, 223, 168, 0.06);\r\n}\r\n\r\n#nytrina-overlay .scanner-actions {\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .scanner-actions button {\r\n  flex: 1 1 150px;\r\n}\r\n\r\n#nytrina-overlay .scanner-actions .hint {\r\n  flex: 1 1 100%;\r\n  color: #f2d7aa;\r\n  font-size: 12px;\r\n  padding-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-summary {\r\n  margin-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-essential-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n  margin-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-card-highlight {\r\n  border-color: #c9892a;\r\n  background: linear-gradient(180deg, #322010, #28190d);\r\n}\r\n\r\n#nytrina-overlay .scanner-context-line {\r\n  margin-top: 8px;\r\n  padding: 8px;\r\n  border-radius: 7px;\r\n  border: 1px solid #6e4518;\r\n  background: #1e130a;\r\n  color: #e6cda3;\r\n  font-size: 12px;\r\n  line-height: 1.4;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced {\r\n  margin-top: 8px;\r\n  border: 1px solid #6e4518;\r\n  border-radius: 7px;\r\n  background: #1a1109;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced summary {\r\n  cursor: pointer;\r\n  padding: 8px;\r\n  color: #ffd79b;\r\n  font-weight: bold;\r\n  list-style: none;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced summary::-webkit-details-marker {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced[open] summary {\r\n  border-bottom: 1px solid #6e4518;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced .scanner-summary {\r\n  padding: 8px;\r\n  margin-top: 0;\r\n}\r\n\r\n#nytrina-overlay .card {\r\n  background: var(--nyt-surface);\r\n  border: 1px solid var(--nyt-border);\r\n  border-radius: 7px;\r\n  padding: 8px;\r\n}\r\n\r\n#nytrina-overlay .card span {\r\n  display: block;\r\n  font-size: 11px;\r\n  color: var(--nyt-text-muted);\r\n  margin-bottom: 3px;\r\n}\r\n\r\n#nytrina-overlay .card b {\r\n  color: #fff;\r\n}\r\n\r\n#nytrina-overlay .card b.pos,\r\n#nytrina-overlay td.pos {\r\n  color: var(--nyt-ok);\r\n}\r\n\r\n#nytrina-overlay .card b.neg,\r\n#nytrina-overlay td.neg {\r\n  color: var(--nyt-bad);\r\n}\r\n\r\n#nytrina-overlay .card b.neg-soft,\r\n#nytrina-overlay td.neg-soft {\r\n  color: #f0a58a;\r\n}\r\n\r\n#nytrina-overlay table {\r\n  width: 100%;\r\n  border-collapse: collapse;\r\n  margin-top: 8px;\r\n  background: #120b06;\r\n}\r\n\r\n#nytrina-overlay th,\r\n#nytrina-overlay td {\r\n  border: 1px solid #6f461c;\r\n  padding: 5px 6px;\r\n  text-align: left;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay th {\r\n  background: #3a230f;\r\n  color: #ffe0ad;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay td {\r\n  background: var(--nyt-surface-2);\r\n}\r\n\r\n#nytrina-overlay tbody tr:nth-child(even) td {\r\n  background: #25170c;\r\n}\r\n\r\n#nytrina-overlay tbody tr:hover td {\r\n  background: #33200f;\r\n}\r\n\r\n#nytrina-overlay th.num,\r\n#nytrina-overlay td.num {\r\n  text-align: right;\r\n  font-variant-numeric: tabular-nums;\r\n  white-space: nowrap;\r\n}\r\n\r\n#nytrina-overlay td.cell-id {\r\n  max-width: 90px;\r\n  overflow: hidden;\r\n  text-overflow: ellipsis;\r\n  white-space: nowrap;\r\n  font-size: 11px;\r\n  color: var(--nyt-text-muted);\r\n}\r\n\r\n#nytrina-overlay .table-scroll {\r\n  overflow: auto;\r\n  max-height: 52vh;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  margin-top: 8px;\r\n}\r\n\r\n#nytrina-overlay .table-scroll table {\r\n  margin-top: 0;\r\n}\r\n\r\n#nytrina-overlay .table-scroll th {\r\n  position: sticky;\r\n  top: 0;\r\n  z-index: 1;\r\n}\r\n\r\n#nytrina-overlay .actions {\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  align-items: center;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay button {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border: 1px solid var(--nyt-accent);\r\n  border-radius: 7px;\r\n  padding: 6px 10px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay button:hover:not(:disabled) {\r\n  background: #6d4214;\r\n  border-color: var(--nyt-accent-strong);\r\n}\r\n\r\n#nytrina-overlay button:focus-visible,\r\n#nytrina-overlay input:focus-visible,\r\n#nytrina-overlay select:focus-visible {\r\n  outline: 2px solid var(--nyt-accent-strong);\r\n  outline-offset: 1px;\r\n}\r\n\r\n#nytrina-overlay button:disabled {\r\n  opacity: 0.45;\r\n  cursor: not-allowed;\r\n}\r\n\r\n#nytrina-overlay label {\r\n  display: block;\r\n  margin-top: 8px;\r\n  color: #ffd79b;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay input,\r\n#nytrina-overlay select {\r\n  width: 100%;\r\n  height: 34px;\r\n  margin-top: 4px;\r\n  padding: 6px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8b5a22;\r\n  background: #23170d;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop,\r\n#nytrina-overlay #nytrina-setting-troop {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n  border-color: #c9a16a;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop option,\r\n#nytrina-overlay #nytrina-setting-troop option,\r\n#nytrina-overlay #nytrina-scanner-troop optgroup,\r\n#nytrina-overlay #nytrina-setting-troop optgroup {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n}\r\n\r\n#nytrina-overlay,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll,\r\n#nytrina-overlay .debug-json {\r\n  scrollbar-width: thin;\r\n  scrollbar-color: #b97822 #1a120a;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar {\r\n  width: 10px;\r\n  height: 10px;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-track,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-track,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-track {\r\n  background: #1a120a;\r\n  border-radius: 10px;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-thumb,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-thumb,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-thumb {\r\n  background: linear-gradient(180deg, #c9892a, #8a5318);\r\n  border-radius: 10px;\r\n  border: 2px solid #1a120a;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-thumb:hover,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-thumb:hover,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-thumb:hover {\r\n  background: linear-gradient(180deg, #e3a63e, #a86620);\r\n}\r\n\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll {\r\n  overflow: auto;\r\n  max-height: 52vh;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  margin-top: 8px;\r\n}\r\n\r\n#nytrina-overlay .debug-table {\r\n  table-layout: fixed;\r\n  min-width: 1080px;\r\n  margin-top: 0;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay .debug-table th,\r\n#nytrina-overlay .debug-table td {\r\n  white-space: nowrap;\r\n  overflow: hidden;\r\n  text-overflow: ellipsis;\r\n  padding: 5px 6px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-troop {\r\n  max-width: 150px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-result {\r\n  max-width: 140px;\r\n}\r\n\r\n#nytrina-overlay .debug-table th:first-child,\r\n#nytrina-overlay .debug-table td:first-child {\r\n  white-space: normal;\r\n  min-width: 64px;\r\n  width: 64px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-datetime {\r\n  display: inline-block;\r\n  line-height: 1.2;\r\n  word-break: break-word;\r\n}\r\n\r\n#nytrina-overlay .check-row {\r\n  display: flex;\r\n  align-items: center;\r\n  color: #ffd79b;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .form-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .stack {\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .server-badge {\r\n  margin-bottom: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8a5a24;\r\n  background: #1b120a;\r\n  color: #ffd79b;\r\n}\r\n\r\n#nytrina-overlay .server-warning {\r\n  display: none;\r\n  margin-top: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #c9892a;\r\n  background: #3a230f;\r\n  color: #ffd26a;\r\n}\r\n\r\n#nytrina-overlay .server-warning.show {\r\n  display: block;\r\n}\r\n\r\n#nytrina-overlay .rank-good {\r\n  color: #72ff72;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-mid {\r\n  color: #ffd26a;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-bad {\r\n  color: #ff7d7d;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .debug-json {\r\n  white-space: pre-wrap;\r\n  background: #120b06;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  padding: 8px;\r\n  font-family: Consolas, monospace;\r\n  max-height: 360px;\r\n  overflow: auto;\r\n}\r\n\r\n#nytrina-overlay input[type=\"checkbox\"] {\r\n    appearance: checkbox !important;\r\n    -webkit-appearance: checkbox !important;\r\n    accent-color: var(--nyt-accent);\r\n    width: 16px !important;\r\n    height: 16px !important;\r\n    margin-top: 0;\r\n    margin-right: 6px;\r\n    vertical-align: middle;\r\n    cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay.minimized .tabs {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay.minimized .panel {\r\n  display: none;\r\n}\r\n\r\n#nytrina-toggle-minimize {\r\n  min-width: 92px;\r\n}\r\n\r\n#nytrina-toasts {\r\n  position: fixed;\r\n  right: 16px;\r\n  bottom: 16px;\r\n  z-index: 1000000;\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: 8px;\r\n  max-width: 360px;\r\n  font-family: Verdana, sans-serif;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-toasts .nytrina-toast {\r\n  background: #28190d;\r\n  color: #f7ebd7;\r\n  border: 1px solid #c9892a;\r\n  border-left: 4px solid #c9892a;\r\n  border-radius: 8px;\r\n  padding: 8px 10px;\r\n  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);\r\n  white-space: pre-line;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-toasts .nytrina-toast b {\r\n  display: block;\r\n  margin-bottom: 4px;\r\n  color: #ffd79b;\r\n}\r\n\r\n#nytrina-toasts .nytrina-toast-error {\r\n  border-color: #ff7d7d;\r\n}\r\n\r\n@media (max-width: 700px) {\r\n  #nytrina-overlay .scanner-essential-grid,\r\n  #nytrina-overlay .scanner-primary,\r\n  #nytrina-overlay .grid-3 {\r\n    grid-template-columns: 1fr;\r\n  }\r\n}";
 })(window);
 
 
@@ -190,16 +190,18 @@
     },
     teutons: {
       clubman: 7,
+      spearman: 7,
+      axeman: 6,
       paladin: 10,
       teutonic_knight: 9
     },
     gauls: {
-      phalanx: 14,
-      swordsman: 12,
-      pathfinder: 34,
-      theutates_thunder: 38,
-      druidrider: 32,
-      haeduan: 26
+      phalanx: 7,
+      swordsman: 6,
+      pathfinder: 17,
+      theutates_thunder: 19,
+      druidrider: 16,
+      haeduan: 13
     }
   };
 
@@ -208,6 +210,13 @@
    * @param {Record<string, number>} lost
    * @returns {{total:number,detail:Array<{unit:string,qty:number,total:number}>}}
    */
+  function localUnitClass(unitClass) {
+    const match = /^u(\d+)$/.exec(String(unitClass || ''));
+    if (!match) return null;
+    // Report DOM uses u11-u20 for Teutons and u21-u30 for Gauls.
+    return 'u' + (((Number(match[1]) - 1) % 10) + 1);
+  }
+
   function calcLossCost(tribe, lost) {
     const tribeCosts = TROOP_COSTS[tribe] || TROOP_COSTS.romans;
     let total = 0;
@@ -215,7 +224,7 @@
 
     Object.entries(lost || {}).forEach(([unitClass, qty]) => {
       const normalizedQty = Number(qty || 0);
-      const cost = tribeCosts[unitClass];
+      const cost = tribeCosts[unitClass] || tribeCosts[localUnitClass(unitClass)];
       if (!cost || normalizedQty <= 0) return;
 
       const unitTotal = cost.wood + cost.clay + cost.iron + cost.crop;
@@ -547,15 +556,35 @@
     }
 
     /**
-     * @param {any} backup
-     * @returns {Promise<Record<string, number>>}
+     * @param {Array<string>} storeNames
+     * @param {(tx: IDBTransaction) => void} work
+     * @returns {Promise<void>}
      */
-    async importBackup(backup) {
+    runTransaction(storeNames, work) {
+      if (!this.db) throw new Error('Storage not initialized');
+      return new Promise((resolve, reject) => {
+        const tx = this.db.transaction(storeNames, 'readwrite');
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error || new Error('Transação abortada.'));
+        try {
+          work(tx);
+        } catch (error) {
+          tx.abort();
+          reject(error);
+        }
+      });
+    }
+
+    /**
+     * @param {any} backup
+     * @returns {Record<string, Array<any>>}
+     */
+    readBackupRows(backup) {
       if (!backup || typeof backup !== 'object') {
         throw new Error('Backup inválido.');
       }
 
-      const stores = this.getStoreNames();
       const storeData = backup.stores && typeof backup.stores === 'object'
         ? backup.stores
         : {};
@@ -599,23 +628,83 @@
       });
 
       const statisticsRows = Array.from(statisticsMap.values());
-
-      for (const storeName of stores) {
-        await this.clear(storeName);
-      }
-
-      await this.putMany(constants.STORES.OASIS, oasisRows);
-      await this.putMany(constants.STORES.REPORTS, reportsRows);
-      await this.putMany(constants.STORES.SETTINGS, settingsRows);
-      await this.putMany(constants.STORES.HISTORY, historyRows);
-      await this.putMany(constants.STORES.STATISTICS, statisticsRows);
+      const withKey = (rows, key) =>
+        rows.filter((row) => row && row[key] !== undefined && row[key] !== null);
 
       return {
-        [constants.STORES.OASIS]: oasisRows.length,
-        [constants.STORES.REPORTS]: reportsRows.length,
-        [constants.STORES.SETTINGS]: settingsRows.length,
-        [constants.STORES.HISTORY]: historyRows.length,
-        [constants.STORES.STATISTICS]: statisticsRows.length,
+        [constants.STORES.OASIS]: withKey(oasisRows, 'id'),
+        [constants.STORES.REPORTS]: withKey(reportsRows, 'reportId'),
+        [constants.STORES.SETTINGS]: withKey(settingsRows, 'id'),
+        [constants.STORES.HISTORY]: withKey(historyRows, 'id'),
+        [constants.STORES.STATISTICS]: statisticsRows,
+      };
+    }
+
+    /**
+     * @param {any} backup
+     * @returns {Promise<Record<string, number>>}
+     */
+    async importBackup(backup) {
+      const rows = this.readBackupRows(backup);
+      const stores = this.getStoreNames();
+
+      await this.runTransaction(stores, (tx) => {
+        for (const storeName of stores) {
+          const store = tx.objectStore(storeName);
+          store.clear();
+          (rows[storeName] || []).forEach((row) => store.put(row));
+        }
+      });
+
+      const counts = {};
+      for (const storeName of stores) {
+        counts[storeName] = (rows[storeName] || []).length;
+      }
+      return counts;
+    }
+
+    /**
+     * Keeps local settings and learning; adds reports, history and oases missing locally.
+     * @param {any} backup
+     * @returns {Promise<{newReports:Array<any>,history:number,oasis:number}>}
+     */
+    async mergeBackup(backup) {
+      const rows = this.readBackupRows(backup);
+      const S = constants.STORES;
+      const timeOf = (row) =>
+        new Date(row?.updatedAt || row?.scanDate || row?.date || 0).getTime() || 0;
+
+      const localReportIds = new Set(
+        (await this.getAll(S.REPORTS)).map((row) => String(row.reportId)),
+      );
+      const localHistoryIds = new Set(
+        (await this.getAll(S.HISTORY)).map((row) => String(row.id)),
+      );
+      const localOasis = new Map(
+        (await this.getAll(S.OASIS)).map((row) => [String(row.id), row]),
+      );
+
+      const newReports = rows[S.REPORTS].filter(
+        (row) => !localReportIds.has(String(row.reportId)),
+      );
+      const newHistory = rows[S.HISTORY].filter(
+        (row) => !localHistoryIds.has(String(row.id)),
+      );
+      const oasisToWrite = rows[S.OASIS].filter((row) => {
+        const current = localOasis.get(String(row.id));
+        return !current || timeOf(row) > timeOf(current);
+      });
+
+      await this.runTransaction([S.REPORTS, S.HISTORY, S.OASIS], (tx) => {
+        newReports.forEach((row) => tx.objectStore(S.REPORTS).put(row));
+        newHistory.forEach((row) => tx.objectStore(S.HISTORY).put(row));
+        oasisToWrite.forEach((row) => tx.objectStore(S.OASIS).put(row));
+      });
+
+      return {
+        newReports,
+        history: newHistory.length,
+        oasis: oasisToWrite.length,
       };
     }
   }
@@ -1163,8 +1252,6 @@
       .map((icon) => [...icon.classList].find((c) => /^u\d+$/.test(c)))
       .filter(Boolean);
 
-    console.log("Keys:", keys);
-
     // Linhas da tabela
     const totalRow = table.querySelector(".troopCount_small")?.closest("tr");
     const deadRow = table.querySelector(".troopDead_small")?.closest("tr");
@@ -1187,8 +1274,6 @@
         utils.toInt(td.textContent),
       );
 
-      console.log("Valores:", values);
-
       keys.forEach((key, index) => {
         out[key] = values[index] || 0;
       });
@@ -1203,9 +1288,6 @@
     result.total = read(totalRow);
     result.lost = read(deadRow);
     result.wounded = read(woundedRow);
-
-    console.log("TOTAL", result.total);
-    console.log("LOST", result.lost);
 
     return result;
   }
@@ -1422,10 +1504,19 @@
     return match[1].replace(/[./]/g, "") + "-" + match[2].replace(/:/g, "");
   }
 
-  function parseReportIdFromUrl() {
+  function hashText(text) {
+    let hash = 0x811c9dc5;
+    for (let i = 0; i < text.length; i += 1) {
+      hash ^= text.charCodeAt(i);
+      hash = Math.imul(hash, 0x01000193);
+    }
+    return (hash >>> 0).toString(16).padStart(8, "0");
+  }
+
+  function parseReportIdFromUrl(contentFingerprint) {
     const params = new URL(global.location.href).searchParams;
-    const byUrl =
-      params.get("id") || params.get("newdid") || params.get("uid");
+    // newdid/uid identify the village/user, not the report.
+    const byUrl = params.get("id");
     if (byUrl) return byUrl;
 
     // Tokens hash-like no path (ex: /report/97e2fdb6c4b1e2d1) sao unicos por relatorio.
@@ -1438,21 +1529,7 @@
       return "report-" + (parseReportCoord() || "coord") + "-" + timestamp;
     }
 
-    const candidates = Array.from(
-      global.document.querySelectorAll(
-        "h1,h2,h3,.title,.header,.headline,.additionalInformation",
-      ),
-    );
-
-    for (const node of candidates) {
-      const text = String(node.textContent || "").trim();
-      if (!text) continue;
-
-      const token = text.match(/[\w-]{8,}/);
-      if (token) return token[0];
-    }
-
-    return "report-" + Date.now();
+    return "report-" + hashText(String(contentFingerprint || ""));
   }
 
   function parseReportCoord() {
@@ -1512,7 +1589,6 @@
     const natureData = parseNatureTableExact();
 
     const attackerData = parseAttackerTableExact();
-    console.log(attackerData);
     const resources = parseResourcesByTableCells();
 
     const hasCombatData =
@@ -1606,15 +1682,6 @@
     const troopCasualtyRate =
       troopsSentCount > 0 ? troopsCasualtiesCount / troopsSentCount : 0;
 
-    console.log({
-      troopType: selectedTroopType,
-      troopClass: selectedTroopClass,
-      troopsSentCount,
-      troopsLostCount,
-      troopsWoundedCount,
-      troopsCasualtiesCount,
-    });
-
     const totalAnimalsInitial = Object.values(animalsInitial).reduce(
       (sum, value) => sum + Number(value || 0),
       0,
@@ -1641,7 +1708,17 @@
 
     return {
       url: global.location.href,
-      reportId: parseReportIdFromUrl(),
+      reportId: parseReportIdFromUrl(
+        JSON.stringify([
+          attackerData.total,
+          attackerData.lost,
+          attackerData.wounded,
+          natureData.total,
+          natureData.lost,
+          resources.resourcesLoot,
+          resources.heroResources,
+        ]),
+      ),
       server: server.getContext().key,
       tribe: resolvedTribe,
       date: new Date().toISOString(),
@@ -1696,22 +1773,50 @@
 
   const root = (global.NytrinA = global.NytrinA || {});
 
+  const SORTERS = {
+    xph: (a, b) => (b.xph || 0) - (a.xph || 0) || (b.xp || 0) - (a.xp || 0),
+    xp: (a, b) => (b.xp || 0) - (a.xp || 0) || (b.xph || 0) - (a.xph || 0),
+    distance: (a, b) =>
+      (Number(a.distance) > 0 ? Number(a.distance) : Infinity) -
+      (Number(b.distance) > 0 ? Number(b.distance) : Infinity),
+  };
+
   /**
+   * XP/h is recalculated with the current troop speed instead of the speed used at scan time.
    * @param {Array<any>} oasisRows
+   * @param {{speed?:number,smallMap?:boolean,sortBy?:string}} [options]
    * @returns {Array<any>}
    */
-  function buildRanking(oasisRows) {
+  function buildRanking(oasisRows, options = {}) {
+    const speed = Number(options.speed || 0);
+    const smallMap = Boolean(options.smallMap);
+    const sorter = SORTERS[options.sortBy] || SORTERS.xph;
+
     return (oasisRows || [])
-      .map((row) => ({
-        coord: row.coord,
-        distance: row.distance,
-        xp: row.xp,
-        xph: row.xph,
-        time: row.time,
-        bonus: row.bonus,
-        scanDate: row.scanDate
-      }))
-      .sort((a, b) => (b.xp || 0) - (a.xp || 0));
+      .map((row) => {
+        const distance = Number(row.distance || 0);
+        const xp = Number(row.xp || 0);
+        let xph = Number(row.xph || 0);
+        let time = row.time;
+
+        if (distance > 0 && speed > 0) {
+          const oneWay = (distance / speed) * 3600;
+          const cycleSeconds = oneWay + (smallMap ? oneWay / 2 : oneWay);
+          xph = xp / (cycleSeconds / 3600);
+          time = root.Utils.secondsToClock(oneWay);
+        }
+
+        return {
+          coord: row.coord,
+          distance: row.distance,
+          xp,
+          xph,
+          time,
+          bonus: row.bonus,
+          scanDate: row.scanDate
+        };
+      })
+      .sort(sorter);
   }
 
   root.Ranking = {
@@ -1855,50 +1960,63 @@
 
   const root = (global.NytrinA = global.NytrinA || {});
 
+  // Travian nature defense values: [vs infantry, vs cavalry].
   const ANIMAL_DEFENSE = {
-    rato: 25,
-    aranha: 35,
-    cobra: 40,
-    morcego: 66,
-    javali: 70,
-    lobo: 80,
-    urso: 140,
-    crocodilo: 380,
-    tigre: 170,
-    elefante: 440,
+    rato: [25, 20],
+    aranha: [35, 40],
+    cobra: [40, 60],
+    morcego: [66, 50],
+    javali: [70, 33],
+    lobo: [80, 70],
+    urso: [140, 200],
+    crocodilo: [380, 240],
+    tigre: [170, 250],
+    elefante: [440, 520],
   };
 
   const TROOP_ATTACK = {
-    legionnaire: 40,
-    praetorian: 30,
-    imperian: 70,
-    equites_imperatoris: 120,
-    equites_caesaris: 180,
-    clubman: 40,
-    spearman: 20,
-    axeman: 60,
-    paladin: 55,
-    teutonic_knight: 150,
-    phalanx: 15,
-    swordsman: 65,
-    pathfinder: 0,
-    theutates_thunder: 90,
-    druidrider: 45,
-    haeduan: 140,
+    legionnaire: { attack: 40, cavalry: false },
+    praetorian: { attack: 30, cavalry: false },
+    imperian: { attack: 70, cavalry: false },
+    equites_legati: { attack: 0, cavalry: true },
+    equites_imperatoris: { attack: 120, cavalry: true },
+    equites_caesaris: { attack: 180, cavalry: true },
+    ram: { attack: 60, cavalry: false },
+    fire_catapult: { attack: 75, cavalry: false },
+    clubman: { attack: 40, cavalry: false },
+    spearman: { attack: 10, cavalry: false },
+    axeman: { attack: 60, cavalry: false },
+    scout: { attack: 0, cavalry: true },
+    paladin: { attack: 55, cavalry: true },
+    teutonic_knight: { attack: 150, cavalry: true },
+    phalanx: { attack: 15, cavalry: false },
+    swordsman: { attack: 65, cavalry: false },
+    pathfinder: { attack: 0, cavalry: true },
+    theutates_thunder: { attack: 90, cavalry: true },
+    druidrider: { attack: 45, cavalry: true },
+    haeduan: { attack: 140, cavalry: true },
   };
 
-  function calcAnimalDefense(animals) {
+  function calcAnimalDefense(animals, cavalry) {
+    const index = cavalry ? 1 : 0;
     return Object.entries(animals || {}).reduce((sum, [key, qty]) => {
-      return sum + Number(qty || 0) * Number(ANIMAL_DEFENSE[key] || 0);
+      return sum + Number(qty || 0) * Number(ANIMAL_DEFENSE[key]?.[index] || 0);
     }, 0);
   }
 
   function recommend({ animals, troopType }) {
-    const defense = calcAnimalDefense(animals);
-    const attack = Number(TROOP_ATTACK[troopType] || 0);
+    const troop = TROOP_ATTACK[troopType] || null;
+    const attack = Number(troop?.attack || 0);
+    const cavalry = Boolean(troop?.cavalry);
+    const defense = calcAnimalDefense(animals, cavalry);
 
     if (!defense || !attack) {
-      return { ok: false, message: "Sem dados suficientes para recomendar." };
+      return {
+        ok: false,
+        message: troop && !attack
+          ? "Tropa de reconhecimento não ataca oásis."
+          : "Sem dados suficientes para recomendar.",
+      };
     }
 
     function calc(hero) {
@@ -1915,6 +2033,7 @@
       ok: true,
       defense,
       attack,
+      cavalry,
       withHero: calc(true),
       withoutHero: calc(false),
     };
@@ -2515,14 +2634,9 @@
   }
 
   async function learnFromReport({ storage, report }) {
-    console.log("1 - Entrou no learnFromReport");
-
     if (!report) {
-      console.log("2 - report vazio");
       return null;
     }
-
-    console.log(report);
 
     const defaultTribe = report.tribe || "romans";
     const resolved = resolveTroopTypeAndSent(report);
@@ -2532,21 +2646,11 @@
     const xp = Number(report.xp || 0);
     const animals = report.animalsInitial || report.animalsKilled || {};
 
-    console.log({
-      tribe,
-      troopType,
-      sent,
-      xp,
-      animals,
-    });
-
     if (!troopType) {
-      console.log("PAROU: troopType");
       return null;
     }
 
     if (!sent) {
-      console.log("PAROU: sent");
       return null;
     }
 
@@ -2594,7 +2698,6 @@
       estimatedClear = sent;
       estimatedSafe = sent;
     }
-    console.log("Cleared:", cleared);
 
     const knowledge = await getKnowledge(
       storage,
@@ -2603,8 +2706,6 @@
       xp,
       animals,
     );
-
-    console.log("Knowledge carregado", knowledge);
 
     knowledge.samples++;
 
@@ -2681,7 +2782,7 @@
     const hasHero = Boolean(report.hasHero);
     const troopsCasualtiesCount = Number(report.troopsCasualtiesCount || 0);
 
-    const calibration = await updateCalibration({
+    await updateCalibration({
       storage,
       tribe,
       troopType,
@@ -2697,9 +2798,6 @@
       lossCost: Number(report.lossCost || 0),
       profit: Number(report.profit || 0),
     });
-
-    console.log("CALIBRAÇÃO ATUALIZADA", calibration);
-    console.log("SALVANDO", knowledge);
 
     return await saveKnowledge(storage, knowledge);
   }
@@ -3079,6 +3177,9 @@
         starsText: starsText(1),
         basedOn: 0,
         learnedFloor: 0,
+        successSamples: 0,
+        perfectSamples: 0,
+        failureSamples: 0,
       };
     }
 
@@ -3209,6 +3310,9 @@
           : 0,
       reportId: calibration.lastBattle?.reportId || null,
       reportSeq: Number(calibration.lastBattle?.reportSeq || 0) || null,
+      successSamples: Number(calibration.successSamples || 0),
+      perfectSamples: Number(calibration.perfectSamples || 0),
+      failureSamples: Number(calibration.failureSamples || 0),
     };
   }
 
@@ -3225,8 +3329,8 @@
 
   const root = (global.NytrinA = global.NytrinA || {});
   const constants = root.Constants;
-  const MAX_REPORT_ROWS = 50;
-  const MAX_HISTORY_ROWS = 50;
+  const MAX_REPORT_ROWS = 2000;
+  const MAX_HISTORY_ROWS = 2000;
 
   class ScannerService {
     /**
@@ -3324,7 +3428,6 @@
         report.reportId,
       );
       if (existing) {
-        console.log('[NytrinA] Relatorio ja importado:', report.reportId);
         return false;
       }
 
@@ -3351,7 +3454,6 @@
 
       const toDelete = orderedReports.slice(MAX_REPORT_ROWS);
       if (toDelete.length > 0) {
-        console.log('[NytrinA] Limpando banco: deletando', toDelete.length, 'relatórios antigos');
         for (const oldReport of toDelete) {
           if (oldReport?.reportId) {
             await this.storage.delete(root.Constants.STORES.REPORTS, oldReport.reportId);
@@ -3383,7 +3485,6 @@
 
       const historyToDelete = orderedHistory.slice(MAX_HISTORY_ROWS);
       if (historyToDelete.length > 0) {
-        console.log('[NytrinA] Limpando banco: deletando', historyToDelete.length, 'históricos antigos');
         for (const oldHistory of historyToDelete) {
           if (oldHistory?.id) {
             await this.storage.delete(root.Constants.STORES.HISTORY, oldHistory.id);
@@ -3393,6 +3494,21 @@
 
       if (typeof this.onUpdate === 'function') this.onUpdate('report', report);
       return true;
+    }
+
+    /**
+     * @param {any} report
+     * @returns {Promise<{saved:boolean,learned:any}>}
+     */
+    async importReport(report) {
+      const saved = await this.saveReport(report);
+      if (!saved) return { saved: false, learned: null };
+
+      const learned = await root.BattleKnowledge.learnFromReport({
+        storage: this.storage,
+        report,
+      });
+      return { saved: true, learned };
     }
   }
 
@@ -3438,13 +3554,35 @@
 
   const root = (global.NytrinA = global.NytrinA || {});
 
+  function toastContainer() {
+    let container = global.document.getElementById('nytrina-toasts');
+    if (!container) {
+      container = global.document.createElement('div');
+      container.id = 'nytrina-toasts';
+      global.document.body.appendChild(container);
+    }
+    return container;
+  }
+
   /**
    * @param {string} title
    * @param {string} content
    */
   function show(title, content) {
-    const text = title + '\n\n' + content;
-    global.alert(text);
+    const isError = /erro/i.test(String(title || ''));
+    const toast = global.document.createElement('div');
+    toast.className = 'nytrina-toast' + (isError ? ' nytrina-toast-error' : '');
+
+    const heading = global.document.createElement('b');
+    heading.textContent = String(title || '');
+    const body = global.document.createElement('div');
+    body.textContent = String(content || '');
+
+    toast.append(heading, body);
+    toast.title = 'Clique para fechar';
+    toast.addEventListener('click', () => toast.remove());
+    toastContainer().appendChild(toast);
+    global.setTimeout(() => toast.remove(), isError ? 12000 : 6000);
   }
 
   root.Modal = {
@@ -3527,7 +3665,6 @@
       const allowed = new Set([
         "scanner",
         "debug",
-        "dashboard",
         "ranking",
         "reports",
         "economy",
@@ -3546,6 +3683,7 @@
         const value = String(
           global.localStorage.getItem(this.tabStorageKey()) || "",
         ).trim();
+        if (value === "dashboard") return "economy";
         return this.isValidTabId(value) ? value : "scanner";
       } catch (_error) {
         return "scanner";
@@ -3588,17 +3726,15 @@
         "</div>",
         '<div class="tabs">',
         '<button class="tab' + (activeTab === "scanner" ? " active" : "") + '" data-tab="scanner">Scanner</button>',
-        '<button class="tab' + (activeTab === "debug" ? " active" : "") + '" data-tab="debug" id="nytrina-debug-tab">Debug</button>',
-        '<button class="tab' + (activeTab === "dashboard" ? " active" : "") + '" data-tab="dashboard">Dashboard</button>',
-        '<button class="tab' + (activeTab === "ranking" ? " active" : "") + '" data-tab="ranking">Ranking</button>',
-        '<button class="tab' + (activeTab === "reports" ? " active" : "") + '" data-tab="reports">Relatorios</button>',
+        '<button class="tab' + (activeTab === "reports" ? " active" : "") + '" data-tab="reports">Relatórios</button>',
         '<button class="tab' + (activeTab === "economy" ? " active" : "") + '" data-tab="economy">Economia</button>',
+        '<button class="tab' + (activeTab === "ranking" ? " active" : "") + '" data-tab="ranking">Ranking</button>',
         '<button class="tab' + (activeTab === "planner" ? " active" : "") + '" data-tab="planner">Planner</button>',
-        '<button class="tab' + (activeTab === "settings" ? " active" : "") + '" data-tab="settings">Configuracoes</button>',
+        '<button class="tab' + (activeTab === "settings" ? " active" : "") + '" data-tab="settings">Config.</button>',
+        '<button class="tab tab-secondary' + (activeTab === "debug" ? " active" : "") + '" data-tab="debug" id="nytrina-debug-tab">Debug</button>',
         "</div>",
         '<div class="panel' + (activeTab === "scanner" ? "" : " hidden") + '" data-panel="scanner"></div>',
         '<div class="panel' + (activeTab === "debug" ? "" : " hidden") + '" data-panel="debug"></div>',
-        '<div class="panel' + (activeTab === "dashboard" ? "" : " hidden") + '" data-panel="dashboard"></div>',
         '<div class="panel' + (activeTab === "ranking" ? "" : " hidden") + '" data-panel="ranking"></div>',
         '<div class="panel' + (activeTab === "reports" ? "" : " hidden") + '" data-panel="reports"></div>',
         '<div class="panel' + (activeTab === "economy" ? "" : " hidden") + '" data-panel="economy"></div>',
@@ -3788,18 +3924,22 @@
      * @returns {void}
      */
     bindEvents() {
-      console.error("######## OVERLAY NOVO ########");
       this.overlay.querySelectorAll(".tab").forEach((button) => {
         button.addEventListener("click", () => {
           const tab = button.getAttribute("data-tab") || "scanner";
           this.currentTab = tab;
           this.saveCurrentTab(tab);
           root.Tabs.activateTab(this.overlay, tab);
-
-          if (tab === "planner") {
-            this.refreshPlanner().catch(() => undefined);
-          }
+          this.refreshPanel(tab).catch(() => undefined);
         });
+      });
+
+      global.document.addEventListener("change", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement) || target.type !== "checkbox") return;
+        if (target.closest("#nytrina-overlay")) return;
+        if (!/hero/i.test(String(target.name) + " " + String(target.id))) return;
+        this.refreshScanner().catch(() => undefined);
       });
 
       this.overlay
@@ -3956,6 +4096,14 @@
      */
     async rebuildLearningFromReports() {
       const reports = await this.storage.getAll(root.Constants.STORES.REPORTS);
+      return this.learnReports(reports);
+    }
+
+    /**
+     * @param {Array<any>} reports
+     * @returns {Promise<{learned:number,skipped:number}>}
+     */
+    async learnReports(reports) {
       const settings = this.getSettings();
       const ordered = reports.slice().sort((a, b) => {
         const left = new Date(a.date || a.updatedAt || 0).getTime();
@@ -4048,6 +4196,8 @@
         ram: "Ariete",
         fire_catapult: "Catapulta",
         clubman: "Salteador",
+        spearman: "Lanceiro",
+        axeman: "Machado",
         paladin: "Paladino",
         teutonic_knight: "Cavaleiro Teutao",
         phalanx: "Falange",
@@ -4499,7 +4649,7 @@
         },
         {
           label: "Teutoes",
-          items: ["clubman", "paladin", "teutonic_knight"]
+          items: ["clubman", "spearman", "axeman", "paladin", "teutonic_knight"]
             .filter((key) => speedMap.teutons[key])
             .map((key) => ({ key, base: Number(speedMap.teutons[key]) })),
         },
@@ -4544,45 +4694,122 @@
     }
 
     /**
+     * @param {string} tab
+     * @returns {Promise<void>}
+     */
+    async refreshPanel(tab) {
+      const refreshers = {
+        scanner: () => this.refreshScanner(),
+        debug: () => this.refreshDebug(),
+        ranking: () => this.refreshRanking(),
+        reports: () => this.refreshReports(),
+        economy: () => this.refreshEconomy(),
+        planner: () => this.refreshPlanner(),
+        settings: () => this.refreshSettings(),
+      };
+      const refresher = refreshers[tab];
+      if (refresher) await refresher();
+    }
+
+    /**
+     * Hidden panels are rendered when their tab is opened.
      * @returns {Promise<void>}
      */
     async refresh() {
-      await this.refreshDashboard();
-      await this.refreshScanner();
-      await this.refreshRanking();
-      await this.refreshReports();
-      await this.refreshEconomy();
-      await this.refreshPlanner();
-      await this.refreshSettings();
-      await this.refreshDebug();
+      const tab = this.currentTab || "scanner";
+      // Scanner also auto-fills the rally point form, so it runs even when hidden.
+      if (tab !== "scanner") await this.refreshScanner();
+      await this.refreshPanel(tab);
+    }
+
+    /**
+     * Background data updates must not wipe forms being edited.
+     * @returns {Promise<void>}
+     */
+    async refreshFromData() {
+      const tab = this.currentTab || "scanner";
+      if (tab === "settings" || tab === "planner") {
+        await this.refreshScanner();
+        return;
+      }
+      await this.refresh();
     }
 
     /**
      * @returns {Promise<void>}
      */
-    async refreshDashboard() {
-      const reports = await this.storage.getAll(root.Constants.STORES.REPORTS);
-      const oasis = await this.storage.getAll(root.Constants.STORES.OASIS);
-      const summary = root.Economy.calculateSummary(reports);
-      const node = this.panel("dashboard");
-      if (!node) return;
+    async importCurrentReport() {
+      const settings = this.getSettings();
 
-      node.innerHTML = [
-        '<div class="grid">',
-        '<div class="card"><span>Oasis mapeados</span><b>' +
-          oasis.length +
-          "</b></div>",
-        '<div class="card"><span>Relatorios</span><b>' +
-          reports.length +
-          "</b></div>",
-        '<div class="card"><span>Lucro liquido</span><b>' +
-          Math.round(summary.netProfit) +
-          "</b></div>",
-        '<div class="card"><span>XP total</span><b>' +
-          Math.round(summary.totalXp) +
-          "</b></div>",
-        "</div>",
-      ].join("");
+      try {
+        const report = root.ReportParser.parse({
+          tribe: settings.troopTribe || "romans",
+          troopType: settings.troopType || null,
+        });
+
+        if (!report) {
+          root.Modal.show("Relatorio", "Nenhum relatorio valido encontrado na tela.");
+          return;
+        }
+
+        const result = await this.scanner.importReport(report);
+
+        if (!result.saved) {
+          root.Modal.show(
+            "Relatorio",
+            "Este relatório já foi importado. Nada foi aprendido novamente.",
+          );
+        } else if (result.learned) {
+          root.Modal.show(
+            "Relatorio",
+            "Importado e aprendido com sucesso. Coord: " +
+              (report.coord || "-") +
+              " | Lucro: " +
+              this.formatNumber(report.profit),
+          );
+        } else {
+          root.Modal.show(
+            "Relatorio",
+            "Relatório salvo, mas sem dados suficientes para aprendizado automático (tipo de tropa/quantidade enviada).",
+          );
+        }
+
+        await this.refresh();
+      } catch (error) {
+        console.error("[NytrinA] Falha ao importar relatório:", error);
+        root.Modal.show(
+          "Erro",
+          "Falha ao importar ou aprender com o relatório. Veja o console.",
+        );
+      }
+    }
+
+    /**
+     * @param {any} value
+     * @returns {string}
+     */
+    formatNumber(value) {
+      return Math.round(Number(value || 0)).toLocaleString("pt-BR");
+    }
+
+    /**
+     * @param {any} value
+     * @returns {string}
+     */
+    formatSuggestion(value) {
+      const text = String(value ?? "-");
+      return /^\d+$/.test(text) ? this.formatNumber(text) : this.escapeHtml(text);
+    }
+
+    /**
+     * @param {any} value
+     * @returns {string}
+     */
+    signedClass(value) {
+      const number = Number(value || 0);
+      if (number > 0) return "pos";
+      if (number < 0) return "neg";
+      return "";
     }
 
     /**
@@ -4977,14 +5204,53 @@
       });
 
       const lockedTargetDisplay = rallyCoord
-        ? '<div class="card" style="background: #3d5a2a; border-color: #6b9f35;"><span>Alvo travado</span><b>' + rallyCoord + '</b></div>'
-        : '';
+        ? '<div class="card scanner-locked"><span>Alvo travado</span><b>' + this.escapeHtml(rallyCoord) + "</b></div>"
+        : "";
 
-      const compactSuggestion =
-        "Sem herói: " +
-        withoutHeroSuggestion +
-        " | Com herói: " +
-        withHeroSuggestion;
+      const heroSelected = this.isHeroEnabledInRallyForm();
+      const primaryValue = heroSelected ? withHeroSuggestion : withoutHeroSuggestion;
+      const secondaryText = heroSelected
+        ? "Sem herói: " + this.formatSuggestion(withoutHeroSuggestion)
+        : "Com herói: " + this.formatSuggestion(withHeroSuggestion);
+      const primaryCalibration = heroSelected ? calibratedWithHero : calibratedWithoutHero;
+      const heroSamples = Number(calibratedWithHero?.samples || 0);
+      const noHeroSamples = Number(calibratedWithoutHero?.samples || 0);
+
+      let confidenceLabel = String(suggestionConfidence || "Sem dados");
+      let confidenceDetail = "";
+      let basedOnText = suggestionBasedOn + " batalha(s)";
+
+      if (learnedAdvice?.ok) {
+        basedOnText = suggestionBasedOn + " batalha(s) neste mesmo oásis";
+      } else if (heroSamples > 0 || noHeroSamples > 0) {
+        confidenceLabel = String(primaryCalibration?.confidence || "Sem dados");
+        basedOnText = "Com herói: " + heroSamples + " · Sem herói: " + noHeroSamples;
+
+        const samples = Number(primaryCalibration?.samples || 0);
+        if (samples > 0) {
+          const successPct = Math.round(
+            (Number(primaryCalibration.successSamples || 0) / samples) * 100,
+          );
+          confidenceDetail =
+            (heroSelected ? "Com herói: " : "Sem herói: ") +
+            samples +
+            " amostra(s) · " +
+            successPct +
+            "% limpou · " +
+            Number(primaryCalibration.perfectSamples || 0) +
+            " sem baixas · " +
+            Number(primaryCalibration.failureSamples || 0) +
+            " falha(s)";
+        }
+      }
+
+      const confidenceClass = /^Alta/.test(confidenceLabel)
+        ? "conf-high"
+        : /^Média/.test(confidenceLabel)
+          ? "conf-mid"
+          : /^Baixa/.test(confidenceLabel)
+            ? "conf-low"
+            : "conf-none";
 
       node.innerHTML = [
         '<div class="scanner-controls">',
@@ -5014,28 +5280,37 @@
           "</span>",
         "</div>",
         "</div>",
+        '<div class="scanner-primary">',
+        '<div class="scanner-primary-target"><span>Alvo</span><b>' +
+          this.escapeHtml(displayCoord) +
+          "</b><small>XP " +
+          this.formatNumber(displayXp) +
+          "</small></div>",
+        '<div class="scanner-primary-value"><span>' +
+          (heroSelected ? "Enviar com herói" : "Enviar sem herói") +
+          "</span><strong>" +
+          this.formatSuggestion(primaryValue) +
+          "</strong><small>" +
+          secondaryText +
+          "</small></div>",
+        "</div>",
         '<div class="scanner-essential-grid">',
-        '<div class="card scanner-card-highlight"><span>Alvo</span><b>' +
-          displayCoord +
-          "</b></div>",
-        '<div class="card scanner-card-highlight"><span>Sugestão rápida</span><b>' +
-          compactSuggestion +
-          "</b></div>",
-        '<div class="card"><span>XP</span><b>' +
-          displayXp +
-          "</b></div>",
-        '<div class="card"><span>Avaliação IA</span><b>' +
+        '<div class="card"><span>Confiança</span><b class="' +
+          confidenceClass +
+          '">' +
+          this.escapeHtml(confidenceLabel) +
+          "</b>" +
+          (confidenceDetail ? '<div class="hint">' + confidenceDetail + "</div>" : "") +
+          "</div>",
+        '<div class="card"><span>Avaliação IA</span><b class="stars">' +
           suggestionStars +
-          "</b></div>",
-        '<div class="card"><span>Confiança</span><b>' +
-          suggestionConfidence +
           "</b></div>",
         '<div class="card"><span>Fonte</span><b>' +
           suggestionSource +
           "</b></div>",
         '<div class="card"><span>Baseado em</span><b>' +
-          suggestionBasedOn +
-          " batalha(s) semelhantes</b></div>",
+          basedOnText +
+          "</b></div>",
         "</div>",
         '<div class="scanner-context-line">' +
           "Dist: " +
@@ -5059,16 +5334,22 @@
           suggestionText +
           "</b></div>",
         '<div class="card"><span>Com herói</span><b>' +
-          withHeroSuggestion +
+          this.formatSuggestion(withHeroSuggestion) +
           "</b></div>",
         '<div class="card"><span>Sem herói</span><b>' +
-          withoutHeroSuggestion +
+          this.formatSuggestion(withoutHeroSuggestion) +
           "</b></div>",
         '<div class="card"><span>Fator aprendido</span><b>' +
           learnedFactorText +
           "</b></div>",
         '<div class="card"><span>Margem confiança</span><b>' +
           confidenceSafetyText +
+          "</b></div>",
+        '<div class="card"><span>Defesa dos animais</span><b>' +
+          (formulaAdvice?.ok
+            ? this.formatNumber(formulaAdvice.defense) +
+              (formulaAdvice.cavalry ? " (vs cavalaria)" : " (vs infantaria)")
+            : this.escapeHtml(formulaAdvice?.message || "-")) +
           "</b></div>",
         '</div></details>',
       ].join("");
@@ -5190,48 +5471,8 @@
 
       node
         .querySelector("#nytrina-import-report")
-        ?.addEventListener("click", async () => {
-          console.log("CLICOU IMPORTAR");
-
-          const report = root.ReportParser.parse({
-            tribe: settings.troopTribe || "romans",
-          });
-
-          if (!report) {
-            root.Modal.show(
-              "Relatorio",
-              "Nenhum relatorio valido encontrado na tela.",
-            );
-            return;
-          }
-
-          await this.scanner.saveReport(report);
-
-          console.log("ANTES DO BATTLE - ABA RELATORIOS");
-
-          const learningResult = await root.BattleKnowledge.learnFromReport({
-            storage: this.storage,
-            report,
-          });
-
-          console.log("DEPOIS DO BATTLE - ABA RELATORIOS");
-
-          if (learningResult) {
-            root.Modal.show(
-              "Relatorio",
-              "Importado e aprendido com sucesso. Coord: " +
-                (report.coord || "-") +
-                " | Lucro: " +
-                Math.round(report.profit || 0),
-            );
-          } else {
-            root.Modal.show(
-              "Relatorio",
-              "Relatório salvo, mas sem dados suficientes para aprendizado automático (tipo de tropa/quantidade enviada).",
-            );
-          }
-
-          await this.refresh();
+        ?.addEventListener("click", () => {
+          this.importCurrentReport().catch(() => undefined);
         });
     }
 
@@ -5242,7 +5483,23 @@
       const node = this.panel("ranking");
       if (!node) return;
       const oasis = await this.storage.getAll(root.Constants.STORES.OASIS);
-      const ranking = root.Ranking.buildRanking(oasis);
+      const settings = this.getSettings();
+      const sortBy = ["xph", "xp", "distance"].includes(settings.rankingSort)
+        ? settings.rankingSort
+        : "xph";
+      const ranking = root.Ranking.buildRanking(oasis, {
+        speed: Number(settings.effectiveSpeed || 0),
+        smallMap: Boolean(settings.smallMap),
+        sortBy,
+      });
+      const formatXph = (value) => {
+        const number = Number(value || 0);
+        if (!Number.isFinite(number) || number <= 0) return "-";
+        if (number >= 10) return this.formatNumber(number);
+        return number.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+      };
+      const sortOption = (value, label) =>
+        '<option value="' + value + '"' + (sortBy === value ? " selected" : "") + ">" + label + "</option>";
 
       const rankByXp = (xp) => {
         const value = Number(xp || 0);
@@ -5261,8 +5518,17 @@
       };
 
       node.innerHTML = [
-        '<div class="actions"><button id="nytrina-ranking-clear">Limpar Ranking</button></div>',
-        "<table><thead><tr><th>Nota</th><th>Coord</th><th>Dist</th><th>XP</th><th>XP/h</th><th>Tempo</th></tr></thead><tbody>",
+        '<div class="actions"><label class="inline-label">Ordenar por <select id="nytrina-ranking-sort">' +
+          sortOption("xph", "XP/h (tropa atual)") +
+          sortOption("xp", "XP total") +
+          sortOption("distance", "Distância") +
+          '</select></label><button id="nytrina-ranking-clear">Limpar Ranking</button></div>',
+        '<div class="hint">XP/h e tempo calculados com a velocidade da tropa selecionada (' +
+          this.formatNumber(settings.effectiveSpeed) +
+          " campos/h" +
+          (settings.smallMap ? ", mapa pequeno na volta" : "") +
+          ").</div>",
+        "<table><thead><tr><th>Nota</th><th>Coord</th><th class=\"num\">Dist</th><th class=\"num\">XP</th><th class=\"num\">XP/h</th><th>Tempo</th></tr></thead><tbody>",
         ranking
           .map((row) => {
             const rank = rankByXp(row.xp);
@@ -5272,21 +5538,28 @@
               '">' +
               rank.text +
               "</td><td>" +
-              (row.coord || "-") +
-              "</td><td>" +
+              this.escapeHtml(row.coord || "-") +
+              '</td><td class="num">' +
               formatDistance(row.distance) +
+              '</td><td class="num">' +
+              this.formatNumber(row.xp) +
+              '</td><td class="num">' +
+              formatXph(row.xph) +
               "</td><td>" +
-              Math.round(row.xp || 0) +
-              "</td><td>" +
-              Math.round(row.xph || 0) +
-              "</td><td>" +
-              (row.time || "-") +
+              this.escapeHtml(row.time || "-") +
               "</td></tr>"
             );
           })
           .join(""),
         "</tbody></table>",
       ].join("");
+
+      node
+        .querySelector("#nytrina-ranking-sort")
+        ?.addEventListener("change", async (event) => {
+          await this.saveSettings({ rankingSort: String(event.target.value || "xph") });
+          await this.refreshRanking();
+        });
 
       node
         .querySelector("#nytrina-ranking-clear")
@@ -5305,7 +5578,6 @@
       const node = this.panel("reports");
       if (!node) return;
       const reports = await this.storage.getAll(root.Constants.STORES.REPORTS);
-      const settings = this.getSettings();
       const sortedReports = reports
         .slice()
         .sort((a, b) => {
@@ -5313,7 +5585,7 @@
           const left = new Date(a.date || a.updatedAt || 0).getTime();
           return right - left;
         });
-      const recentReports = sortedReports.slice(0, 50);
+      const recentReports = sortedReports;
       const reportsMeta = this.paginationMeta(
         recentReports.length,
         this.reportsPage,
@@ -5324,30 +5596,34 @@
 
       node.innerHTML = [
         '<div class="actions"><button id="nytrina-import-report-tab">Importar relatorio atual</button><button id="nytrina-clear-reports">Limpar Relatórios</button></div>',
-        "<table><thead><tr><th>#</th><th>Data/Hora</th><th>ID</th><th>Coord</th><th>XP</th><th>Rec.</th><th>Perda</th><th>Lucro</th></tr></thead><tbody>",
+        '<div class="table-scroll"><table><thead><tr><th class="num">#</th><th>Data/Hora</th><th>ID</th><th>Coord</th><th class="num">XP</th><th class="num">Rec.</th><th class="num">Perda</th><th class="num">Lucro</th></tr></thead><tbody>',
         reportsPageRows
           .map(
             (report, index) =>
-              "<tr><td>" +
+              '<tr><td class="num">' +
               (Number(report.reportSeq || 0) > 0 ? Number(report.reportSeq) : String(reportsMeta.start + index + 1)) +
               "</td><td>" +
               this.formatDateTime(report.date || report.updatedAt) +
+              '</td><td class="cell-id" title="' +
+              this.escapeHtml(report.reportId) +
+              '">' +
+              this.escapeHtml(report.reportId) +
               "</td><td>" +
-              report.reportId +
-              "</td><td>" +
-              (report.coord || "-") +
-              "</td><td>" +
-              Math.round(report.xp || 0) +
-              "</td><td>" +
-              Math.round(report.totalResources || 0) +
-              "</td><td>" +
-              Math.round(report.lossCost || 0) +
-              "</td><td>" +
-              Math.round(report.profit || 0) +
+              this.escapeHtml(report.coord || "-") +
+              '</td><td class="num">' +
+              this.formatNumber(report.xp) +
+              '</td><td class="num">' +
+              this.formatNumber(report.totalResources) +
+              '</td><td class="num neg-soft">' +
+              this.formatNumber(report.lossCost) +
+              '</td><td class="num ' +
+              this.signedClass(report.profit) +
+              '">' +
+              this.formatNumber(report.profit) +
               "</td></tr>",
           )
           .join(""),
-        "</tbody></table>",
+        "</tbody></table></div>",
         this.paginationControls("nytrina-reports-page", reportsMeta, recentReports.length),
       ].join("");
 
@@ -5363,64 +5639,8 @@
 
       node
         .querySelector("#nytrina-import-report-tab")
-        ?.addEventListener("click", async () => {
-          console.error("RELATORIOS: BOTAO CLICADO");
-
-          try {
-            const report = root.ReportParser.parse({
-              tribe: settings.troopTribe || "romans",
-              troopType: settings.troopType || null,
-            });
-
-            if (!report) {
-              root.Modal.show(
-                "Relatorio",
-                "Nenhum relatorio valido encontrado na tela.",
-              );
-              return;
-            }
-
-            console.log("RELATORIOS: REPORT GERADO", report);
-
-            // Primeiro aprende, para identificarmos qualquer erro isoladamente.
-            console.log("RELATORIOS: ANTES DO BATTLE");
-
-            const learningResult = await root.BattleKnowledge.learnFromReport({
-              storage: this.storage,
-              report,
-            });
-
-            console.log("RELATORIOS: BATTLE SALVO", learningResult);
-
-            // Depois salva o relatório normal.
-            await this.scanner.saveReport(report);
-
-            console.log("RELATORIOS: REPORT SALVO");
-
-            if (learningResult) {
-              root.Modal.show(
-                "Relatorio",
-                "Importado e aprendido com sucesso. Coord: " +
-                  (report.coord || "-") +
-                  " | Lucro: " +
-                  Math.round(report.profit || 0),
-              );
-            } else {
-              root.Modal.show(
-                "Relatorio",
-                "Relatório salvo, mas sem dados suficientes para aprendizado automático (tipo de tropa/quantidade enviada).",
-              );
-            }
-
-            await this.refresh();
-          } catch (error) {
-            console.error("ERRO AO IMPORTAR RELATORIO:", error);
-
-            root.Modal.show(
-              "Erro",
-              "Falha ao importar ou aprender com o relatório. Veja o console.",
-            );
-          }
+        ?.addEventListener("click", () => {
+          this.importCurrentReport().catch(() => undefined);
         });
 
       node
@@ -5442,31 +5662,33 @@
       const node = this.panel("economy");
       if (!node) return;
       const reports = await this.storage.getAll(root.Constants.STORES.REPORTS);
+      const oasis = await this.storage.getAll(root.Constants.STORES.OASIS);
       const summary = root.Economy.calculateSummary(reports);
+      const card = (label, value, cls) =>
+        '<div class="card"><span>' +
+        label +
+        '</span><b class="' +
+        (cls || "") +
+        '">' +
+        value +
+        "</b></div>";
 
       node.innerHTML = [
-        '<div class="grid">',
-        '<div class="card"><span>Lucro liquido</span><b>' +
-          Math.round(summary.netProfit) +
-          "</b></div>",
-        '<div class="card"><span>Lucro/h</span><b>' +
-          Math.round(summary.profitPerHour) +
-          "</b></div>",
-        '<div class="card"><span>Lucro/min</span><b>' +
-          Math.round(summary.profitPerMinute) +
-          "</b></div>",
-        '<div class="card"><span>XP/h</span><b>' +
-          Math.round(summary.xpPerHour) +
-          "</b></div>",
-        '<div class="card"><span>Recursos/h</span><b>' +
-          Math.round(summary.resourcesPerHour) +
-          "</b></div>",
-        '<div class="card"><span>Perdas</span><b>' +
-          Math.round(summary.losses) +
-          "</b></div>",
-        '<div class="card"><span>ROI</span><b>' +
-          summary.roi.toFixed(2) +
-          "</b></div>",
+        '<div class="section-title">Resumo</div>',
+        '<div class="grid grid-3">',
+        card("Lucro líquido", this.formatNumber(summary.netProfit), this.signedClass(summary.netProfit)),
+        card("XP total", this.formatNumber(summary.totalXp)),
+        card("ROI", summary.roi.toFixed(2), this.signedClass(summary.roi)),
+        card("Relatórios", this.formatNumber(reports.length)),
+        card("Oásis mapeados", this.formatNumber(oasis.length)),
+        card("Perdas", this.formatNumber(summary.losses), summary.losses > 0 ? "neg-soft" : ""),
+        "</div>",
+        '<div class="section-title">Ritmo</div>',
+        '<div class="grid grid-3">',
+        card("Lucro/h", this.formatNumber(summary.profitPerHour), this.signedClass(summary.profitPerHour)),
+        card("Lucro/min", this.formatNumber(summary.profitPerMinute), this.signedClass(summary.profitPerMinute)),
+        card("XP/h", this.formatNumber(summary.xpPerHour)),
+        card("Recursos/h", this.formatNumber(summary.resourcesPerHour)),
         "</div>",
       ].join("");
     }
@@ -5721,9 +5943,6 @@
           '>Manual</option></select><input id="nytrina-setting-server" value="' +
           manualServer +
           '" placeholder="ts8.x1.america.travian.com"></div>',
-        '<div class="card"><span>Idioma</span><input id="nytrina-setting-language" value="' +
-          settings.language +
-          '"></div>',
         '<div class="card"><span>Tribo</span><select id="nytrina-setting-tribe">' +
           tribeOptions +
           "</select></div>",
@@ -5740,7 +5959,7 @@
         '<div id="nytrina-setting-server-warning" class="server-warning' +
           (isManualInvalid ? " show" : "") +
           '">Servidor manual invalido. Informe um host travian valido ou use Auto.</div>',
-        '<div class="actions"><button id="nytrina-save-settings">Salvar</button><button id="nytrina-export-backup">Exportar Backup</button><button id="nytrina-import-backup">Importar Backup</button><input id="nytrina-import-backup-file" type="file" accept="application/json" style="display:none"></div>',
+        '<div class="actions"><button id="nytrina-save-settings">Salvar</button><button id="nytrina-export-backup">Exportar Backup</button><button id="nytrina-import-backup">Substituir por Backup</button><button id="nytrina-merge-backup">Mesclar Backup</button><input id="nytrina-import-backup-file" type="file" accept="application/json" style="display:none"></div>',
         "</div>",
       ].join("");
 
@@ -5753,7 +5972,9 @@
       const smallMapInput = node.querySelector("#nytrina-setting-small-map");
       const exportBackupButton = node.querySelector("#nytrina-export-backup");
       const importBackupButton = node.querySelector("#nytrina-import-backup");
+      const mergeBackupButton = node.querySelector("#nytrina-merge-backup");
       const importBackupFile = node.querySelector("#nytrina-import-backup-file");
+      let backupMode = "replace";
 
       if (smallMapInput) {
         smallMapInput.checked = Boolean(settings.smallMap);
@@ -5819,8 +6040,6 @@
       node
         .querySelector("#nytrina-save-settings")
         ?.addEventListener("click", async () => {
-          console.log("[NytrinA] Clique no salvar");
-
           const payload = {
             server:
               String(
@@ -5847,13 +6066,7 @@
             smallMap:
               node.querySelector("#nytrina-setting-small-map")?.checked ===
               true,
-
-            language: String(
-              node.querySelector("#nytrina-setting-language")?.value || "pt-BR",
-            ),
           };
-
-          console.log("[NytrinA] Salvando payload:", payload);
 
           await this.saveSettings(payload);
 
@@ -5923,6 +6136,12 @@
       });
 
       importBackupButton?.addEventListener("click", () => {
+        backupMode = "replace";
+        importBackupFile?.click();
+      });
+
+      mergeBackupButton?.addEventListener("click", () => {
+        backupMode = "merge";
         importBackupFile?.click();
       });
 
@@ -5934,6 +6153,27 @@
         try {
           const content = await file.text();
           const parsed = JSON.parse(content);
+
+          if (backupMode === "merge") {
+            const merged = await this.storage.mergeBackup(parsed);
+            const learned = await this.learnReports(merged.newReports);
+
+            this.scanner.lastSignature = "";
+            await this.refresh();
+
+            root.Modal.show(
+              "Backup",
+              "Backup mesclado. Relatórios novos: " +
+                merged.newReports.length +
+                " | Aprendidos: " +
+                learned.learned +
+                " | Históricos novos: " +
+                merged.history +
+                " | Oásis atualizados: " +
+                merged.oasis,
+            );
+            return;
+          }
 
           const reportCount = Number(
             parsed?.counts?.REPORTS || parsed?.reports?.length || 0,
@@ -6334,8 +6574,6 @@
 
       await storage.put(settingsStoreName, settings);
 
-      console.log('[NytrinA] Configurações salvas:', settings);
-
       return getSettings();
     }
 
@@ -6346,7 +6584,7 @@
       getSettings,
       onUpdate: () => {
         if (overlay) {
-          overlay.refresh().catch(() => undefined);
+          overlay.refreshFromData().catch(() => undefined);
         }
       }
     });
