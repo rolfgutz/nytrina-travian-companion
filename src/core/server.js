@@ -2,10 +2,9 @@
   'use strict';
 
   const root = (global.NytrinA = global.NytrinA || {});
-  const getRegion = root.Servers.getRegion;
 
   /**
-   * @returns {{host:string,region:string,speed:number,key:string}}
+   * @returns {{host:string,speed:number,key:string}}
    */
   function getServerContext() {
     const host = String(global.location.hostname || '').toLowerCase();
@@ -13,7 +12,6 @@
     const speed = speedMatch ? Number(speedMatch[1]) : 1;
     return {
       host,
-      region: getRegion(host),
       speed,
       key: host
     };

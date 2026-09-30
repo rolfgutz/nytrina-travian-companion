@@ -24,16 +24,6 @@
   }
 
   /**
-   * @param {string|number} value
-   * @returns {number}
-   */
-  function toNumber(value) {
-    const normalized = String(value || '').replace(',', '.').replace(/[^\d.-]/g, '');
-    const parsed = Number(normalized);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-
-  /**
    * @param {number} seconds
    * @returns {string}
    */
@@ -67,21 +57,11 @@
       .filter(Boolean);
   }
 
-  /**
-   * @param {string} host
-   * @returns {string}
-   */
-  function hostKey(host) {
-    return String(host || global.location.hostname || '').toLowerCase();
-  }
-
   root.Utils = {
     normalizeText,
     toInt,
-    toNumber,
     secondsToClock,
     isVisible,
-    classTokens,
-    hostKey
+    classTokens
   };
 })(window);

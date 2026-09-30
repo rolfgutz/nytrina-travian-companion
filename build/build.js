@@ -8,7 +8,6 @@ const outputFile = path.join(rootDir, "nytrina.user.js");
 const orderedFiles = [
   "data/constants.js",
   "data/animals.js",
-  "data/servers.js",
   "data/troops.js",
   "core/utils.js",
   "core/server.js",
@@ -18,7 +17,6 @@ const orderedFiles = [
   "parser/reportParser.js",
   "core/ranking.js",
   "core/economy.js",
-  "core/battleAI.js",
   "core/battleAdvisor.js",
   "core/battleLearning.js",
   "core/scanner.js",

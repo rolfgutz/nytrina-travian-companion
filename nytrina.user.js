@@ -1,7 +1,7 @@
 (function attachStylesNamespace(global) {
   'use strict';
   const root = (global.NytrinA = global.NytrinA || {});
-  root.UI_STYLES = "#nytrina-overlay,\r\n#nytrina-toasts {\r\n  --nyt-bg: #100c08;\r\n  --nyt-bg-top: #1a130e;\r\n  --nyt-surface: #28190d;\r\n  --nyt-surface-2: #1d1209;\r\n  --nyt-border: #6e4518;\r\n  --nyt-accent: #c9892a;\r\n  --nyt-accent-strong: #ffcf75;\r\n  --nyt-text: #f7ebd7;\r\n  --nyt-text-muted: #d0ad7b;\r\n  --nyt-heading: #ffd79b;\r\n  --nyt-ok: #7ddc7d;\r\n  --nyt-warn: #ffd26a;\r\n  --nyt-bad: #ff7d7d;\r\n}\r\n\r\n#nytrina-overlay {\r\n  position: fixed;\r\n  top: 70px;\r\n  right: 16px;\r\n  width: 520px;\r\n  max-width: calc(100vw - 24px);\r\n  max-height: 88vh;\r\n  overflow: auto;\r\n  z-index: 999999;\r\n  background: linear-gradient(180deg, var(--nyt-bg-top), var(--nyt-bg));\r\n  color: var(--nyt-text);\r\n  border: 2px solid #b97822;\r\n  border-radius: 12px;\r\n  box-shadow: 0 0 24px rgba(0, 0, 0, 0.8);\r\n  font-family: Verdana, sans-serif;\r\n  font-size: 13px;\r\n}\r\n\r\n#nytrina-overlay * {\r\n  box-sizing: border-box;\r\n}\r\n\r\n#nytrina-overlay .head {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  align-items: center;\r\n  padding: 10px 12px;\r\n  background: #25170d;\r\n  border-bottom: 1px solid #6e4518;\r\n  cursor: grab;\r\n  user-select: none;\r\n}\r\n\r\n#nytrina-overlay.dragging .head {\r\n  cursor: grabbing;\r\n}\r\n\r\n#nytrina-overlay .tabs {\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  gap: 4px;\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .planner-steps-scroll {\r\n  max-height: 420px;\r\n  overflow: auto;\r\n}\r\n\r\n#nytrina-overlay .nytrina-planner-first-pending td {\r\n  background: linear-gradient(180deg, #4a2e10, #32200d);\r\n  border-top-color: #f4bf63;\r\n  border-bottom-color: #f4bf63;\r\n}\r\n\r\n#nytrina-overlay .nytrina-planner-first-pending td:first-child {\r\n  box-shadow: inset 3px 0 0 #ffcf75;\r\n}\r\n\r\n#nytrina-overlay .tab {\r\n  flex: 1 1 auto;\r\n  background: #23170d;\r\n  color: #d8bc91;\r\n  border: 1px solid #7a4c1a;\r\n  border-radius: 6px;\r\n  padding: 6px 8px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay .tab:hover {\r\n  background: #3a230f;\r\n  color: #ffe0ad;\r\n}\r\n\r\n#nytrina-overlay .tab-secondary {\r\n  flex: 0 0 auto;\r\n  opacity: 0.75;\r\n}\r\n\r\n#nytrina-overlay .tab.active {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border-color: var(--nyt-accent);\r\n  font-weight: bold;\r\n  opacity: 1;\r\n}\r\n\r\n#nytrina-overlay .panel {\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .hidden {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay .grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .grid-3 {\r\n  grid-template-columns: repeat(3, minmax(0, 1fr));\r\n}\r\n\r\n#nytrina-overlay .section-title {\r\n  margin: 12px 0 6px;\r\n  color: var(--nyt-heading);\r\n  font-size: 11px;\r\n  font-weight: bold;\r\n  letter-spacing: 0.06em;\r\n  text-transform: uppercase;\r\n}\r\n\r\n#nytrina-overlay .section-title:first-child {\r\n  margin-top: 0;\r\n}\r\n\r\n#nytrina-overlay .hint {\r\n  margin-top: 4px;\r\n  color: var(--nyt-text-muted);\r\n  font-size: 11px;\r\n  line-height: 1.4;\r\n}\r\n\r\n#nytrina-overlay .inline-label {\r\n  display: flex;\r\n  flex: 1 1 auto;\r\n  align-items: center;\r\n  gap: 6px;\r\n  margin-top: 0;\r\n}\r\n\r\n#nytrina-overlay .inline-label select {\r\n  width: auto;\r\n  flex: 1 1 auto;\r\n  margin-top: 0;\r\n}\r\n\r\n#nytrina-overlay .scanner-primary {\r\n  display: grid;\r\n  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);\r\n  gap: 8px;\r\n  margin-bottom: 8px;\r\n}\r\n\r\n#nytrina-overlay .scanner-primary > div {\r\n  border: 1px solid var(--nyt-accent);\r\n  border-radius: 8px;\r\n  padding: 10px;\r\n  background: linear-gradient(180deg, #3a2410, #28190d);\r\n}\r\n\r\n#nytrina-overlay .scanner-primary span {\r\n  display: block;\r\n  color: var(--nyt-text-muted);\r\n  font-size: 11px;\r\n}\r\n\r\n#nytrina-overlay .scanner-primary b {\r\n  display: block;\r\n  margin-top: 4px;\r\n  color: #fff;\r\n  font-size: 18px;\r\n}\r\n\r\n#nytrina-overlay .scanner-primary strong {\r\n  display: block;\r\n  color: var(--nyt-accent-strong);\r\n  font-size: 30px;\r\n  line-height: 1.15;\r\n  font-variant-numeric: tabular-nums;\r\n}\r\n\r\n#nytrina-overlay .scanner-primary small {\r\n  display: block;\r\n  margin-top: 4px;\r\n  color: var(--nyt-text-muted);\r\n  font-size: 11px;\r\n}\r\n\r\n#nytrina-overlay .scanner-locked {\r\n  background: #2f4520;\r\n  border-color: #6b9f35;\r\n}\r\n\r\n#nytrina-overlay .conf-high {\r\n  color: var(--nyt-ok);\r\n}\r\n\r\n#nytrina-overlay .conf-mid {\r\n  color: var(--nyt-warn);\r\n}\r\n\r\n#nytrina-overlay .conf-low {\r\n  color: var(--nyt-bad);\r\n}\r\n\r\n#nytrina-overlay .conf-none {\r\n  color: var(--nyt-text-muted);\r\n}\r\n\r\n#nytrina-overlay .card b.stars {\r\n  color: var(--nyt-accent-strong);\r\n  letter-spacing: 1px;\r\n}\r\n\r\n#nytrina-overlay .scanner-controls {\r\n  background: #342114;\r\n  border: 1px solid #8b5a22;\r\n  border-radius: 10px;\r\n  padding: 10px;\r\n  margin-bottom: 10px;\r\n  box-shadow: inset 0 0 0 1px rgba(255, 223, 168, 0.06);\r\n}\r\n\r\n#nytrina-overlay .scanner-actions {\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .scanner-actions button {\r\n  flex: 1 1 150px;\r\n}\r\n\r\n#nytrina-overlay .scanner-actions .hint {\r\n  flex: 1 1 100%;\r\n  color: #f2d7aa;\r\n  font-size: 12px;\r\n  padding-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-summary {\r\n  margin-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-essential-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n  margin-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-card-highlight {\r\n  border-color: #c9892a;\r\n  background: linear-gradient(180deg, #322010, #28190d);\r\n}\r\n\r\n#nytrina-overlay .scanner-context-line {\r\n  margin-top: 8px;\r\n  padding: 8px;\r\n  border-radius: 7px;\r\n  border: 1px solid #6e4518;\r\n  background: #1e130a;\r\n  color: #e6cda3;\r\n  font-size: 12px;\r\n  line-height: 1.4;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced {\r\n  margin-top: 8px;\r\n  border: 1px solid #6e4518;\r\n  border-radius: 7px;\r\n  background: #1a1109;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced summary {\r\n  cursor: pointer;\r\n  padding: 8px;\r\n  color: #ffd79b;\r\n  font-weight: bold;\r\n  list-style: none;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced summary::-webkit-details-marker {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced[open] summary {\r\n  border-bottom: 1px solid #6e4518;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced .scanner-summary {\r\n  padding: 8px;\r\n  margin-top: 0;\r\n}\r\n\r\n#nytrina-overlay .card {\r\n  background: var(--nyt-surface);\r\n  border: 1px solid var(--nyt-border);\r\n  border-radius: 7px;\r\n  padding: 8px;\r\n}\r\n\r\n#nytrina-overlay .card span {\r\n  display: block;\r\n  font-size: 11px;\r\n  color: var(--nyt-text-muted);\r\n  margin-bottom: 3px;\r\n}\r\n\r\n#nytrina-overlay .card b {\r\n  color: #fff;\r\n}\r\n\r\n#nytrina-overlay .card b.pos,\r\n#nytrina-overlay td.pos {\r\n  color: var(--nyt-ok);\r\n}\r\n\r\n#nytrina-overlay .card b.neg,\r\n#nytrina-overlay td.neg {\r\n  color: var(--nyt-bad);\r\n}\r\n\r\n#nytrina-overlay .card b.neg-soft,\r\n#nytrina-overlay td.neg-soft {\r\n  color: #f0a58a;\r\n}\r\n\r\n#nytrina-overlay table {\r\n  width: 100%;\r\n  border-collapse: collapse;\r\n  margin-top: 8px;\r\n  background: #120b06;\r\n}\r\n\r\n#nytrina-overlay th,\r\n#nytrina-overlay td {\r\n  border: 1px solid #6f461c;\r\n  padding: 5px 6px;\r\n  text-align: left;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay th {\r\n  background: #3a230f;\r\n  color: #ffe0ad;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay td {\r\n  background: var(--nyt-surface-2);\r\n}\r\n\r\n#nytrina-overlay tbody tr:nth-child(even) td {\r\n  background: #25170c;\r\n}\r\n\r\n#nytrina-overlay tbody tr:hover td {\r\n  background: #33200f;\r\n}\r\n\r\n#nytrina-overlay th.num,\r\n#nytrina-overlay td.num {\r\n  text-align: right;\r\n  font-variant-numeric: tabular-nums;\r\n  white-space: nowrap;\r\n}\r\n\r\n#nytrina-overlay td.cell-id {\r\n  max-width: 90px;\r\n  overflow: hidden;\r\n  text-overflow: ellipsis;\r\n  white-space: nowrap;\r\n  font-size: 11px;\r\n  color: var(--nyt-text-muted);\r\n}\r\n\r\n#nytrina-overlay .table-scroll {\r\n  overflow: auto;\r\n  max-height: 52vh;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  margin-top: 8px;\r\n}\r\n\r\n#nytrina-overlay .table-scroll table {\r\n  margin-top: 0;\r\n}\r\n\r\n#nytrina-overlay .table-scroll th {\r\n  position: sticky;\r\n  top: 0;\r\n  z-index: 1;\r\n}\r\n\r\n#nytrina-overlay .actions {\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  align-items: center;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay button {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border: 1px solid var(--nyt-accent);\r\n  border-radius: 7px;\r\n  padding: 6px 10px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay button:hover:not(:disabled) {\r\n  background: #6d4214;\r\n  border-color: var(--nyt-accent-strong);\r\n}\r\n\r\n#nytrina-overlay button:focus-visible,\r\n#nytrina-overlay input:focus-visible,\r\n#nytrina-overlay select:focus-visible {\r\n  outline: 2px solid var(--nyt-accent-strong);\r\n  outline-offset: 1px;\r\n}\r\n\r\n#nytrina-overlay button:disabled {\r\n  opacity: 0.45;\r\n  cursor: not-allowed;\r\n}\r\n\r\n#nytrina-overlay label {\r\n  display: block;\r\n  margin-top: 8px;\r\n  color: #ffd79b;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay input,\r\n#nytrina-overlay select {\r\n  width: 100%;\r\n  height: 34px;\r\n  margin-top: 4px;\r\n  padding: 6px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8b5a22;\r\n  background: #23170d;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop,\r\n#nytrina-overlay #nytrina-setting-troop {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n  border-color: #c9a16a;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop option,\r\n#nytrina-overlay #nytrina-setting-troop option,\r\n#nytrina-overlay #nytrina-scanner-troop optgroup,\r\n#nytrina-overlay #nytrina-setting-troop optgroup {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n}\r\n\r\n#nytrina-overlay,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll,\r\n#nytrina-overlay .debug-json {\r\n  scrollbar-width: thin;\r\n  scrollbar-color: #b97822 #1a120a;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar {\r\n  width: 10px;\r\n  height: 10px;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-track,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-track,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-track {\r\n  background: #1a120a;\r\n  border-radius: 10px;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-thumb,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-thumb,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-thumb {\r\n  background: linear-gradient(180deg, #c9892a, #8a5318);\r\n  border-radius: 10px;\r\n  border: 2px solid #1a120a;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-thumb:hover,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-thumb:hover,\r\n#nytrina-overlay .debug-json::-webkit-scrollbar-thumb:hover {\r\n  background: linear-gradient(180deg, #e3a63e, #a86620);\r\n}\r\n\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll {\r\n  overflow: auto;\r\n  max-height: 52vh;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  margin-top: 8px;\r\n}\r\n\r\n#nytrina-overlay .debug-table {\r\n  table-layout: fixed;\r\n  min-width: 1080px;\r\n  margin-top: 0;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay .debug-table th,\r\n#nytrina-overlay .debug-table td {\r\n  white-space: nowrap;\r\n  overflow: hidden;\r\n  text-overflow: ellipsis;\r\n  padding: 5px 6px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-troop {\r\n  max-width: 150px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-result {\r\n  max-width: 140px;\r\n}\r\n\r\n#nytrina-overlay .debug-table th:first-child,\r\n#nytrina-overlay .debug-table td:first-child {\r\n  white-space: normal;\r\n  min-width: 64px;\r\n  width: 64px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-datetime {\r\n  display: inline-block;\r\n  line-height: 1.2;\r\n  word-break: break-word;\r\n}\r\n\r\n#nytrina-overlay .check-row {\r\n  display: flex;\r\n  align-items: center;\r\n  color: #ffd79b;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .form-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .stack {\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .server-badge {\r\n  margin-bottom: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8a5a24;\r\n  background: #1b120a;\r\n  color: #ffd79b;\r\n}\r\n\r\n#nytrina-overlay .server-warning {\r\n  display: none;\r\n  margin-top: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #c9892a;\r\n  background: #3a230f;\r\n  color: #ffd26a;\r\n}\r\n\r\n#nytrina-overlay .server-warning.show {\r\n  display: block;\r\n}\r\n\r\n#nytrina-overlay .rank-good {\r\n  color: #72ff72;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-mid {\r\n  color: #ffd26a;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-bad {\r\n  color: #ff7d7d;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .debug-json {\r\n  white-space: pre-wrap;\r\n  background: #120b06;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  padding: 8px;\r\n  font-family: Consolas, monospace;\r\n  max-height: 360px;\r\n  overflow: auto;\r\n}\r\n\r\n#nytrina-overlay input[type=\"checkbox\"] {\r\n    appearance: checkbox !important;\r\n    -webkit-appearance: checkbox !important;\r\n    accent-color: var(--nyt-accent);\r\n    width: 16px !important;\r\n    height: 16px !important;\r\n    margin-top: 0;\r\n    margin-right: 6px;\r\n    vertical-align: middle;\r\n    cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay.minimized .tabs {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay.minimized .panel {\r\n  display: none;\r\n}\r\n\r\n#nytrina-toggle-minimize {\r\n  min-width: 92px;\r\n}\r\n\r\n#nytrina-toasts {\r\n  position: fixed;\r\n  right: 16px;\r\n  bottom: 16px;\r\n  z-index: 1000000;\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: 8px;\r\n  max-width: 360px;\r\n  font-family: Verdana, sans-serif;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-toasts .nytrina-toast {\r\n  background: #28190d;\r\n  color: #f7ebd7;\r\n  border: 1px solid #c9892a;\r\n  border-left: 4px solid #c9892a;\r\n  border-radius: 8px;\r\n  padding: 8px 10px;\r\n  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);\r\n  white-space: pre-line;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-toasts .nytrina-toast b {\r\n  display: block;\r\n  margin-bottom: 4px;\r\n  color: #ffd79b;\r\n}\r\n\r\n#nytrina-toasts .nytrina-toast-error {\r\n  border-color: #ff7d7d;\r\n}\r\n\r\n@media (max-width: 700px) {\r\n  #nytrina-overlay .scanner-essential-grid,\r\n  #nytrina-overlay .scanner-primary,\r\n  #nytrina-overlay .grid-3 {\r\n    grid-template-columns: 1fr;\r\n  }\r\n}";
+  root.UI_STYLES = "#nytrina-overlay,\r\n#nytrina-toasts {\r\n  --nyt-bg: #100c08;\r\n  --nyt-bg-top: #1a130e;\r\n  --nyt-surface: #28190d;\r\n  --nyt-surface-2: #1d1209;\r\n  --nyt-border: #6e4518;\r\n  --nyt-accent: #c9892a;\r\n  --nyt-accent-strong: #ffcf75;\r\n  --nyt-text: #f7ebd7;\r\n  --nyt-text-muted: #d0ad7b;\r\n  --nyt-heading: #ffd79b;\r\n  --nyt-ok: #7ddc7d;\r\n  --nyt-warn: #ffd26a;\r\n  --nyt-bad: #ff7d7d;\r\n}\r\n\r\n#nytrina-overlay {\r\n  position: fixed;\r\n  top: 70px;\r\n  right: 16px;\r\n  width: 520px;\r\n  max-width: calc(100vw - 24px);\r\n  max-height: 88vh;\r\n  overflow: auto;\r\n  z-index: 999999;\r\n  background: linear-gradient(180deg, var(--nyt-bg-top), var(--nyt-bg));\r\n  color: var(--nyt-text);\r\n  border: 2px solid #b97822;\r\n  border-radius: 12px;\r\n  box-shadow: 0 0 24px rgba(0, 0, 0, 0.8);\r\n  font-family: Verdana, sans-serif;\r\n  font-size: 13px;\r\n}\r\n\r\n#nytrina-overlay * {\r\n  box-sizing: border-box;\r\n}\r\n\r\n#nytrina-overlay .head {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  align-items: center;\r\n  padding: 10px 12px;\r\n  background: #25170d;\r\n  border-bottom: 1px solid #6e4518;\r\n  cursor: grab;\r\n  user-select: none;\r\n}\r\n\r\n#nytrina-overlay.dragging .head {\r\n  cursor: grabbing;\r\n}\r\n\r\n#nytrina-overlay .tabs {\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  gap: 4px;\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .planner-steps-scroll {\r\n  max-height: 420px;\r\n  overflow: auto;\r\n}\r\n\r\n#nytrina-overlay .nytrina-planner-first-pending td {\r\n  background: linear-gradient(180deg, #4a2e10, #32200d);\r\n  border-top-color: #f4bf63;\r\n  border-bottom-color: #f4bf63;\r\n}\r\n\r\n#nytrina-overlay .nytrina-planner-first-pending td:first-child {\r\n  box-shadow: inset 3px 0 0 #ffcf75;\r\n}\r\n\r\n#nytrina-overlay .tab {\r\n  flex: 1 1 auto;\r\n  background: #23170d;\r\n  color: #d8bc91;\r\n  border: 1px solid #7a4c1a;\r\n  border-radius: 6px;\r\n  padding: 6px 8px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay .tab:hover {\r\n  background: #3a230f;\r\n  color: #ffe0ad;\r\n}\r\n\r\n#nytrina-overlay .tab-secondary {\r\n  flex: 0 0 auto;\r\n  opacity: 0.75;\r\n}\r\n\r\n#nytrina-overlay .tab.active {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border-color: var(--nyt-accent);\r\n  font-weight: bold;\r\n  opacity: 1;\r\n}\r\n\r\n#nytrina-overlay .panel {\r\n  padding: 10px;\r\n}\r\n\r\n#nytrina-overlay .hidden {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay .grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .grid-3 {\r\n  grid-template-columns: repeat(3, minmax(0, 1fr));\r\n}\r\n\r\n#nytrina-overlay .section-title {\r\n  margin: 12px 0 6px;\r\n  color: var(--nyt-heading);\r\n  font-size: 11px;\r\n  font-weight: bold;\r\n  letter-spacing: 0.06em;\r\n  text-transform: uppercase;\r\n}\r\n\r\n#nytrina-overlay .section-title:first-child {\r\n  margin-top: 0;\r\n}\r\n\r\n#nytrina-overlay .hint {\r\n  margin-top: 4px;\r\n  color: var(--nyt-text-muted);\r\n  font-size: 11px;\r\n  line-height: 1.4;\r\n}\r\n\r\n#nytrina-overlay .inline-label {\r\n  display: flex;\r\n  flex: 1 1 auto;\r\n  align-items: center;\r\n  gap: 6px;\r\n  margin-top: 0;\r\n}\r\n\r\n#nytrina-overlay .inline-label select {\r\n  width: auto;\r\n  flex: 1 1 auto;\r\n  margin-top: 0;\r\n}\r\n\r\n#nytrina-overlay .scanner-primary {\r\n  display: grid;\r\n  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);\r\n  gap: 8px;\r\n  margin-bottom: 8px;\r\n}\r\n\r\n#nytrina-overlay .scanner-primary > div {\r\n  border: 1px solid var(--nyt-accent);\r\n  border-radius: 8px;\r\n  padding: 10px;\r\n  background: linear-gradient(180deg, #3a2410, #28190d);\r\n}\r\n\r\n#nytrina-overlay .scanner-primary span {\r\n  display: block;\r\n  color: var(--nyt-text-muted);\r\n  font-size: 11px;\r\n}\r\n\r\n#nytrina-overlay .scanner-primary b {\r\n  display: block;\r\n  margin-top: 4px;\r\n  color: #fff;\r\n  font-size: 18px;\r\n}\r\n\r\n#nytrina-overlay .scanner-primary strong {\r\n  display: block;\r\n  color: var(--nyt-accent-strong);\r\n  font-size: 30px;\r\n  line-height: 1.15;\r\n  font-variant-numeric: tabular-nums;\r\n}\r\n\r\n#nytrina-overlay .scanner-primary small {\r\n  display: block;\r\n  margin-top: 4px;\r\n  color: var(--nyt-text-muted);\r\n  font-size: 11px;\r\n}\r\n\r\n#nytrina-overlay .scanner-locked {\r\n  background: #2f4520;\r\n  border-color: #6b9f35;\r\n}\r\n\r\n#nytrina-overlay .conf-high {\r\n  color: var(--nyt-ok);\r\n}\r\n\r\n#nytrina-overlay .conf-mid {\r\n  color: var(--nyt-warn);\r\n}\r\n\r\n#nytrina-overlay .conf-low {\r\n  color: var(--nyt-bad);\r\n}\r\n\r\n#nytrina-overlay .conf-none {\r\n  color: var(--nyt-text-muted);\r\n}\r\n\r\n#nytrina-overlay .card b.stars {\r\n  color: var(--nyt-accent-strong);\r\n  letter-spacing: 1px;\r\n}\r\n\r\n#nytrina-overlay .scanner-controls {\r\n  background: #342114;\r\n  border: 1px solid #8b5a22;\r\n  border-radius: 10px;\r\n  padding: 10px;\r\n  margin-bottom: 10px;\r\n  box-shadow: inset 0 0 0 1px rgba(255, 223, 168, 0.06);\r\n}\r\n\r\n#nytrina-overlay .scanner-actions {\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .scanner-actions button {\r\n  flex: 1 1 150px;\r\n}\r\n\r\n#nytrina-overlay .scanner-actions .hint {\r\n  flex: 1 1 100%;\r\n  color: #f2d7aa;\r\n  font-size: 12px;\r\n  padding-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-summary {\r\n  margin-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-essential-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n  margin-top: 2px;\r\n}\r\n\r\n#nytrina-overlay .scanner-context-line {\r\n  margin-top: 8px;\r\n  padding: 8px;\r\n  border-radius: 7px;\r\n  border: 1px solid #6e4518;\r\n  background: #1e130a;\r\n  color: #e6cda3;\r\n  font-size: 12px;\r\n  line-height: 1.4;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced {\r\n  margin-top: 8px;\r\n  border: 1px solid #6e4518;\r\n  border-radius: 7px;\r\n  background: #1a1109;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced summary {\r\n  cursor: pointer;\r\n  padding: 8px;\r\n  color: #ffd79b;\r\n  font-weight: bold;\r\n  list-style: none;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced summary::-webkit-details-marker {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced[open] summary {\r\n  border-bottom: 1px solid #6e4518;\r\n}\r\n\r\n#nytrina-overlay .scanner-advanced .scanner-summary {\r\n  padding: 8px;\r\n  margin-top: 0;\r\n}\r\n\r\n#nytrina-overlay .card {\r\n  background: var(--nyt-surface);\r\n  border: 1px solid var(--nyt-border);\r\n  border-radius: 7px;\r\n  padding: 8px;\r\n}\r\n\r\n#nytrina-overlay .card span {\r\n  display: block;\r\n  font-size: 11px;\r\n  color: var(--nyt-text-muted);\r\n  margin-bottom: 3px;\r\n}\r\n\r\n#nytrina-overlay .card b {\r\n  color: #fff;\r\n}\r\n\r\n#nytrina-overlay .card b.pos,\r\n#nytrina-overlay td.pos {\r\n  color: var(--nyt-ok);\r\n}\r\n\r\n#nytrina-overlay .card b.neg,\r\n#nytrina-overlay td.neg {\r\n  color: var(--nyt-bad);\r\n}\r\n\r\n#nytrina-overlay .card b.neg-soft,\r\n#nytrina-overlay td.neg-soft {\r\n  color: #f0a58a;\r\n}\r\n\r\n#nytrina-overlay table {\r\n  width: 100%;\r\n  border-collapse: collapse;\r\n  margin-top: 8px;\r\n  background: #120b06;\r\n}\r\n\r\n#nytrina-overlay th,\r\n#nytrina-overlay td {\r\n  border: 1px solid #6f461c;\r\n  padding: 5px 6px;\r\n  text-align: left;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay th {\r\n  background: #3a230f;\r\n  color: #ffe0ad;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay td {\r\n  background: var(--nyt-surface-2);\r\n}\r\n\r\n#nytrina-overlay tbody tr:nth-child(even) td {\r\n  background: #25170c;\r\n}\r\n\r\n#nytrina-overlay tbody tr:hover td {\r\n  background: #33200f;\r\n}\r\n\r\n#nytrina-overlay th.num,\r\n#nytrina-overlay td.num {\r\n  text-align: right;\r\n  font-variant-numeric: tabular-nums;\r\n  white-space: nowrap;\r\n}\r\n\r\n#nytrina-overlay td.cell-id {\r\n  max-width: 90px;\r\n  overflow: hidden;\r\n  text-overflow: ellipsis;\r\n  white-space: nowrap;\r\n  font-size: 11px;\r\n  color: var(--nyt-text-muted);\r\n}\r\n\r\n#nytrina-overlay .table-scroll {\r\n  overflow: auto;\r\n  max-height: 52vh;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  margin-top: 8px;\r\n}\r\n\r\n#nytrina-overlay .table-scroll table {\r\n  margin-top: 0;\r\n}\r\n\r\n#nytrina-overlay .table-scroll th {\r\n  position: sticky;\r\n  top: 0;\r\n  z-index: 1;\r\n}\r\n\r\n#nytrina-overlay .actions {\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  align-items: center;\r\n  gap: 8px;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay button {\r\n  background: #5a350f;\r\n  color: #ffe0ad;\r\n  border: 1px solid var(--nyt-accent);\r\n  border-radius: 7px;\r\n  padding: 6px 10px;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay button:hover:not(:disabled) {\r\n  background: #6d4214;\r\n  border-color: var(--nyt-accent-strong);\r\n}\r\n\r\n#nytrina-overlay button:focus-visible,\r\n#nytrina-overlay input:focus-visible,\r\n#nytrina-overlay select:focus-visible {\r\n  outline: 2px solid var(--nyt-accent-strong);\r\n  outline-offset: 1px;\r\n}\r\n\r\n#nytrina-overlay button:disabled {\r\n  opacity: 0.45;\r\n  cursor: not-allowed;\r\n}\r\n\r\n#nytrina-overlay label {\r\n  display: block;\r\n  margin-top: 8px;\r\n  color: #ffd79b;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay input,\r\n#nytrina-overlay select {\r\n  width: 100%;\r\n  height: 34px;\r\n  margin-top: 4px;\r\n  padding: 6px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8b5a22;\r\n  background: #23170d;\r\n  color: #f7ead2;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop,\r\n#nytrina-overlay #nytrina-setting-troop {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n  border-color: #c9a16a;\r\n}\r\n\r\n#nytrina-overlay #nytrina-scanner-troop option,\r\n#nytrina-overlay #nytrina-setting-troop option,\r\n#nytrina-overlay #nytrina-scanner-troop optgroup,\r\n#nytrina-overlay #nytrina-setting-troop optgroup {\r\n  background: #f3e7d1;\r\n  color: #1a120a;\r\n}\r\n\r\n#nytrina-overlay,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll {\r\n  scrollbar-width: thin;\r\n  scrollbar-color: #b97822 #1a120a;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar {\r\n  width: 10px;\r\n  height: 10px;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-track,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-track {\r\n  background: #1a120a;\r\n  border-radius: 10px;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-thumb,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-thumb {\r\n  background: linear-gradient(180deg, #c9892a, #8a5318);\r\n  border-radius: 10px;\r\n  border: 2px solid #1a120a;\r\n}\r\n\r\n#nytrina-overlay::-webkit-scrollbar-thumb:hover,\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll::-webkit-scrollbar-thumb:hover {\r\n  background: linear-gradient(180deg, #e3a63e, #a86620);\r\n}\r\n\r\n#nytrina-overlay [data-panel=\"debug\"] .table-scroll {\r\n  overflow: auto;\r\n  max-height: 52vh;\r\n  border: 1px solid #6f461c;\r\n  border-radius: 8px;\r\n  margin-top: 8px;\r\n}\r\n\r\n#nytrina-overlay .debug-table {\r\n  table-layout: fixed;\r\n  min-width: 1080px;\r\n  margin-top: 0;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-overlay .debug-table th,\r\n#nytrina-overlay .debug-table td {\r\n  white-space: nowrap;\r\n  overflow: hidden;\r\n  text-overflow: ellipsis;\r\n  padding: 5px 6px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-troop {\r\n  max-width: 150px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-result {\r\n  max-width: 140px;\r\n}\r\n\r\n#nytrina-overlay .debug-table th:first-child,\r\n#nytrina-overlay .debug-table td:first-child {\r\n  white-space: normal;\r\n  min-width: 64px;\r\n  width: 64px;\r\n}\r\n\r\n#nytrina-overlay .debug-col-datetime {\r\n  display: inline-block;\r\n  line-height: 1.2;\r\n  word-break: break-word;\r\n}\r\n\r\n#nytrina-overlay .check-row {\r\n  display: flex;\r\n  align-items: center;\r\n  color: #ffd79b;\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .form-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px;\r\n}\r\n\r\n#nytrina-overlay .stack {\r\n  margin-top: 10px;\r\n}\r\n\r\n#nytrina-overlay .server-badge {\r\n  margin-bottom: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #8a5a24;\r\n  background: #1b120a;\r\n  color: #ffd79b;\r\n}\r\n\r\n#nytrina-overlay .server-warning {\r\n  display: none;\r\n  margin-top: 8px;\r\n  padding: 8px;\r\n  border-radius: 6px;\r\n  border: 1px solid #c9892a;\r\n  background: #3a230f;\r\n  color: #ffd26a;\r\n}\r\n\r\n#nytrina-overlay .server-warning.show {\r\n  display: block;\r\n}\r\n\r\n#nytrina-overlay .rank-good {\r\n  color: #72ff72;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-mid {\r\n  color: #ffd26a;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay .rank-bad {\r\n  color: #ff7d7d;\r\n  font-weight: bold;\r\n}\r\n\r\n#nytrina-overlay input[type=\"checkbox\"] {\r\n    appearance: checkbox !important;\r\n    -webkit-appearance: checkbox !important;\r\n    accent-color: var(--nyt-accent);\r\n    width: 16px !important;\r\n    height: 16px !important;\r\n    margin-top: 0;\r\n    margin-right: 6px;\r\n    vertical-align: middle;\r\n    cursor: pointer;\r\n}\r\n\r\n#nytrina-overlay.minimized .tabs {\r\n  display: none;\r\n}\r\n\r\n#nytrina-overlay.minimized .panel {\r\n  display: none;\r\n}\r\n\r\n#nytrina-toggle-minimize {\r\n  min-width: 92px;\r\n}\r\n\r\n#nytrina-toasts {\r\n  position: fixed;\r\n  right: 16px;\r\n  bottom: 16px;\r\n  z-index: 1000000;\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: 8px;\r\n  max-width: 360px;\r\n  font-family: Verdana, sans-serif;\r\n  font-size: 12px;\r\n}\r\n\r\n#nytrina-toasts .nytrina-toast {\r\n  background: #28190d;\r\n  color: #f7ebd7;\r\n  border: 1px solid #c9892a;\r\n  border-left: 4px solid #c9892a;\r\n  border-radius: 8px;\r\n  padding: 8px 10px;\r\n  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);\r\n  white-space: pre-line;\r\n  cursor: pointer;\r\n}\r\n\r\n#nytrina-toasts .nytrina-toast b {\r\n  display: block;\r\n  margin-bottom: 4px;\r\n  color: #ffd79b;\r\n}\r\n\r\n#nytrina-toasts .nytrina-toast-error {\r\n  border-color: #ff7d7d;\r\n}\r\n\r\n@media (max-width: 700px) {\r\n  #nytrina-overlay .scanner-essential-grid,\r\n  #nytrina-overlay .scanner-primary,\r\n  #nytrina-overlay .grid-3 {\r\n    grid-template-columns: 1fr;\r\n  }\r\n}";
 })(window);
 
 
@@ -14,9 +14,7 @@
   const root = (global.NytrinA = global.NytrinA || {});
 
   root.Constants = {
-    APP_NAME: 'NytrinA Travian Companion',
     APP_VERSION: '4.0.4',
-    APP_NAMESPACE: 'nytrina_companion_v4',
     DB_NAME_PREFIX: 'nytrina_companion_db',
     DB_VERSION: 1,
     STORES: {
@@ -31,10 +29,8 @@
       troopType: 'hero',
       troopTribe: 'romans',
       customSpeed: 14,
-      smallMap: false,
-      language: 'pt-BR'
+      smallMap: false
     },
-    SAVE_DEBOUNCE_MS: 900,
     SCAN_INTERVAL_MS: 1500
   };
 })(window);
@@ -89,33 +85,6 @@
     byIconClass,
     emptyAnimals,
     calcXp
-  };
-})(window);
-
-
-
-
-// FILE: data/servers.js
-
-(function initServers(global) {
-  'use strict';
-
-  const root = (global.NytrinA = global.NytrinA || {});
-
-  /**
-   * @param {string} host
-   * @returns {'america'|'europe'|'asia'|'unknown'}
-   */
-  function getRegion(host) {
-    const normalized = host.toLowerCase();
-    if (normalized.includes('.america.')) return 'america';
-    if (normalized.includes('.europe.')) return 'europe';
-    if (normalized.includes('.asia.')) return 'asia';
-    return 'unknown';
-  }
-
-  root.Servers = {
-    getRegion
   };
 })(window);
 
@@ -274,16 +243,6 @@
   }
 
   /**
-   * @param {string|number} value
-   * @returns {number}
-   */
-  function toNumber(value) {
-    const normalized = String(value || '').replace(',', '.').replace(/[^\d.-]/g, '');
-    const parsed = Number(normalized);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-
-  /**
    * @param {number} seconds
    * @returns {string}
    */
@@ -317,22 +276,12 @@
       .filter(Boolean);
   }
 
-  /**
-   * @param {string} host
-   * @returns {string}
-   */
-  function hostKey(host) {
-    return String(host || global.location.hostname || '').toLowerCase();
-  }
-
   root.Utils = {
     normalizeText,
     toInt,
-    toNumber,
     secondsToClock,
     isVisible,
-    classTokens,
-    hostKey
+    classTokens
   };
 })(window);
 
@@ -345,10 +294,9 @@
   'use strict';
 
   const root = (global.NytrinA = global.NytrinA || {});
-  const getRegion = root.Servers.getRegion;
 
   /**
-   * @returns {{host:string,region:string,speed:number,key:string}}
+   * @returns {{host:string,speed:number,key:string}}
    */
   function getServerContext() {
     const host = String(global.location.hostname || '').toLowerCase();
@@ -356,7 +304,6 @@
     const speed = speedMatch ? Number(speedMatch[1]) : 1;
     return {
       host,
-      region: getRegion(host),
       speed,
       key: host
     };
@@ -499,18 +446,6 @@
      */
     getStoreNames() {
       return Object.values(constants.STORES || {});
-    }
-
-    /**
-     * @param {string} storeName
-     * @param {Array<any>} values
-     * @returns {Promise<void>}
-     */
-    async putMany(storeName, values) {
-      const list = Array.isArray(values) ? values : [];
-      for (const value of list) {
-        await this.put(storeName, value);
-      }
     }
 
     /**
@@ -1193,31 +1128,10 @@
     .map((animal) => '[class*="' + animal.iconClass + '"]')
     .join(",");
 
-  function extractNumbersFromRow(row) {
-    return Array.from(row.querySelectorAll("td,th,input"))
-      .map((cell) => (cell.tagName === "INPUT" ? cell.value : cell.textContent))
-      .map((value) => utils.toInt(value || ""));
-  }
-
   function findNatureTable() {
     const tables = Array.from(global.document.querySelectorAll("table"));
     for (const table of tables) {
       if (table.querySelector(ANIMAL_SELECTOR)) return table;
-    }
-    return null;
-  }
-
-  function findAttackerTable() {
-    const tables = Array.from(global.document.querySelectorAll("table"));
-    for (const table of tables) {
-      if (
-        table.querySelector(
-          '[class*="u1"], [class*="u2"], [class*="u3"], [class*="u4"], [class*="u5"], [class*="u6"], [class*="u7"], [class*="u8"], [class*="u9"], [class*="u10"], [class*="hero"]',
-        )
-      ) {
-        const hasNatureIcons = Boolean(table.querySelector(ANIMAL_SELECTOR));
-        if (!hasNatureIcons) return table;
-      }
     }
     return null;
   }
@@ -1290,11 +1204,6 @@
     result.wounded = read(woundedRow);
 
     return result;
-  }
-
-  function inferTroopTypeFromAttackerData(attackerData, tribe) {
-    const info = inferUnitInfoFromAttackerData(attackerData, tribe);
-    return info ? info.troopType : null;
   }
 
   function getTroopClassDefinitions() {
@@ -1502,6 +1411,33 @@
     if (!match) return null;
 
     return match[1].replace(/[./]/g, "") + "-" + match[2].replace(/:/g, "");
+  }
+
+  function parseReportDate() {
+    const rawText = String(
+      global.document.body?.innerText ||
+        global.document.body?.textContent ||
+        "",
+    );
+    const match = rawText.match(
+      /(\d{2})[./](\d{2})[./](\d{2,4}),?\s*(\d{2}):(\d{2}):(\d{2})/,
+    );
+    if (!match) return null;
+
+    const [, first, second, yearRaw, hours, minutes, seconds] = match.map(Number);
+    const year = String(match[3]).length === 2 ? 2000 + yearRaw : yearRaw;
+    const build = (day, month) => {
+      const date = new Date(year, month - 1, day, hours, minutes, seconds);
+      return date.getMonth() === month - 1 && date.getDate() === day ? date : null;
+    };
+    // Server time may be ahead of local time; reject only clearly future dates.
+    const latestAllowed = Date.now() + 36 * 3600 * 1000;
+
+    // Prefer dd.mm.yy; fall back to mm/dd/yy when the first reading is impossible.
+    const date = [build(first, second), build(second, first)].find(
+      (candidate) => candidate && candidate.getTime() <= latestAllowed,
+    );
+    return date ? date.toISOString() : null;
   }
 
   function hashText(text) {
@@ -1721,7 +1657,8 @@
       ),
       server: server.getContext().key,
       tribe: resolvedTribe,
-      date: new Date().toISOString(),
+      date: parseReportDate() || new Date().toISOString(),
+      importedAt: new Date().toISOString(),
       coord: parseReportCoord(),
       animalsInitial,
       animalsKilled,
@@ -1888,65 +1825,6 @@
 
   root.Economy = {
     calculateSummary
-  };
-})(window);
-
-
-
-
-// FILE: core/battleAI.js
-
-(function initBattleAI(global) {
-  'use strict';
-
-  const root = (global.NytrinA = global.NytrinA || {});
-
-  /**
-   * Estrutura base para IA futura: por oasis, registra historico de resultados.
-   * @param {Array<any>} reports
-   * @returns {Record<string,{coord:string,attacks:number,avgLoss:number,avgProfit:number,avgXp:number,lastDate:string}>}
-   */
-  function buildOasisHistory(reports) {
-    const result = {};
-
-    (reports || []).forEach((report) => {
-      const coord = report.coord || 'unknown';
-      if (!result[coord]) {
-        result[coord] = {
-          coord,
-          attacks: 0,
-          avgLoss: 0,
-          avgProfit: 0,
-          avgXp: 0,
-          lastDate: report.date || new Date().toISOString(),
-          _sumLoss: 0,
-          _sumProfit: 0,
-          _sumXp: 0
-        };
-      }
-
-      const row = result[coord];
-      row.attacks += 1;
-      row._sumLoss += Number(report.lossCost || 0);
-      row._sumProfit += Number(report.profit || 0);
-      row._sumXp += Number(report.xp || 0);
-      row.lastDate = report.date || row.lastDate;
-    });
-
-    Object.values(result).forEach((row) => {
-      row.avgLoss = row.attacks ? row._sumLoss / row.attacks : 0;
-      row.avgProfit = row.attacks ? row._sumProfit / row.attacks : 0;
-      row.avgXp = row.attacks ? row._sumXp / row.attacks : 0;
-      delete row._sumLoss;
-      delete row._sumProfit;
-      delete row._sumXp;
-    });
-
-    return result;
-  }
-
-  root.BattleAI = {
-    buildOasisHistory
   };
 })(window);
 
@@ -2797,6 +2675,7 @@
       totalResources: Number(report.totalResources || 0),
       lossCost: Number(report.lossCost || 0),
       profit: Number(report.profit || 0),
+      date: report.date || null,
     });
 
     return await saveKnowledge(storage, knowledge);
@@ -3022,6 +2901,7 @@
     totalResources,
     lossCost,
     profit,
+    date,
   }) {
     if (!storage || !troopType || sent <= 0 || killRate <= 0) {
       return null;
@@ -3123,7 +3003,7 @@
       lossCost: Number(lossCost || 0),
       profit: Number(profit || 0),
       requiredSafe: Math.ceil(requiredSafe),
-      date: new Date().toISOString(),
+      date: date || new Date().toISOString(),
     };
     calibration.avgKillRate = calibration.sumKillRate / calibration.samples;
     calibration.avgCasualtyRate =
@@ -3315,8 +3195,6 @@
       failureSamples: Number(calibration.failureSamples || 0),
     };
   }
-
-  root.BattleLearning = root.BattleKnowledge;
 })(window);
 
 
@@ -3342,17 +3220,12 @@
       this.onUpdate = deps.onUpdate;
       this.lastSignature = '';
       this.intervalId = null;
-      this.mouseInside = false;
     }
 
     /**
      * @returns {void}
      */
     start() {
-      global.document.addEventListener('mousemove', () => {
-        this.mouseInside = true;
-      });
-
       this.intervalId = global.setInterval(() => {
         this.scanNow().catch(() => {
           return undefined;
@@ -3609,10 +3482,7 @@
       this.scanner = deps.scanner;
       this.getSettings = deps.getSettings;
       this.saveSettings = deps.saveSettings;
-      this.currentScan = null;
-      this.debugEnabled = true;
       this.overlay = null;
-      this.titleClicks = 0;
       this.currentTab = "scanner";
       this.reportsPage = 1;
       this.reportsPerPage = 25;
@@ -3935,11 +3805,11 @@
       });
 
       global.document.addEventListener("change", (event) => {
-        const target = event.target;
-        if (!(target instanceof HTMLInputElement) || target.type !== "checkbox") return;
-        if (target.closest("#nytrina-overlay")) return;
-        if (!/hero/i.test(String(target.name) + " " + String(target.id))) return;
-        this.refreshScanner().catch(() => undefined);
+        if (this.isHeroField(event.target)) this.refreshScanner().catch(() => undefined);
+      });
+
+      global.document.addEventListener("input", (event) => {
+        if (this.isHeroField(event.target)) this.refreshScanner().catch(() => undefined);
       });
 
       this.overlay
@@ -3962,12 +3832,6 @@
           if (btn) {
             btn.textContent = minimized ? "Expandir" : "Minimizar";
           }
-        });
-
-      this.overlay
-        .querySelector("#nytrina-title")
-        ?.addEventListener("click", () => {
-          this.titleClicks += 1;
         });
 
       const head = this.overlay.querySelector(".head");
@@ -4145,21 +4009,6 @@
         { value: "romans", label: "Romanos" },
         { value: "teutons", label: "Teutoes" },
       ];
-    }
-
-    /**
-     * @param {string} tribe
-     * @returns {Array<{value:string,label:string,base:number}>}
-     */
-    troopOptionsForTribe(tribe) {
-      const speeds = root.Troops.speeds[tribe] || {};
-      const options = Object.entries(speeds).map(([value, base]) => ({
-        value,
-        label: value.replace(/_/g, " "),
-        base: Number(base),
-      }));
-      options.sort((a, b) => a.label.localeCompare(b.label));
-      return options;
     }
 
     /**
@@ -4370,9 +4219,45 @@
     }
 
     /**
+     * @returns {Array<HTMLInputElement>}
+     */
+    heroInputs() {
+      // Travian Legends sends the hero through a numeric t11 field in the rally point.
+      const byName = Array.from(
+        global.document.querySelectorAll(
+          'input[name="t11"], input[name$="[t11]"], input[type="checkbox"][name*="hero"], input[type="checkbox"][id*="hero"]',
+        ),
+      );
+      const byIcon = Array.from(
+        global.document.querySelectorAll(".unit.uhero, img.uhero, .unit.hero"),
+      )
+        .map((icon) => icon.closest("td, li, tr")?.querySelector("input"))
+        .filter(Boolean);
+
+      return Array.from(new Set([...byName, ...byIcon])).filter(
+        (input) => input instanceof HTMLInputElement && !input.closest("#nytrina-overlay"),
+      );
+    }
+
+    /**
+     * @param {EventTarget|null} target
+     * @returns {boolean}
+     */
+    isHeroField(target) {
+      return target instanceof HTMLInputElement && this.heroInputs().includes(target);
+    }
+
+    /**
      * @returns {boolean}
      */
     isHeroEnabledInRallyForm() {
+      const heroInput = this.heroInputs().find((input) =>
+        input.type === "checkbox" || input.type === "radio"
+          ? input.checked
+          : Number(input.value || 0) > 0,
+      );
+      if (heroInput) return true;
+
       const checked = global.document.querySelector(
         'input[type="checkbox"][name*="hero"]:checked, input[type="checkbox"][id*="hero"]:checked',
       );
@@ -4882,8 +4767,6 @@
           };
         }
       }
-
-      this.currentScan = parsed;
 
       // Na tela de envio, fixa a leitura no alvo informado (x|y) para evitar
       // que tooltip/hover de outro oásis troque a sugestão exibida.
@@ -6253,11 +6136,6 @@
     async refreshDebug() {
       const node = this.panel("debug");
       if (!node) return;
-
-      if (!this.debugEnabled) {
-        node.innerHTML = "Clique 5 vezes no título para habilitar debug.";
-        return;
-      }
 
       const stats = await this.storage.getAll(root.Constants.STORES.STATISTICS);
       const knowledgeRows = stats.filter((row) =>

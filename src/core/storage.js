@@ -128,18 +128,6 @@
     }
 
     /**
-     * @param {string} storeName
-     * @param {Array<any>} values
-     * @returns {Promise<void>}
-     */
-    async putMany(storeName, values) {
-      const list = Array.isArray(values) ? values : [];
-      for (const value of list) {
-        await this.put(storeName, value);
-      }
-    }
-
-    /**
      * @returns {Promise<any>}
      */
     async exportBackup() {

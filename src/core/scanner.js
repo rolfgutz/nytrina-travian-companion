@@ -16,17 +16,12 @@
       this.onUpdate = deps.onUpdate;
       this.lastSignature = '';
       this.intervalId = null;
-      this.mouseInside = false;
     }
 
     /**
      * @returns {void}
      */
     start() {
-      global.document.addEventListener('mousemove', () => {
-        this.mouseInside = true;
-      });
-
       this.intervalId = global.setInterval(() => {
         this.scanNow().catch(() => {
           return undefined;

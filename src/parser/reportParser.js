@@ -12,31 +12,10 @@
     .map((animal) => '[class*="' + animal.iconClass + '"]')
     .join(",");
 
-  function extractNumbersFromRow(row) {
-    return Array.from(row.querySelectorAll("td,th,input"))
-      .map((cell) => (cell.tagName === "INPUT" ? cell.value : cell.textContent))
-      .map((value) => utils.toInt(value || ""));
-  }
-
   function findNatureTable() {
     const tables = Array.from(global.document.querySelectorAll("table"));
     for (const table of tables) {
       if (table.querySelector(ANIMAL_SELECTOR)) return table;
-    }
-    return null;
-  }
-
-  function findAttackerTable() {
-    const tables = Array.from(global.document.querySelectorAll("table"));
-    for (const table of tables) {
-      if (
-        table.querySelector(
-          '[class*="u1"], [class*="u2"], [class*="u3"], [class*="u4"], [class*="u5"], [class*="u6"], [class*="u7"], [class*="u8"], [class*="u9"], [class*="u10"], [class*="hero"]',
-        )
-      ) {
-        const hasNatureIcons = Boolean(table.querySelector(ANIMAL_SELECTOR));
-        if (!hasNatureIcons) return table;
-      }
     }
     return null;
   }
@@ -109,11 +88,6 @@
     result.wounded = read(woundedRow);
 
     return result;
-  }
-
-  function inferTroopTypeFromAttackerData(attackerData, tribe) {
-    const info = inferUnitInfoFromAttackerData(attackerData, tribe);
-    return info ? info.troopType : null;
   }
 
   function getTroopClassDefinitions() {
@@ -321,6 +295,33 @@
     if (!match) return null;
 
     return match[1].replace(/[./]/g, "") + "-" + match[2].replace(/:/g, "");
+  }
+
+  function parseReportDate() {
+    const rawText = String(
+      global.document.body?.innerText ||
+        global.document.body?.textContent ||
+        "",
+    );
+    const match = rawText.match(
+      /(\d{2})[./](\d{2})[./](\d{2,4}),?\s*(\d{2}):(\d{2}):(\d{2})/,
+    );
+    if (!match) return null;
+
+    const [, first, second, yearRaw, hours, minutes, seconds] = match.map(Number);
+    const year = String(match[3]).length === 2 ? 2000 + yearRaw : yearRaw;
+    const build = (day, month) => {
+      const date = new Date(year, month - 1, day, hours, minutes, seconds);
+      return date.getMonth() === month - 1 && date.getDate() === day ? date : null;
+    };
+    // Server time may be ahead of local time; reject only clearly future dates.
+    const latestAllowed = Date.now() + 36 * 3600 * 1000;
+
+    // Prefer dd.mm.yy; fall back to mm/dd/yy when the first reading is impossible.
+    const date = [build(first, second), build(second, first)].find(
+      (candidate) => candidate && candidate.getTime() <= latestAllowed,
+    );
+    return date ? date.toISOString() : null;
   }
 
   function hashText(text) {
@@ -540,7 +541,8 @@
       ),
       server: server.getContext().key,
       tribe: resolvedTribe,
-      date: new Date().toISOString(),
+      date: parseReportDate() || new Date().toISOString(),
+      importedAt: new Date().toISOString(),
       coord: parseReportCoord(),
       animalsInitial,
       animalsKilled,

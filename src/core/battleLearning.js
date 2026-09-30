@@ -745,6 +745,7 @@
       totalResources: Number(report.totalResources || 0),
       lossCost: Number(report.lossCost || 0),
       profit: Number(report.profit || 0),
+      date: report.date || null,
     });
 
     return await saveKnowledge(storage, knowledge);
@@ -970,6 +971,7 @@
     totalResources,
     lossCost,
     profit,
+    date,
   }) {
     if (!storage || !troopType || sent <= 0 || killRate <= 0) {
       return null;
@@ -1071,7 +1073,7 @@
       lossCost: Number(lossCost || 0),
       profit: Number(profit || 0),
       requiredSafe: Math.ceil(requiredSafe),
-      date: new Date().toISOString(),
+      date: date || new Date().toISOString(),
     };
     calibration.avgKillRate = calibration.sumKillRate / calibration.samples;
     calibration.avgCasualtyRate =
@@ -1263,6 +1265,4 @@
       failureSamples: Number(calibration.failureSamples || 0),
     };
   }
-
-  root.BattleLearning = root.BattleKnowledge;
 })(window);
