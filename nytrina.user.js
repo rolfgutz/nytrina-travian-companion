@@ -5186,10 +5186,10 @@
           (confidenceDetail ? '<div class="hint">' + confidenceDetail + "</div>" : "") +
           "</div>",
         '<div class="card"><span>Avaliação IA</span><b class="stars">' +
-          suggestionStars +
+          this.escapeHtml(suggestionStars) +
           "</b></div>",
         '<div class="card"><span>Fonte</span><b>' +
-          suggestionSource +
+          this.escapeHtml(suggestionSource) +
           "</b></div>",
         '<div class="card"><span>Baseado em</span><b>' +
           basedOnText +
@@ -5197,16 +5197,16 @@
         "</div>",
         '<div class="scanner-context-line">' +
           "Dist: " +
-          displayDistance +
+          this.escapeHtml(displayDistance) +
           " | XP/h: " +
           formatScannerXph(displayXph) +
           " | Tempo ida: " +
-          displayTime +
+          this.escapeHtml(displayTime) +
           " | Velocidade: " +
           Number(settings.effectiveSpeed || 14) +
           " campos/h" +
           " | Servidor: " +
-          server.host +
+          this.escapeHtml(server.host) +
           " (x" +
           server.speed +
           ")" +
@@ -5214,7 +5214,7 @@
         '<details class="scanner-advanced"><summary>Ver diagnóstico detalhado</summary>',
         '<div class="grid scanner-summary">',
         '<div class="card"><span>Sugestão completa</span><b>' +
-          suggestionText +
+          this.escapeHtml(suggestionText) +
           "</b></div>",
         '<div class="card"><span>Com herói</span><b>' +
           this.formatSuggestion(withHeroSuggestion) +
@@ -5223,10 +5223,10 @@
           this.formatSuggestion(withoutHeroSuggestion) +
           "</b></div>",
         '<div class="card"><span>Fator aprendido</span><b>' +
-          learnedFactorText +
+          this.escapeHtml(learnedFactorText) +
           "</b></div>",
         '<div class="card"><span>Margem confiança</span><b>' +
-          confidenceSafetyText +
+          this.escapeHtml(confidenceSafetyText) +
           "</b></div>",
         '<div class="card"><span>Defesa dos animais</span><b>' +
           (formulaAdvice?.ok
@@ -5624,7 +5624,7 @@
             '" type="checkbox"' +
             (checked ? ' checked="checked"' : "") +
             "></td>" +
-            "<td>#" +
+            '<td class="num">#' +
             String(step.id) +
             "</td>" +
             "<td>" +
@@ -5648,7 +5648,7 @@
         '<div class="card">',
         '<span>Planner de construcao</span>',
         '<div class="hint" style="margin-top:4px;">Host atual: ' +
-          String(server.host || "-") +
+          this.escapeHtml(server.host || "-") +
           "</div>",
         '<div class="hint" style="margin-top:4px;">Cadastro de vilas para seguir ordem de construcao ate a 2a aldeia.</div>',
         '<div class="grid" style="margin-top:10px;">',
@@ -5670,7 +5670,7 @@
         '<button id="nytrina-planner-clear">Limpar checklist</button>',
         "</div>",
         "</div>",
-        '<div class="card"><span>Etapas de construcao</span><div class="planner-steps-scroll"><table><thead><tr><th>Ok</th><th>#</th><th>Dia</th><th>Etapa</th><th>Tipo</th><th>Observacao</th></tr></thead><tbody>' +
+        '<div class="card"><span>Etapas de construcao</span><div class="planner-steps-scroll"><table><thead><tr><th>Ok</th><th class="num">#</th><th>Dia</th><th>Etapa</th><th>Tipo</th><th>Observacao</th></tr></thead><tbody>' +
           rows +
           "</tbody></table></div></div>",
       ].join("");
@@ -5814,7 +5814,7 @@
 
       node.innerHTML = [
         '<div class="server-badge">Servidor detectado: <b>' +
-          server.host +
+          this.escapeHtml(server.host) +
           "</b> (x" +
           server.speed +
           ")</div>",
@@ -5824,7 +5824,7 @@
           '>Auto (detectar host)</option><option value="manual"' +
           (currentServerValue !== "auto" ? " selected" : "") +
           '>Manual</option></select><input id="nytrina-setting-server" value="' +
-          manualServer +
+          this.escapeHtml(manualServer) +
           '" placeholder="ts8.x1.america.travian.com"></div>',
         '<div class="card"><span>Tribo</span><select id="nytrina-setting-tribe">' +
           tribeOptions +
@@ -6201,13 +6201,13 @@
         '</div>',
 
         '<div class="actions">',
-        '<button id="nytrina-clear-knowledge">Limpar Battle Knowledge</button>',
+        '<button id="nytrina-clear-knowledge">Limpar aprendizado</button>',
         '<button id="nytrina-rebuild-knowledge">Reconstruir via Relatórios</button>',
         "</div>",
 
         '<div class="table-scroll">',
         '<table class="debug-table"><thead><tr>',
-        "<th>#</th><th>Tropa</th><th>Enviadas</th><th>Sugestão</th><th>Acerto</th><th>Resultado</th><th>Relatório</th><th>XP</th><th>Baixas</th><th>Mortas</th><th>Enfermaria</th><th>% Baixas</th><th>Amostras</th><th>Data/Hora</th>",
+        "<th class=\"num\">#</th><th>Tropa</th><th class=\"num\">Enviadas</th><th class=\"num\">Sugestão</th><th class=\"num\">Acerto</th><th>Resultado</th><th>Relatório</th><th class=\"num\">XP</th><th class=\"num\">Baixas</th><th class=\"num\">Mortas</th><th class=\"num\">Enfermaria</th><th class=\"num\">% Baixas</th><th class=\"num\">Amostras</th><th>Data/Hora</th>",
         "</tr></thead><tbody>",
 
         debugPageRows
@@ -6232,20 +6232,22 @@
               failure: "Falha",
             };
 
+            const pct = (value) =>
+              value.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%";
+
             return (
-              "<tr><td>" +
+              '<tr><td class="num">' +
               (reportSeq > 0 ? String(reportSeq) : "-") +
               "</td><td>" +
               '<span class="debug-col-troop">' +
-              this.compactTroopLabel(row.troopType || "-") +
+              this.escapeHtml(this.compactTroopLabel(row.troopType || "-")) +
               "</span>" +
-              "</td><td>" +
-              sent +
-              "</td><td>" +
-              (suggested > 0 ? suggested : "-") +
-              "</td><td>" +
-              killRate.toFixed(1) +
-              "%" +
+              '</td><td class="num">' +
+              this.formatNumber(sent) +
+              '</td><td class="num">' +
+              (suggested > 0 ? this.formatNumber(suggested) : "-") +
+              '</td><td class="num">' +
+              pct(killRate) +
               "</td><td>" +
               '<span class="debug-col-result">' +
               (outcomeLabels[row.lastOutcome] || "-") +
@@ -6254,18 +6256,18 @@
               '<span class="debug-col-report">' +
               this.escapeHtml(String(last.reportId || row.id || "-")) +
               "</span>" +
-              "</td><td>" +
-              Math.round(row.xp || 0) +
-              "</td><td>" +
-              casualties +
-              "</td><td>" +
-              lost +
-              "</td><td>" +
-              wounded +
-              "</td><td>" +
-              casualtyRate.toFixed(1) +
-              "%</td><td>" +
-              Number(row.samples || 0) +
+              '</td><td class="num">' +
+              this.formatNumber(row.xp) +
+              '</td><td class="num">' +
+              this.formatNumber(casualties) +
+              '</td><td class="num">' +
+              this.formatNumber(lost) +
+              '</td><td class="num">' +
+              this.formatNumber(wounded) +
+              '</td><td class="num">' +
+              pct(casualtyRate) +
+              '</td><td class="num">' +
+              this.formatNumber(row.samples) +
               "</td><td>" +
               '<span class="debug-col-datetime">' +
               this.formatDateTimeFull(row.updatedAt || last.date) +
@@ -6293,11 +6295,9 @@
       node
         .querySelector("#nytrina-clear-knowledge")
         ?.addEventListener("click", async () => {
-          if (!confirm("Deseja apagar todo o Battle Knowledge?")) return;
+          if (!confirm("Apagar todo o aprendizado (conhecimento e calibrações)? Os relatórios salvos são mantidos.")) return;
 
-          for (const row of knowledgeRows) {
-            await this.storage.delete(root.Constants.STORES.STATISTICS, row.id);
-          }
+          await this.clearLearningData();
 
           await this.refresh();
         });

@@ -3,3 +3,6 @@ node_modules/
 # Backups exported from the userscript contain personal game data.
 Exportar_*.json
 NytrinA_Backup_*.json
+!backups/
+!backups/Exportar_*.json
+!backups/NytrinA_Backup_*.json
