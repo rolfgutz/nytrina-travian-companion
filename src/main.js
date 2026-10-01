@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         NytrinA Travian Companion 4.0.4
+// @name         NytrinA Travian Companion 4.1.0
 // @namespace    nytrina-travian
-// @version      4.0.4
-// @description  Companion Travian V4: parser DOM-first, scanner modular, ranking, relatorios e economia em IndexedDB.
+// @version      4.1.0
+// @description  Travian companion with scanner, empirical recommendations and transferable backups.
 // @match        *://*.travian.*/*
 // @match        *://*.travian.com/*
 // @grant        none
@@ -113,5 +113,24 @@
 
   start().catch((error) => {
     global.console.error('NytrinA bootstrap error', error);
+    const showError = () => {
+      if (!global.document.body || global.document.getElementById('nytrina-startup-error')) {
+        return;
+      }
+      const notice = global.document.createElement('div');
+      notice.id = 'nytrina-startup-error';
+      notice.textContent =
+        'NytrinA nao iniciou: ' + String(error?.message || error || 'erro desconhecido');
+      notice.style.cssText =
+        'position:fixed;top:12px;right:12px;z-index:2147483647;max-width:480px;' +
+        'padding:12px 16px;background:#4b1717;color:#fff;border:2px solid #f66;' +
+        'font:14px sans-serif;white-space:pre-wrap;';
+      global.document.body.appendChild(notice);
+    };
+    if (global.document.body) {
+      showError();
+    } else {
+      global.document.addEventListener('DOMContentLoaded', showError, { once: true });
+    }
   });
 })(window);

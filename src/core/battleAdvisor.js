@@ -47,6 +47,34 @@
     }, 0);
   }
 
+  function attackInfo(troopType) {
+    return TROOP_ATTACK[troopType] || null;
+  }
+
+  function troopsForRatio(defense, attack, ratio) {
+    if (!(defense > 0) || !(attack > 0) || !(ratio > 0)) return 0;
+    return Math.max(1, Math.ceil((defense * ratio) / attack));
+  }
+
+  // Empirical model derived from 163 real farming reports (export of
+  // Sep/2026, ts31.x3). A logistic regression of "did it fully clear" on
+  // ln(attackPower/defensePower) gave slope=3.14 / intercept=-8.42, and a
+  // separate regression of the continuous kill rate gave slope=2.04 /
+  // intercept=0.115. The previous formula (defense/attack with a flat 1.8x
+  // margin, ratio ~2.4) only reaches ~85-90% average kill rate, which is why
+  // "safe" suggestions actually cleared as little as 5% of real oases with
+  // dozens of failed reports. These ratio targets replace that broken model:
+  //   economic: ratio for ~95% average kill rate (good loot, low troop cost)
+  //   balanced: ratio for ~99% average kill rate
+  //   safe:     covers the worst observed failures (max ratio that still
+  //             failed to fully clear in the dataset was ~18) with margin,
+  //             consistent with a ~95-97% probability of a full clear.
+  const RATIO_TARGETS = {
+    economic: 4,
+    balanced: 9,
+    safe: 40,
+  };
+
   function recommend({ animals, troopType }) {
     const troop = TROOP_ATTACK[troopType] || null;
     const attack = Number(troop?.attack || 0);
@@ -62,28 +90,38 @@
       };
     }
 
-    function calc(hero) {
-      const heroBonus = hero ? 500 : 0;
-      const adjustedDefense = Math.max(defense - heroBonus, defense * 0.35);
-      const minTroops = Math.max(1, Math.ceil(adjustedDefense / attack));
-      const safeTroops = Math.max(1, Math.ceil(minTroops * 1.8));
-      const profitTroops = Math.max(1, Math.ceil(minTroops * 1.25));
+    const economicTroops = troopsForRatio(defense, attack, RATIO_TARGETS.economic);
+    const balancedTroops = troopsForRatio(defense, attack, RATIO_TARGETS.balanced);
+    const safeTroops = troopsForRatio(defense, attack, RATIO_TARGETS.safe);
 
-      return { minTroops, safeTroops, profitTroops };
-    }
+    // Hero's own attack is negligible against typical farming-scale animal
+    // defense (verified against real reports: no measurable shift in the
+    // kill-rate curve), so the same targets apply with or without hero.
+    const scenario = {
+      minTroops: economicTroops,
+      safeTroops,
+      profitTroops: balancedTroops,
+    };
 
     return {
       ok: true,
       defense,
       attack,
       cavalry,
-      withHero: calc(true),
-      withoutHero: calc(false),
+      ratioTargets: RATIO_TARGETS,
+      economicTroops,
+      balancedTroops,
+      safeTroops,
+      withHero: scenario,
+      withoutHero: scenario,
     };
   }
 
   root.BattleAdvisor = {
     recommend,
     calcAnimalDefense,
+    attackInfo,
+    troopsForRatio,
+    RATIO_TARGETS,
   };
 })(window);

@@ -171,13 +171,19 @@
      */
     async importReport(report) {
       const saved = await this.saveReport(report);
-      if (!saved) return { saved: false, learned: null };
+      if (!saved) {
+        const processed = await this.storage.get(
+          root.Constants.STORES.LEARNING_EVENTS,
+          report.reportId,
+        );
+        if (processed) return { saved: false, learned: null };
+      }
 
       const learned = await root.BattleKnowledge.learnFromReport({
         storage: this.storage,
         report,
       });
-      return { saved: true, learned };
+      return { saved, learned, recovered: !saved && Boolean(learned) };
     }
   }
 

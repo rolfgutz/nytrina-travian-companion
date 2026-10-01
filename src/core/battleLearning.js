@@ -8,69 +8,76 @@
   }
 
   function confidenceFromCalibration(calibration) {
-    const samples = Number(calibration?.samples || 0);
+    const confidence = confidenceFromKnowledge({
+      samples: calibration?.samples,
+      perfectSuccess: calibration?.perfectSamples,
+      clearedWithLosses: calibration?.clearedWithLossesSamples,
+    });
+    return {
+      label: confidence.label,
+      stars: confidence.stars,
+      score: confidence.score,
+      clearRate: confidence.clearRate,
+      lowerBound: confidence.lowerBound,
+    };
+  }
 
-    if (samples <= 0) {
+  function confidenceFromKnowledge(knowledge) {
+    const samples = Math.max(0, Number(knowledge?.samples || 0));
+    const perfect = Math.max(0, Number(knowledge?.perfectSuccess || 0));
+    const clearedWithLosses = Math.max(0, Number(knowledge?.clearedWithLosses || 0));
+    const successes = Math.min(samples, perfect + clearedWithLosses);
+    const clearRate = samples > 0 ? successes / samples : 0;
+    const perfectRate = samples > 0 ? perfect / samples : 0;
+
+    if (!samples) {
       return {
         label: "Sem dados",
-        stars: 1,
+        stars: 0,
+        starsText: "☆☆☆☆☆",
+        clearRate: 0,
+        perfectRate: 0,
+        lowerBound: 0,
         score: 0,
+        samples: 0,
       };
     }
 
-    const successSamples = Number(calibration?.successSamples || 0);
-    const perfectSamples = Number(calibration?.perfectSamples || 0);
-    const failureSamples = Number(calibration?.failureSamples || 0);
-    const successRate =
-      samples > 0 ? clamp(successSamples / samples, 0, 1) : 0;
-    const perfectRate =
-      samples > 0 ? clamp(perfectSamples / samples, 0, 1) : 0;
-    const failureRate =
-      samples > 0 ? clamp(failureSamples / samples, 0, 1) : 0;
-
-    const sampleScore = clamp(samples / 15, 0, 1);
-
-    const score =
-      sampleScore * 0.45 +
-      successRate * 0.3 +
-      perfectRate * 0.2 +
-      (1 - failureRate) * 0.05;
-
-    const stars = clamp(Math.round(score * 4) + 1, 1, 5);
+    const z = 1.96;
+    const zSquared = z * z;
+    const denominator = 1 + zSquared / samples;
+    const center = clearRate + zSquared / (2 * samples);
+    const spread = z * Math.sqrt(
+      (clearRate * (1 - clearRate) + zSquared / (4 * samples)) / samples,
+    );
+    const lowerBound = clamp((center - spread) / denominator, 0, 1);
+    const score = lowerBound * clamp(samples / 20, 0, 1);
 
     let label = "Baixa";
-    if (score >= 0.8) {
+    if (samples >= 20 && lowerBound >= 0.8) {
       label = "Alta";
-    } else if (score >= 0.5) {
+    } else if (samples >= 8 && lowerBound >= 0.6) {
       label = "Média";
+    } else if (samples < 3) {
+      label = "Muito baixa";
     }
 
+    const stars = clamp(Math.round(score * 4) + 1, 1, 5);
     return {
       label,
       stars,
+      starsText: starsText(stars),
+      clearRate,
+      perfectRate,
+      lowerBound,
       score,
+      samples,
     };
   }
 
   function starsText(stars) {
     const safe = clamp(Math.round(Number(stars || 1)), 1, 5);
     return "★".repeat(safe) + "☆".repeat(5 - safe);
-  }
-
-  function confidenceSafetyMultiplier(score, sampleCount) {
-    const safeScore = clamp(Number(score || 0), 0, 1);
-    const samples = Number(sampleCount || 0);
-
-    if (samples < 3) return 1.3;
-    if (samples < 5) return 1.26;
-    if (samples < 8) return 1.18;
-
-    // Margem automática para reduzir risco quando a base ainda é incerta.
-    // Reduzido vs original: menos penalidade quando tem dados bons
-    if (safeScore >= 0.8) return 1.03;   // Bem reduzido: 3% vs 0% antes
-    if (safeScore >= 0.6) return 1.06;   // Reduzido: 6% vs 8% antes
-    if (safeScore < 0.5) return 1.12;    // Um pouco reduzido: 12% vs 15% antes
-    return 1.08;
   }
 
   function percentile(sortedValues, p) {
@@ -81,230 +88,6 @@
     const safeP = clamp(Number(p || 0), 0, 1);
     const idx = Math.max(0, Math.min(list.length - 1, Math.ceil(list.length * safeP) - 1));
     return Number(list[idx] || 1);
-  }
-
-  function operationalConfidenceExtraMultiplier(score, sampleCount) {
-    const safeScore = clamp(Number(score || 0), 0, 1);
-    const samples = Number(sampleCount || 0);
-
-    if (samples < 3) return 1.18;
-    if (samples < 5) return 1.13;
-
-    // Com base ampla, desliga o extra operacional para evitar inflação.
-    if (samples >= 20) return 1;
-
-    // Com base razoável, reduz gradualmente
-    if (samples >= 15) return 1.05;
-    if (samples >= 10) return 1.08;
-
-    // Modo operacional: extra aplicado por cima da margem base de confiança.
-    if (safeScore < 0.5) return 1.24;
-    if (safeScore < 0.8) return 1.13;
-    return 1;
-  }
-
-  function troopUnitTotalCost(tribe, troopType) {
-    const tribeCosts = root.Troops?.costs?.[tribe] || {};
-    const match = Object.values(tribeCosts).find(
-      (unit) => String(unit?.key || "") === String(troopType || ""),
-    );
-
-    if (!match) return 0;
-
-    return (
-      Number(match.wood || 0) +
-      Number(match.clay || 0) +
-      Number(match.iron || 0) +
-      Number(match.crop || 0)
-    );
-  }
-
-  function targetCasualtyRateForTroop(unitCost, tribe, troopType) {
-    const safeUnitCost = Number(unitCost || 0);
-    const safeTribe = String(tribe || "");
-    const safeTroopType = String(troopType || "");
-
-    // Teutões no farm constante tendem a sofrer quando a taxa sobe demais.
-    // Define alvos mais rígidos para preservar lucro líquido por envio.
-    if (safeTribe === "teutons") {
-      if (safeTroopType === "teutonic_knight") return 0.032;
-      if (safeTroopType === "paladin") return 0.042;
-      if (safeTroopType === "clubman") return 0.052;
-      return 0.05;
-    }
-
-    if (safeUnitCost >= 1800) return 0.03;
-    if (safeUnitCost >= 1200) return 0.04;
-    if (safeUnitCost >= 700) return 0.055;
-    return 0.065;
-  }
-
-  function teutonProfitShieldMultiplier({
-    tribe,
-    casualtyRate,
-    sampleCount,
-    confidenceScore,
-  }) {
-    const safeTribe = String(tribe || "");
-    if (safeTribe !== "teutons") return 1;
-
-    const safeCasualtyRate = clamp(Number(casualtyRate || 0), 0, 1);
-    const samples = Number(sampleCount || 0);
-    const safeConfidence = clamp(Number(confidenceScore || 0), 0, 1);
-
-    if (samples < 4) return 1;
-    if (safeCasualtyRate >= 0.14) return 1.2;
-    if (safeCasualtyRate >= 0.1) return 1.14;
-    if (safeCasualtyRate >= 0.075) return 1.08;
-    if (safeCasualtyRate >= 0.06 && safeConfidence < 0.8) return 1.04;
-    return 1;
-  }
-
-  function preservationMultiplier({
-    tribe,
-    troopType,
-    casualtyRate,
-    confidenceScore,
-    sampleCount,
-  }) {
-    const safeCasualtyRate = clamp(Number(casualtyRate || 0), 0, 1);
-
-    if (safeCasualtyRate <= 0) return 1;
-
-    const unitCost = troopUnitTotalCost(tribe, troopType);
-    const targetRate = targetCasualtyRateForTroop(unitCost, tribe, troopType);
-
-    if (safeCasualtyRate <= targetRate) return 1;
-
-    const ratio = safeCasualtyRate / Math.max(targetRate, 0.01);
-    
-    let confidenceDampener =
-      Number(sampleCount || 0) >= 20 && Number(confidenceScore || 0) >= 0.8
-        ? 0.78
-        : Number(sampleCount || 0) >= 10 && Number(confidenceScore || 0) >= 0.6
-          ? 0.86
-          : 0.92;
-
-    // Para Teutões, quando a taxa de perda sobe, pesa mais a preservação.
-    if (String(tribe || "") === "teutons") {
-      confidenceDampener += Number(sampleCount || 0) >= 10 ? 0.03 : 0.02;
-    }
-
-    if (safeCasualtyRate >= 0.12) {
-      confidenceDampener += 0.05;
-    }
-
-    confidenceDampener = clamp(confidenceDampener, 0.7, 1.02);
-
-    return Math.max(1, Math.pow(ratio, confidenceDampener));
-  }
-
-  function preservationMultiplierCap(theoreticalTroops) {
-    const troops = Number(theoreticalTroops || 0);
-
-    if (troops <= 40) return 1.2;
-    if (troops <= 70) return 1.35;
-    if (troops <= 110) return 1.55;
-    if (troops <= 170) return 1.8;
-    return 2.05;
-  }
-
-  function totalSafetyCapByTroop({
-    tribe,
-    troopType,
-    confidenceScore,
-    sampleCount,
-  }) {
-    const unitCost = troopUnitTotalCost(tribe, troopType);
-    const score = clamp(Number(confidenceScore || 0), 0, 1);
-    const samples = Number(sampleCount || 0);
-
-    // Tropa barata (ex.: salteador) recebe teto menor para reduzir oversend
-    // e melhorar retorno líquido em farm de oásis.
-    let cap = 1.45;
-
-    if (samples < 3) cap += 0.28;
-    else if (samples < 5) cap += 0.2;
-    else if (samples < 8) cap += 0.12;
-
-    if (unitCost >= 1800) cap = 2.2;
-    else if (unitCost >= 1200) cap = 1.95;
-    else if (unitCost >= 700) cap = 1.75;
-
-    if (samples >= 20 && score >= 0.8) {
-      cap += 0.1;
-    } else if (samples >= 10 && score >= 0.6) {
-      cap += 0.05;
-    }
-
-    return cap;
-  }
-
-  function simulationSafetyMultiplier(calibration, sampleCount) {
-    const samples = Number(sampleCount || 0);
-    const avgKillRate = Number(calibration?.avgKillRate || 0);
-    const avgCasualtyRate = Number(calibration?.avgCasualtyRate || 0);
-    const negativeProfitSamples = Number(calibration?.negativeProfitSamples || 0);
-    const lossPressure = samples > 0 ? negativeProfitSamples / samples : 0;
-
-    let multiplier = 1.35;
-
-    if (samples < 3) multiplier = 2.15;
-    else if (samples < 5) multiplier = 1.85;
-    else if (samples < 8) multiplier = 1.55;
-    else if (samples < 15) multiplier = 1.32;
-    else multiplier = 1.18;
-
-    if (avgKillRate < 0.9) multiplier += 0.18;
-    if (avgKillRate < 0.8) multiplier += 0.18;
-    if (avgCasualtyRate > 0.05) multiplier += Math.min(0.2, avgCasualtyRate * 2);
-    if (lossPressure >= 0.5) multiplier += 0.18;
-    if (lossPressure >= 0.75) multiplier += 0.12;
-
-    return clamp(multiplier, 1.15, 2.6);
-  }
-
-  function economicSafetyMultiplier(calibration, troopType) {
-    const losses = Number(calibration?.sumLosses || 0);
-    const profit = Number(calibration?.sumProfit || 0);
-    const samples = Number(calibration?.samples || 0);
-    const negativeProfitSamples = Number(calibration?.negativeProfitSamples || 0);
-
-    if (samples < 5 || losses <= 0) return 1;
-
-    const roi = profit / losses;
-    const cheapTroop = ["clubman", "legionnaire", "phalanx"].includes(
-      String(troopType || ""),
-    );
-
-    // ROI ruim deve aumentar proteção (menos mortes), não derrubar envio.
-    // O ajuste anterior podia reduzir demais e provocar ciclo de baixas.
-    const lossPressure = samples > 0 ? negativeProfitSamples / samples : 0;
-
-    if (roi < 0) return cheapTroop ? 1.12 : 1.18;
-    if (roi < 0.25) return cheapTroop ? 1.08 : 1.12;
-    if (roi < 0.5) return cheapTroop ? 1.04 : 1.06;
-
-    if (lossPressure >= 0.5) return cheapTroop ? 1.05 : 1.08;
-    return 1;
-  }
-
-  function nonClearSafetyMultiplier(killRate, casualtyRate) {
-    const safeKillRate = clamp(Number(killRate || 0), 0, 1);
-    const safeCasualtyRate = clamp(Number(casualtyRate || 0), 0, 1);
-
-    let baseMultiplier = 1.15;
-
-    if (safeKillRate >= 0.95) {
-      baseMultiplier = 1.05;
-    } else if (safeKillRate >= 0.85) {
-      baseMultiplier = 1.08;
-    } else if (safeKillRate >= 0.7) {
-      baseMultiplier = 1.12;
-    }
-
-    const casualtyMultiplier = 1 + safeCasualtyRate * 1.35;
-    return Math.max(baseMultiplier, casualtyMultiplier);
   }
 
   function normalizeAnimals(animals) {
@@ -500,29 +283,50 @@
     ].join("|");
   }
 
-  function knowledgeId(tribe, troopType, xp, animals) {
+  function knowledgeId(tribe, troopType, xp, animals, hasHero = false) {
     return (
       "battleKnowledge:" +
       tribe +
       ":" +
       troopType +
       ":" +
+      (hasHero ? "hero" : "nohero") +
+      ":" +
       makeSignature(xp, animals)
     );
   }
 
-  async function getKnowledge(storage, tribe, troopType, xp, animals) {
-    const id = knowledgeId(tribe, troopType, xp, animals);
+  function legacyKnowledgeId(tribe, troopType, xp, animals) {
+    return "battleKnowledge:" + tribe + ":" + troopType + ":" + makeSignature(xp, animals);
+  }
 
-    const saved = await storage.get(root.Constants.STORES.STATISTICS, id);
+  async function getKnowledge(storage, tribe, troopType, xp, animals, hasHero = false) {
+    const id = knowledgeId(tribe, troopType, xp, animals, hasHero);
+
+    const scopedSaved = await storage.get(root.Constants.STORES.STATISTICS, id);
+    const legacySaved = scopedSaved
+      ? null
+      : await storage.get(
+          root.Constants.STORES.STATISTICS,
+          legacyKnowledgeId(tribe, troopType, xp, animals),
+        );
+    const legacyHasHero = Boolean(
+      legacySaved?.hasHero ?? legacySaved?.lastBattle?.hasHero,
+    );
+    const saved =
+      scopedSaved ||
+      (legacySaved && legacyHasHero === Boolean(hasHero) ? legacySaved : null);
 
     const knowledge = saved || {
       id,
       tribe,
       troopType,
+      hasHero: Boolean(hasHero),
       signature: makeSignature(xp, animals),
       xp: Number(xp || 0),
       animals: normalizeAnimals(animals),
+      learnedReportIds: [],
+      observations: [],
       samples: 0,
       minSuccess: 0,
       maxFailure: 0,
@@ -546,6 +350,14 @@
 
     // Compatibilidade com conhecimentos gravados pela versão antiga.
     knowledge.samples = Number(knowledge.samples || 0);
+    knowledge.id = id;
+    knowledge.hasHero = Boolean(hasHero);
+    knowledge.learnedReportIds = Array.isArray(knowledge.learnedReportIds)
+      ? knowledge.learnedReportIds.map(String)
+      : [];
+    knowledge.observations = Array.isArray(knowledge.observations)
+      ? knowledge.observations
+      : [];
     knowledge.minSuccess = Number(knowledge.minSuccess || 0);
     knowledge.maxFailure = Number(knowledge.maxFailure || 0);
 
@@ -581,32 +393,16 @@
     return knowledge;
   }
 
-  async function learnFromReport({ storage, report }) {
-    if (!report) {
-      return null;
-    }
-
-    const defaultTribe = report.tribe || "romans";
+  function observationFromReport(report) {
+    if (!report) return null;
     const resolved = resolveTroopTypeAndSent(report);
-    const tribe = resolved.tribe || defaultTribe;
-    const troopType = resolved.troopType;
-    const sent = Number(resolved.sent || 0);
-    const xp = Number(report.xp || 0);
-    const animals = report.animalsInitial || report.animalsKilled || {};
-
-    if (!troopType) {
-      return null;
-    }
-
-    if (!sent) {
-      return null;
-    }
+    const sent = Number(report.troopsSentCount || resolved.sent || 0);
+    if (sent <= 0) return null;
 
     const cleared = Boolean(report.cleared);
     const killRate = Number(report.killRate || 0);
-    const troopLossRate = Number(report.troopLossRate || 0);
     const remaining = Number(report.totalAnimalsRemaining || 0);
-
+    const troopCasualtyRate = Number(report.troopCasualtyRate || 0);
     let outcome = "failure";
 
     if (
@@ -622,30 +418,113 @@
     } else if (killRate >= 0.7) {
       outcome = "partial";
     }
+
+    // Troops needed scale with the attack/defense ratio, not linearly with
+    // killRate (killRate approaches 100% far faster than the troops needed
+    // to actually finish the job - see RATIO_TARGETS in battleAdvisor.js).
+    // sent/killRate systematically undersells how many troops are required,
+    // which is why old suggestions cleared as little as 5% of real oases.
+    const attack = root.BattleAdvisor?.attackInfo(resolved.troopType || report.troopType);
+    const animalsForDefense = report.animalsInitial || report.animalsKilled || {};
+    const defense = attack
+      ? root.BattleAdvisor.calcAnimalDefense(animalsForDefense, attack.cavalry)
+      : 0;
+    const actualRatio = attack?.attack && defense > 0 ? (sent * attack.attack) / defense : 0;
+    const targets = root.BattleAdvisor?.RATIO_TARGETS || { economic: 4, balanced: 9, safe: 40 };
+
     let estimatedClear = 0;
     let estimatedSafe = 0;
-    const troopCasualtyRate = Number(report.troopCasualtyRate || 0);
 
-    if (!cleared && sent > 0 && killRate > 0) {
-      // Estimativa proporcional para atingir 100% de eliminação.
-      estimatedClear = Math.ceil(sent / killRate);
+    if (attack?.attack && defense > 0) {
+      estimatedClear = root.BattleAdvisor.troopsForRatio(defense, attack.attack, targets.balanced);
+      estimatedSafe = root.BattleAdvisor.troopsForRatio(defense, attack.attack, targets.safe);
 
-      // Considera tanto taxa de abate quanto o peso real das baixas.
-      const safetyMultiplier = nonClearSafetyMultiplier(
-        killRate,
-        troopCasualtyRate,
-      );
-      estimatedSafe = Math.ceil(estimatedClear * safetyMultiplier);
-    } else if (outcome === "cleared_with_losses" && sent > 0) {
-      estimatedClear = sent;
+      if (!cleared && actualRatio > 0) {
+        // This exact composition failed at this ratio: raise the bar for it
+        // directly, with a 15% margin, instead of trusting the global target.
+        if (actualRatio >= targets.safe) estimatedSafe = Math.max(estimatedSafe, Math.ceil(sent * 1.15));
+        if (actualRatio >= targets.balanced) estimatedClear = Math.max(estimatedClear, Math.ceil(sent * 1.15));
+      } else if (cleared && actualRatio > 0) {
+        // Direct proof a lower ratio was enough for this exact composition.
+        if (actualRatio < targets.safe) estimatedSafe = Math.min(estimatedSafe, Math.ceil(sent * 1.05));
+        if (actualRatio < targets.balanced) estimatedClear = Math.min(estimatedClear, Math.ceil(sent * 1.05));
+      }
 
-      // Se limpou com perdas, sobe a recomendação para priorizar tentativa sem perdas.
-      const multiplier = Math.max(1.05, 1 + troopCasualtyRate * 2);
-      estimatedSafe = Math.ceil(sent * multiplier);
-    } else if (outcome === "perfect" && sent > 0) {
+      // Cleared but with casualties: keep a floor that also accounts for
+      // reducing troop losses, not just finishing off the animals.
+      if (cleared && troopCasualtyRate > 0) {
+        const casualtyFloor = Math.ceil(sent * Math.max(1.05, 1 + troopCasualtyRate * 2));
+        estimatedSafe = Math.max(estimatedSafe, casualtyFloor);
+      }
+    } else if (cleared) {
       estimatedClear = sent;
       estimatedSafe = sent;
     }
+
+    return {
+      reportId: String(report.reportId || ""),
+      sent,
+      estimatedClear,
+      estimatedSafe,
+      cleared,
+      outcome,
+      hasHero: Boolean(report.hasHero),
+      remaining,
+      killRate,
+      date: report.date || new Date().toISOString(),
+    };
+  }
+
+  async function learnFromReport({ storage, report }) {
+    if (!report) {
+      return null;
+    }
+
+    const reportId = String(report.reportId || '');
+    if (!reportId) return null;
+    const processedEvent = await storage.get(
+      root.Constants.STORES.LEARNING_EVENTS,
+      reportId,
+    );
+    if (processedEvent) return null;
+
+    const defaultTribe = report.tribe || "romans";
+    const resolved = resolveTroopTypeAndSent(report);
+    const tribe = resolved.tribe || defaultTribe;
+    const troopType = resolved.troopType;
+    const sent = Number(resolved.sent || 0);
+    const xp = Number(report.xp || 0);
+    const animals = report.animalsInitial || report.animalsKilled || {};
+    const hasHero = Boolean(report.hasHero);
+    const sentUnitTypes = Object.entries(report.troopsSent || {}).filter(
+      ([key, quantity]) => key !== "hero" && Number(quantity || 0) > 0,
+    );
+
+    if (!troopType) {
+      return null;
+    }
+
+    const theoreticalAdvice = root.BattleAdvisor?.recommend({ animals, troopType });
+    if (!theoreticalAdvice?.ok) return null;
+
+    const attackInfo = root.BattleAdvisor.attackInfo(troopType);
+    const actualRatio =
+      attackInfo?.attack && theoreticalAdvice.defense > 0
+        ? (sent * attackInfo.attack) / theoreticalAdvice.defense
+        : 0;
+
+    if (!sent) {
+      return null;
+    }
+
+    if (sentUnitTypes.length > 1) {
+      return null;
+    }
+
+    const observation = observationFromReport(report);
+    if (!observation) return null;
+    const { cleared, killRate, remaining, outcome, estimatedClear, estimatedSafe } = observation;
+    const troopLossRate = Number(report.troopLossRate || 0);
 
     const knowledge = await getKnowledge(
       storage,
@@ -653,9 +532,54 @@
       troopType,
       xp,
       animals,
+      hasHero,
     );
+    knowledge.observations = Array.isArray(knowledge.observations)
+      ? knowledge.observations
+      : [];
+
+    knowledge.learnedReportIds = Array.isArray(knowledge.learnedReportIds)
+      ? knowledge.learnedReportIds.map(String)
+      : [];
+    if (knowledge.learnedReportIds.includes(reportId)) {
+      await updateCalibration({
+        storage,
+        tribe,
+        troopType,
+        hasHero,
+        reportId,
+        actualRatio,
+        sent,
+        killRate,
+        cleared,
+        troopsLostCount: Number(report.troopsLostCount || 0),
+        troopsWoundedCount: Number(report.troopsWoundedCount || 0),
+        troopsCasualtiesCount: Number(report.troopsCasualtiesCount || 0),
+        totalAnimalsRemaining: remaining,
+        totalResources: Number(report.totalResources || 0),
+        lossCost: Number(report.lossCost || 0),
+        profit: Number(report.profit || 0),
+        date: report.date || null,
+      });
+      await storage.put(root.Constants.STORES.LEARNING_EVENTS, {
+        id: reportId,
+        reportId,
+        tribe,
+        troopType,
+        hasHero,
+        source: 'report-import',
+        learnedAt: report.date || new Date().toISOString(),
+      });
+      return knowledge;
+    }
 
     knowledge.samples++;
+    if (estimatedSafe > 0) {
+      knowledge.observations.push(observation);
+      if (knowledge.observations.length > 200) {
+        knowledge.observations = knowledge.observations.slice(-200);
+      }
+    }
 
     knowledge.lastOutcome = outcome;
     knowledge.bestKillRate = Math.max(
@@ -713,6 +637,7 @@
 
       remaining,
       killRate,
+      hasHero,
 
       troopLossRate: Number(report.troopLossRate || 0),
       troopCasualtyRate: Number(report.troopCasualtyRate || 0),
@@ -726,8 +651,8 @@
       reportSeq: Number(report.reportSeq || 0) || null,
       date: report.date || new Date().toISOString(),
     };
+    knowledge.learnedReportIds.push(reportId);
 
-    const hasHero = Boolean(report.hasHero);
     const troopsCasualtiesCount = Number(report.troopsCasualtiesCount || 0);
 
     await updateCalibration({
@@ -735,6 +660,8 @@
       tribe,
       troopType,
       hasHero,
+      reportId,
+      actualRatio,
       sent,
       killRate,
       cleared,
@@ -748,16 +675,64 @@
       date: report.date || null,
     });
 
-    return await saveKnowledge(storage, knowledge);
+    const savedKnowledge = await saveKnowledge(storage, knowledge);
+    await storage.put(root.Constants.STORES.LEARNING_EVENTS, {
+      id: reportId,
+      reportId,
+      tribe,
+      troopType,
+      hasHero,
+      source: 'report-import',
+      learnedAt: report.date || new Date().toISOString(),
+    });
+    return savedKnowledge;
   }
 
-  function suggestFromKnowledge(knowledge) {
+  function suggestFromKnowledge(knowledge, goal = "safe") {
     if (!knowledge) return null;
 
+    const normalizedGoal = ["safe", "balanced", "economic"].includes(goal)
+      ? goal
+      : "safe";
+    const knowledgeConfidence = confidenceFromKnowledge(knowledge);
+    const knowledgeTargetMet =
+      knowledgeConfidence.samples >= 20 &&
+      Number(knowledgeConfidence.lowerBound || 0) >= 0.95;
+    if (normalizedGoal === "safe" && !knowledgeTargetMet) {
+      return null;
+    }
     const samples = Number(knowledge.samples || 0);
     const last = knowledge.lastBattle || null;
     const minSuccess = Number(knowledge.minSuccess || 0);
     const estimatedSafe = Number(knowledge.estimatedSafe || 0);
+    const observations = Array.isArray(knowledge.observations)
+      ? knowledge.observations
+      : [];
+    const profileHeroMode = Boolean(knowledge.hasHero);
+    const matchingObservations = observations.filter(
+      (observation) =>
+        Boolean(observation?.hasHero ?? profileHeroMode) === profileHeroMode,
+    );
+    const empiricalValues = matchingObservations
+      .map((observation) => Number(
+        normalizedGoal === "economic"
+          ? observation?.estimatedClear
+          : observation?.estimatedSafe,
+      ))
+      .filter((value) => Number.isFinite(value) && value > 0)
+      .sort((a, b) => a - b);
+
+    if (empiricalValues.length) {
+      const quantile =
+        normalizedGoal === "economic" ? 0.5 : normalizedGoal === "balanced" ? 0.75 : 0.99;
+      return {
+        ok: true,
+        source: "knowledge-empirical-p" + Math.round(quantile * 100),
+        suggestedTroops: Math.ceil(percentile(empiricalValues, quantile)),
+        confidence: samples,
+        message: "Estimativa baseada no quantil dos resultados deste perfil.",
+      };
+    }
 
     // Já houve uma batalha perfeita.
     if (last && last.outcome === "perfect" && Number(last.sent || 0) > 0) {
@@ -779,7 +754,12 @@
       const casualtyRate = Number(last.troopCasualtyRate || 0);
 
       // Quanto mais baixas, maior a correção.
-      const multiplier = Math.max(1.05, 1 + casualtyRate * 2);
+      const multiplier =
+        normalizedGoal === "safe"
+          ? Math.max(1.05, 1 + casualtyRate * 2)
+          : normalizedGoal === "balanced"
+            ? 1.1
+            : 1;
 
       return {
         ok: true,
@@ -792,13 +772,22 @@
 
     // Ataque que não limpou: usa a estimativa proporcional com margem.
     if (estimatedSafe > 0) {
+      const estimatedClear = Number(knowledge.estimatedClear || 0);
+      const suggestedTroops =
+        normalizedGoal === "safe" || !estimatedClear
+          ? estimatedSafe
+          : normalizedGoal === "balanced"
+            ? Math.ceil(estimatedClear * 1.25)
+            : estimatedClear;
       return {
         ok: true,
         source: "knowledge-estimated",
-        suggestedTroops: estimatedSafe,
+        suggestedTroops,
         confidence: samples,
         message:
-          "Estimativa ajustada pelo percentual real de animais eliminados.",
+          normalizedGoal === "safe"
+            ? "Estimativa conservadora ajustada pelos resultados observados."
+            : "Estimativa ajustada ao objetivo selecionado e aos resultados observados.",
       };
     }
 
@@ -841,6 +830,8 @@
     updateCalibration,
     applyCalibration,
     confidenceFromCalibration,
+    confidenceFromKnowledge,
+    observationFromReport,
     starsText,
   };
 
@@ -864,6 +855,7 @@
       troopType,
       hasHero: Boolean(hasHero),
       samples: 0,
+      learnedReportIds: [],
 
       successSamples: 0,
       failureSamples: 0,
@@ -881,16 +873,22 @@
       minPerfectTroops: 0,
       maxFailedTroops: 0,
 
-      factorSum: 0,
-      averageFactor: 1,
-      maxFactor: 1,
-      factorSamples: [],
+      // Highest attack/defense ratio that still failed to fully clear, and
+      // lowest ratio proven to clear, for this troop/tribe/hero profile.
+      // Used to raise (never lower) the global RATIO_TARGETS when real
+      // reports show this profile needs more than the global model assumes.
+      maxFailRatio: 0,
+      minClearRatio: 0,
+
       lastOutcome: null,
       lastBattle: null,
       updatedAt: null,
     };
 
     calibration.samples = Number(calibration.samples || 0);
+    calibration.learnedReportIds = Array.isArray(calibration.learnedReportIds)
+      ? calibration.learnedReportIds.map(String)
+      : [];
     calibration.successSamples = Number(calibration.successSamples || 0);
     calibration.failureSamples = Number(calibration.failureSamples || 0);
     calibration.perfectSamples = Number(calibration.perfectSamples || 0);
@@ -908,14 +906,8 @@
     calibration.minClearTroops = Number(calibration.minClearTroops || 0);
     calibration.minPerfectTroops = Number(calibration.minPerfectTroops || 0);
     calibration.maxFailedTroops = Number(calibration.maxFailedTroops || 0);
-    calibration.factorSum = Number(calibration.factorSum || 0);
-    calibration.averageFactor = Number(calibration.averageFactor || 1);
-    calibration.maxFactor = Number(calibration.maxFactor || 1);
-    calibration.factorSamples = Array.isArray(calibration.factorSamples)
-      ? calibration.factorSamples
-          .map((value) => Number(value || 0))
-          .filter((value) => Number.isFinite(value) && value >= 1)
-      : [];
+    calibration.maxFailRatio = Number(calibration.maxFailRatio || 0);
+    calibration.minClearRatio = Number(calibration.minClearRatio || 0);
     calibration.hasHero = Boolean(hasHero);
 
     if (calibration.lastOutcome === undefined) {
@@ -953,6 +945,16 @@
 
     const id = calibrationId(tribe, troopType, hasHero);
     await storage.delete(root.Constants.STORES.STATISTICS, id);
+    const events = await storage.getAll(root.Constants.STORES.LEARNING_EVENTS);
+    for (const event of events) {
+      if (
+        String(event?.tribe || "") === String(tribe || "romans") &&
+        String(event?.troopType || "") === String(troopType) &&
+        Boolean(event?.hasHero) === Boolean(hasHero)
+      ) {
+        await storage.delete(root.Constants.STORES.LEARNING_EVENTS, event.id);
+      }
+    }
     return true;
   }
 
@@ -961,6 +963,8 @@
     tribe,
     troopType,
     hasHero,
+    reportId,
+    actualRatio,
     sent,
     killRate,
     cleared,
@@ -992,20 +996,12 @@
         ? "almost_cleared"
         : "failure";
 
-    let requiredSafe = sent;
-
-    if (!cleared) {
-      const estimatedClear = sent / killRate;
-
-      const margin = nonClearSafetyMultiplier(killRate, casualtyRate);
-      requiredSafe = estimatedClear * margin;
-    } else {
-      if (casualtyRate > 0) {
-        requiredSafe = sent * Math.max(1.05, 1 + casualtyRate * 2);
-      }
-    }
-
-    const factor = Math.max(1, requiredSafe / sent);
+    const ratio = Number(actualRatio || 0);
+    const requiredSafe = cleared
+      ? sent
+      : ratio > 0
+        ? Math.ceil(sent * ((Number(root.BattleAdvisor?.RATIO_TARGETS?.safe || 40)) / ratio))
+        : sent;
 
     const calibration = await getCalibration(
       storage,
@@ -1013,6 +1009,12 @@
       troopType,
       hasHero,
     );
+    calibration.learnedReportIds = Array.isArray(calibration.learnedReportIds)
+      ? calibration.learnedReportIds.map(String)
+      : [];
+    if (reportId && calibration.learnedReportIds.includes(String(reportId))) {
+      return calibration;
+    }
 
     calibration.samples += 1;
     calibration.sumKillRate += clamp(killRate, 0, 1);
@@ -1033,6 +1035,13 @@
           ? Math.min(calibration.minClearTroops, sent)
           : sent;
 
+      if (ratio > 0) {
+        calibration.minClearRatio =
+          calibration.minClearRatio > 0
+            ? Math.min(calibration.minClearRatio, ratio)
+            : ratio;
+      }
+
       if (casualties === 0) {
         calibration.perfectSamples += 1;
         calibration.minPerfectTroops =
@@ -1048,18 +1057,12 @@
         Number(calibration.maxFailedTroops || 0),
         sent,
       );
+
+      if (ratio > 0) {
+        calibration.maxFailRatio = Math.max(Number(calibration.maxFailRatio || 0), ratio);
+      }
     }
 
-    calibration.factorSum += factor;
-    calibration.averageFactor = calibration.factorSum / calibration.samples;
-    calibration.maxFactor = Math.max(
-      Number(calibration.maxFactor || 1),
-      factor,
-    );
-    calibration.factorSamples.push(factor);
-    if (calibration.factorSamples.length > 200) {
-      calibration.factorSamples = calibration.factorSamples.slice(-200);
-    }
     calibration.lastOutcome = outcome;
     calibration.lastBattle = {
       sent,
@@ -1069,6 +1072,8 @@
       remaining,
       cleared,
       outcome,
+      ratio,
+      reportId: reportId || null,
       totalResources: Number(totalResources || 0),
       lossCost: Number(lossCost || 0),
       profit: Number(profit || 0),
@@ -1084,6 +1089,7 @@
     calibration.confidenceStars = confidence.stars;
 
     calibration.updatedAt = new Date().toISOString();
+    if (reportId) calibration.learnedReportIds.push(String(reportId));
 
     await storage.put(root.Constants.STORES.STATISTICS, calibration);
 
@@ -1095,164 +1101,81 @@
     tribe,
     troopType,
     hasHero,
+    defense,
+    attack,
     theoreticalTroops,
+    goal = "safe",
   }) {
+    const normalizedGoal = ["safe", "balanced", "economic"].includes(goal)
+      ? goal
+      : "safe";
+    const ratioTargets = root.BattleAdvisor?.RATIO_TARGETS || {
+      economic: 4,
+      balanced: 9,
+      safe: 40,
+    };
+    const baseRatio = ratioTargets[normalizedGoal];
+    const safeDefense = Number(defense || 0);
+    const safeAttack = Number(attack || 0);
     const theoretical = Number(theoreticalTroops || 0);
 
-    if (theoretical <= 0) {
+    if (safeDefense <= 0 || safeAttack <= 0) {
+      if (theoretical <= 0) {
+        return { troops: 0, factor: 1, samples: 0 };
+      }
+      // Fallback for call sites that can't provide raw defense/attack yet:
+      // scale the given theoretical (economic-ratio) baseline proportionally.
+      const fallbackTroops = Math.ceil(theoretical * (baseRatio / ratioTargets.economic));
       return {
-        troops: 0,
-        factor: 1,
+        troops: fallbackTroops,
+        factor: baseRatio / ratioTargets.economic,
         samples: 0,
-      };
-    }
-
-    const calibration = await getCalibration(
-      storage,
-      tribe,
-      troopType,
-      hasHero,
-    );
-
-    const sampleCount = Number(calibration.samples || 0);
-
-    if (sampleCount <= 0) {
-      return {
-        troops: Math.ceil(theoretical),
-        factor: 1,
-        samples: 0,
-        source: "Cálculo teórico",
+        source: "Cálculo teórico (razão ataque/defesa)",
         confidence: "Sem dados",
         stars: 1,
         starsText: starsText(1),
         basedOn: 0,
-        learnedFloor: 0,
-        successSamples: 0,
-        perfectSamples: 0,
-        failureSamples: 0,
+        goal: normalizedGoal,
       };
     }
 
-    const averageFactor = Number(calibration.averageFactor || 1);
-    const sortedFactorSamples = Array.isArray(calibration.factorSamples)
-      ? calibration.factorSamples
-          .map((value) => Number(value || 0))
-          .filter((value) => Number.isFinite(value) && value >= 1)
-          .sort((a, b) => a - b)
-      : [];
+    const calibration = await getCalibration(storage, tribe, troopType, hasHero);
+    const sampleCount = Number(calibration.samples || 0);
 
-    const percentileP90 = percentile(sortedFactorSamples, 0.9);
-    const robustHighFactor = Math.max(averageFactor, percentileP90);
+    // Real reports for this troop/tribe/hero profile can only ever raise the
+    // ratio target (never lower it below the data-grounded global default),
+    // with a 15% margin above the hardest failure actually observed.
+    const maxFailRatio = Number(calibration.maxFailRatio || 0);
+    const effectiveRatio =
+      maxFailRatio > 0 && maxFailRatio * 1.15 > baseRatio
+        ? maxFailRatio * 1.15
+        : baseRatio;
 
-    // Limita quanto o fator alto pode puxar acima da média aprendida.
-    const cappedHighFactor = Math.min(
-      robustHighFactor,
-      Math.max(1.8, averageFactor * 1.68),  // Aumenta levemente de 1.65 para 1.68
-    );
-
-    const boundedMaxInfluence = 1 + (Math.max(cappedHighFactor, 1) - 1) * 0.9;
-    const maxWeight = clamp((sampleCount - 3) / 10, 0, 1) * 0.35;
-    
-    const blendedFactor =
-      averageFactor * (1 - maxWeight) + boundedMaxInfluence * maxWeight;
-    const learnedFactor = Math.max(1, blendedFactor);
-
-    let learnedFloor = 0;
-
-    if (sampleCount >= 3 && Number(calibration.minPerfectTroops || 0) > 0) {
-      learnedFloor = Number(calibration.minPerfectTroops || 0);
-    } else if (sampleCount >= 3 && Number(calibration.minClearTroops || 0) > 0) {
-      const casualtyBias = clamp(Number(calibration.avgCasualtyRate || 0), 0, 1);
-      learnedFloor = Math.ceil(
-        Number(calibration.minClearTroops || 0) * Math.max(1.04, 1 + casualtyBias),
-      );
-    }
-
-    if (sampleCount >= 3 && Number(calibration.maxFailedTroops || 0) > 0) {
-      learnedFloor = Math.max(
-        Number(learnedFloor || 0),
-        Number(calibration.maxFailedTroops || 0) + 1,
-      );
-    }
-
+    const troops = root.BattleAdvisor.troopsForRatio(safeDefense, safeAttack, effectiveRatio);
     const confidence = confidenceFromCalibration(calibration);
-    const factorTroops = Math.ceil(theoretical * learnedFactor);
-    const floorCandidate = Number(learnedFloor || 0);
+    const confidenceTargetMet =
+      sampleCount >= 20 && Number(confidence.lowerBound || 0) >= 0.95;
 
-    // Aumenta limite do piso apenas com confiança MUITO alta
-    const hardFloorLimitMultiplier = confidence.score >= 0.8 && sampleCount >= 20 ? 1.42 : 1.35;
-    const hardFloorLimit = Math.ceil(factorTroops * hardFloorLimitMultiplier);
-
-    const canUseHardFloor =
-      sampleCount >= 6 &&
-      confidence.score >= 0.5 &&
-      floorCandidate > 0 &&
-      floorCandidate <= hardFloorLimit;
-
-    const effectiveFloor = canUseHardFloor ? floorCandidate : 0;
-    const baseTroops = Math.max(factorTroops, Math.ceil(effectiveFloor));
-    const baseSafetyMultiplier = confidenceSafetyMultiplier(
-      confidence.score,
-      sampleCount,
-    );
-    const operationalExtraMultiplier = operationalConfidenceExtraMultiplier(
-      confidence.score,
-      sampleCount,
-    );
-    const rawPreservationSafetyMultiplier = preservationMultiplier({
-      tribe,
-      troopType,
-      casualtyRate: Number(calibration.avgCasualtyRate || 0),
-      confidenceScore: confidence.score,
-      sampleCount,
-    });
-    const profitShieldMultiplier = teutonProfitShieldMultiplier({
-      tribe,
-      casualtyRate: Number(calibration.avgCasualtyRate || 0),
-      sampleCount,
-      confidenceScore: confidence.score,
-    });
-    const preservationSafetyMultiplier = Math.min(
-      rawPreservationSafetyMultiplier * profitShieldMultiplier,
-      preservationMultiplierCap(theoretical),
-    );
-    const rawSafetyMultiplier =
-      baseSafetyMultiplier *
-      operationalExtraMultiplier *
-      preservationSafetyMultiplier;
-    const economicMultiplier = economicSafetyMultiplier(calibration, troopType);
-    const simulationMultiplier = simulationSafetyMultiplier(calibration, sampleCount);
-    const maxTotalSafetyMultiplier = totalSafetyCapByTroop({
-      tribe,
-      troopType,
-      confidenceScore: confidence.score,
-      sampleCount,
-    });
-    const safetyMultiplier = Math.min(
-      Math.max(1, rawSafetyMultiplier * economicMultiplier * simulationMultiplier),
-      maxTotalSafetyMultiplier,
-    );
-    const troopsWithSafety = Math.ceil(baseTroops * safetyMultiplier);
-
-    let source = "Cálculo ajustado pelo aprendizado";
-    if (confidence.score >= 0.65 && sampleCount >= 8) {
-      source = "IA Aprendida";
-    }
+    const source =
+      effectiveRatio > baseRatio
+        ? "Razão ataque/defesa ajustada por falha real observada"
+        : sampleCount > 0
+          ? "Razão ataque/defesa (dados do export) + histórico deste perfil"
+          : "Razão ataque/defesa (dados do export)";
 
     return {
-      troops: troopsWithSafety,
-      factor: learnedFactor,
-      samples: Number(calibration.samples || 0),
+      troops,
+      factor: effectiveRatio / ratioTargets.economic,
+      ratio: effectiveRatio,
+      samples: sampleCount,
       source,
-      confidence: confidence.label,
-      stars: confidence.stars,
-      starsText: starsText(confidence.stars),
-      basedOn: Number(calibration.samples || 0),
-      learnedFloor: Math.ceil(Number(learnedFloor || 0)),
-      learnedFloorApplied: Boolean(canUseHardFloor && learnedFloor > 0),
-      confidenceSafetyMultiplier: safetyMultiplier,
-      preservationSafetyMultiplier,
-      economicSafetyMultiplier: economicMultiplier,
+      confidence: sampleCount > 0 ? confidence.label : "Sem dados",
+      stars: sampleCount > 0 ? confidence.stars : 1,
+      starsText: starsText(sampleCount > 0 ? confidence.stars : 1),
+      basedOn: sampleCount,
+      confidenceTarget: 0.95,
+      confidenceTargetMet,
+      goal: normalizedGoal,
       economicRoi:
         Number(calibration.sumLosses || 0) > 0
           ? Number(calibration.sumProfit || 0) /

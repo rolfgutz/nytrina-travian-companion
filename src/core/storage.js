@@ -57,9 +57,157 @@
         if (!db.objectStoreNames.contains(stores.HISTORY)) {
           db.createObjectStore(stores.HISTORY, { keyPath: 'id' });
         }
+        if (!db.objectStoreNames.contains(stores.LEARNING_EVENTS)) {
+          db.createObjectStore(stores.LEARNING_EVENTS, { keyPath: 'id' });
+        }
       };
 
       this.db = await requestToPromise(openRequest);
+      await this.migrateLearningEvents();
+    }
+
+    attachLearnedReportIds(statistics, reports, learningEvents = []) {
+      if (!root.BattleKnowledge) return { learnedIds: new Set(), changed: false };
+      const byId = new Map(statistics.map((row) => [String(row.id), row]));
+      const learnedIds = new Set();
+      const eventIds = new Set(learningEvents.map((event) => String(event.id || event.reportId)));
+      const profileFor = (report) => {
+        const troopType = String(report?.troopType || '');
+        const tribe = String(report?.tribe || 'romans');
+        if (!troopType) return null;
+        const animals = report.animalsInitial || report.animalsKilled || {};
+        const scopedId = root.BattleKnowledge.knowledgeId(
+          tribe,
+          troopType,
+          report.xp,
+          animals,
+          Boolean(report.hasHero),
+        );
+        const legacyId =
+          'battleKnowledge:' + tribe + ':' + troopType + ':' +
+          root.BattleKnowledge.makeSignature(report.xp, animals);
+        return byId.get(scopedId) || byId.get(legacyId) || null;
+      };
+      const candidateCounts = new Map();
+      for (const report of reports) {
+        const knowledge = profileFor(report);
+        if (knowledge) {
+          const key = String(knowledge.id);
+          candidateCounts.set(key, (candidateCounts.get(key) || 0) + 1);
+        }
+      }
+      let changed = false;
+
+      for (const report of reports) {
+        const reportId = String(report?.reportId || '');
+        const troopType = String(report?.troopType || '');
+        const tribe = String(report?.tribe || 'romans');
+        if (!reportId || !troopType || Number(report?.troopsSentCount || 0) <= 0) continue;
+        const sentTypes = Object.entries(report.troopsSent || {}).filter(
+          ([key, quantity]) => key !== 'hero' && Number(quantity || 0) > 0,
+        );
+        if (sentTypes.length > 1) continue;
+
+        const animals = report.animalsInitial || report.animalsKilled || {};
+        const hasHero = Boolean(report.hasHero);
+        const knowledge = profileFor(report);
+        if (!knowledge) continue;
+
+        knowledge.learnedReportIds = Array.isArray(knowledge.learnedReportIds)
+          ? knowledge.learnedReportIds.map(String)
+          : [];
+        knowledge.observations = Array.isArray(knowledge.observations)
+          ? knowledge.observations
+          : [];
+        const hasExplicitReportIds =
+          knowledge.learnedReportIds.length > 0 ||
+          knowledge.observations.some((item) => item?.reportId);
+        const reportIsKnown =
+          eventIds.has(reportId) ||
+          knowledge.learnedReportIds.includes(reportId) ||
+          knowledge.observations.some((item) => String(item?.reportId || '') === reportId) ||
+          (!hasExplicitReportIds && String(knowledge.lastBattle?.reportId || '') === reportId) ||
+          (!hasExplicitReportIds &&
+            !knowledge.lastBattle?.reportId &&
+            Number(knowledge.samples || 0) >=
+              Number(candidateCounts.get(String(knowledge.id)) || 0));
+        if (!reportIsKnown) continue;
+
+        if (!knowledge.learnedReportIds.includes(reportId)) {
+          knowledge.learnedReportIds.push(reportId);
+          changed = true;
+        }
+        if (!knowledge.observations.some((item) => String(item?.reportId) === reportId)) {
+          const observation = root.BattleKnowledge.observationFromReport(report);
+          if (observation?.estimatedSafe > 0) {
+            knowledge.observations.push(observation);
+            if (knowledge.observations.length > 200) {
+              knowledge.observations = knowledge.observations.slice(-200);
+            }
+            changed = true;
+          }
+        }
+
+        const calibrationId = root.BattleKnowledge.calibrationId(
+          tribe,
+          troopType,
+          hasHero,
+        );
+        const calibration = byId.get(calibrationId);
+        if (calibration) {
+          calibration.learnedReportIds = Array.isArray(calibration.learnedReportIds)
+            ? calibration.learnedReportIds.map(String)
+            : [];
+          if (!calibration.learnedReportIds.includes(reportId)) {
+            calibration.learnedReportIds.push(reportId);
+            changed = true;
+          }
+        }
+        learnedIds.add(reportId);
+      }
+
+      return { learnedIds, changed };
+    }
+
+    async migrateLearningEvents() {
+      if (!this.db || !root.BattleKnowledge) return;
+      const S = constants.STORES;
+      const [reports, statistics, events] = await Promise.all([
+        this.getAll(S.REPORTS),
+        this.getAll(S.STATISTICS),
+        this.getAll(S.LEARNING_EVENTS),
+      ]);
+      const knownEvents = new Set(events.map((row) => String(row.id)));
+      const { learnedIds, changed } = this.attachLearnedReportIds(
+        statistics,
+        reports,
+        events,
+      );
+      const pending = [];
+
+      for (const report of reports) {
+        const reportId = String(report?.reportId || '');
+        if (!reportId || knownEvents.has(reportId) || !learnedIds.has(reportId)) continue;
+
+        pending.push({
+          id: reportId,
+          reportId,
+          tribe: report.tribe || 'romans',
+          troopType: report.troopType,
+          hasHero: Boolean(report.hasHero),
+          source: 'legacy-migration',
+          learnedAt: report.date || new Date().toISOString(),
+        });
+      }
+
+      if (pending.length || changed) {
+        await this.runTransaction([S.STATISTICS, S.LEARNING_EVENTS], (tx) => {
+          const statisticsStore = tx.objectStore(S.STATISTICS);
+          statistics.forEach((row) => statisticsStore.put(row));
+          const eventsStore = tx.objectStore(S.LEARNING_EVENTS);
+          pending.forEach((event) => eventsStore.put(event));
+        });
+      }
     }
 
     /**
@@ -151,22 +299,24 @@
       );
 
       return {
+        schemaVersion: 2,
         version: String(constants.APP_VERSION || '4.0.0'),
         createdAt: new Date().toISOString(),
         host: this.host,
         stores: data,
         counts,
-
-        // Seções amigáveis para restauração entre versões.
-        settings: data[constants.STORES.SETTINGS] || [],
-        reports: data[constants.STORES.REPORTS] || [],
-        history: data[constants.STORES.HISTORY] || [],
-        statistics,
-        battleKnowledge,
-        battleCalibration,
-        scanner: data[constants.STORES.OASIS] || [],
-        oasis: data[constants.STORES.OASIS] || [],
       };
+    }
+
+    validateBackupHost(backup) {
+      const backupHost = String(backup?.host || '').trim().toLowerCase();
+      const currentHost = String(this.host || '').trim().toLowerCase();
+      if (backupHost && currentHost && backupHost !== currentHost) {
+        throw new Error(
+          'Este backup pertence ao servidor ' + backupHost +
+          ', mas o servidor atual e ' + currentHost + '.',
+        );
+      }
     }
 
     /**
@@ -224,6 +374,9 @@
       const historyRows = asArray(
         storeData[constants.STORES.HISTORY] ?? backup.history,
       );
+      const learningEventRows = asArray(
+        storeData[constants.STORES.LEARNING_EVENTS] ?? backup.learningEvents,
+      );
 
       const statisticsMap = new Map();
 
@@ -242,6 +395,32 @@
       });
 
       const statisticsRows = Array.from(statisticsMap.values());
+      const learnedReportIds = this.attachLearnedReportIds(
+        statisticsRows,
+        reportsRows,
+        learningEventRows,
+      );
+      const learningEventsById = new Map(
+        learningEventRows
+          .filter((row) => row && row.id)
+          .map((row) => [String(row.id), row]),
+      );
+      const reportsById = new Map(
+        reportsRows.map((row) => [String(row.reportId), row]),
+      );
+      learnedReportIds.learnedIds.forEach((reportId) => {
+        if (!learningEventsById.has(reportId)) {
+          const report = reportsById.get(reportId) || {};
+          learningEventsById.set(reportId, {
+            id: reportId,
+            reportId,
+            tribe: report.tribe || 'romans',
+            troopType: report.troopType || null,
+            hasHero: Boolean(report.hasHero),
+            source: 'legacy-backup-migration',
+          });
+        }
+      });
       const withKey = (rows, key) =>
         rows.filter((row) => row && row[key] !== undefined && row[key] !== null);
 
@@ -251,6 +430,7 @@
         [constants.STORES.SETTINGS]: withKey(settingsRows, 'id'),
         [constants.STORES.HISTORY]: withKey(historyRows, 'id'),
         [constants.STORES.STATISTICS]: statisticsRows,
+        [constants.STORES.LEARNING_EVENTS]: Array.from(learningEventsById.values()),
       };
     }
 
@@ -259,6 +439,7 @@
      * @returns {Promise<Record<string, number>>}
      */
     async importBackup(backup) {
+      this.validateBackupHost(backup);
       const rows = this.readBackupRows(backup);
       const stores = this.getStoreNames();
 
@@ -274,6 +455,12 @@
       for (const storeName of stores) {
         counts[storeName] = (rows[storeName] || []).length;
       }
+      const learnedReportIds = new Set(
+        rows[constants.STORES.LEARNING_EVENTS].map((event) => String(event.id)),
+      );
+      counts.reportsToLearn = rows[constants.STORES.REPORTS].filter(
+        (report) => !learnedReportIds.has(String(report.reportId)),
+      );
       return counts;
     }
 
@@ -283,6 +470,7 @@
      * @returns {Promise<{newReports:Array<any>,history:number,oasis:number}>}
      */
     async mergeBackup(backup) {
+      this.validateBackupHost(backup);
       const rows = this.readBackupRows(backup);
       const S = constants.STORES;
       const timeOf = (row) =>
@@ -297,6 +485,12 @@
       const localOasis = new Map(
         (await this.getAll(S.OASIS)).map((row) => [String(row.id), row]),
       );
+      const localStatistics = new Map(
+        (await this.getAll(S.STATISTICS)).map((row) => [String(row.id), row]),
+      );
+      const localLearningEvents = new Set(
+        (await this.getAll(S.LEARNING_EVENTS)).map((row) => String(row.id)),
+      );
 
       const newReports = rows[S.REPORTS].filter(
         (row) => !localReportIds.has(String(row.reportId)),
@@ -308,17 +502,83 @@
         const current = localOasis.get(String(row.id));
         return !current || timeOf(row) > timeOf(current);
       });
-
-      await this.runTransaction([S.REPORTS, S.HISTORY, S.OASIS], (tx) => {
-        newReports.forEach((row) => tx.objectStore(S.REPORTS).put(row));
-        newHistory.forEach((row) => tx.objectStore(S.HISTORY).put(row));
-        oasisToWrite.forEach((row) => tx.objectStore(S.OASIS).put(row));
+      const statisticsToWrite = rows[S.STATISTICS].filter((row) => {
+        const current = localStatistics.get(String(row.id));
+        if (!current) return true;
+        const incomingSamples = Number(row.samples || 0);
+        const currentSamples = Number(current.samples || 0);
+        if (incomingSamples !== currentSamples) {
+          return incomingSamples > currentSamples;
+        }
+        return timeOf(row) > timeOf(current);
       });
+      const statisticsToWriteIds = new Set(
+        statisticsToWrite.map((row) => String(row.id)),
+      );
+      const incomingReportsById = new Map(
+        rows[S.REPORTS].map((row) => [String(row.reportId), row]),
+      );
+      const appliedLearningEventIds = new Set();
+      for (const event of rows[S.LEARNING_EVENTS]) {
+        const reportId = String(event.id || event.reportId || '');
+        const report = incomingReportsById.get(reportId) || {};
+        const tribe = String(event.tribe || report.tribe || 'romans');
+        const troopType = String(event.troopType || report.troopType || '');
+        const hasHero = Boolean(event.hasHero ?? report.hasHero);
+        if (!reportId || !troopType) continue;
+        const knowledgeId = root.BattleKnowledge?.knowledgeId(
+          tribe,
+          troopType,
+          report.xp,
+          report.animalsInitial || report.animalsKilled || {},
+          hasHero,
+        );
+        const legacyKnowledgeId =
+          'battleKnowledge:' + tribe + ':' + troopType + ':' +
+          (root.BattleKnowledge?.makeSignature(
+            report.xp,
+            report.animalsInitial || report.animalsKilled || {},
+          ) || '');
+        const localKnowledge =
+          localStatistics.get(knowledgeId) || localStatistics.get(legacyKnowledgeId);
+        const snapshotIncludesEvent =
+          (knowledgeId && statisticsToWriteIds.has(knowledgeId)) ||
+          (legacyKnowledgeId && statisticsToWriteIds.has(legacyKnowledgeId));
+        const localIncludesEvent =
+          localKnowledge?.learnedReportIds?.map(String).includes(reportId) || false;
+        if (snapshotIncludesEvent || localIncludesEvent) {
+          appliedLearningEventIds.add(reportId);
+        }
+      }
+      const learningEventsToWrite = rows[S.LEARNING_EVENTS].filter((row) => {
+        const reportId = String(row.id || row.reportId || '');
+        return !localLearningEvents.has(reportId) &&
+          appliedLearningEventIds.has(reportId);
+      });
+      const reportsToLearn = newReports.filter((row) => {
+        const reportId = String(row.reportId);
+        return !localLearningEvents.has(reportId) &&
+          !appliedLearningEventIds.has(reportId);
+      });
+
+      await this.runTransaction(
+        [S.REPORTS, S.HISTORY, S.OASIS, S.STATISTICS, S.LEARNING_EVENTS],
+        (tx) => {
+          newReports.forEach((row) => tx.objectStore(S.REPORTS).put(row));
+          newHistory.forEach((row) => tx.objectStore(S.HISTORY).put(row));
+          oasisToWrite.forEach((row) => tx.objectStore(S.OASIS).put(row));
+          statisticsToWrite.forEach((row) => tx.objectStore(S.STATISTICS).put(row));
+          learningEventsToWrite.forEach((row) => tx.objectStore(S.LEARNING_EVENTS).put(row));
+        },
+      );
 
       return {
         newReports,
+        reportsToLearn,
         history: newHistory.length,
         oasis: oasisToWrite.length,
+        statistics: statisticsToWrite.length,
+        learningEvents: learningEventsToWrite.length,
       };
     }
   }
